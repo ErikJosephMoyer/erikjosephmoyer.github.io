@@ -5,9 +5,9 @@ baseurl: ""
 url: ""
 
 # Build settings
-markdown: kramdown
-plugins:
-  - jekyll-feed
+# markdown: kramdown
+# plugins:
+#   - jekyll-feed
 
 # Exclude from processing
 exclude:
