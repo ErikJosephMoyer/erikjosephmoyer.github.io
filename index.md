@@ -2,23 +2,25 @@
 layout: home
 ---
 
+<h1 style="text-align: center; font-size: 36px; margin-bottom: 30px;">Erik's Very Own Webpage</h1>
+
 <div style="text-align: center; margin-bottom: 30px;">
   <img src="/assets/images/profile.jpg" alt="Erik Moyer" style="width: 300px; height: 300px; border-radius: 50%; object-fit: cover;">
 </div>
 
-## About
+<h2 style="text-align: center; font-size: 24px;">About</h2>
 
 Erik Moyer is a teaching fellow and doctoral candidate in creative writing at the University of North Texas. He holds an MFA in writing from the University of California, Irvine and a BS in systems engineering and poetry writing from the University of Virginia. His work appears in *Arts & Letters, Epiphany, The New York Times, Oxford Poetry, The Pinch*, and elsewhere. Outside of school, he works as a data engineer. In past lives, he's worked as an emergency medical technician and a varsity umpire. In his free time, he enjoys writing songs, performing stand-up, playing chess, and convincing his cat, Xena, that shoelaces are, in fact, snakes. He lives in Denton, Texas.
 
-## Discography
+<h2 style="text-align: center; font-size: 24px;">Discography</h2>
 
 [*Honest Thomas*](https://share.amuse.io/DXgagTpCkBVg), Erik Moyer, *Spotify, Apple, & YouTube*, LP, Songs, August 2019
 
 [*Two-Minute Warnings*](https://soundcloud.com/erikjosephmoyer/sets/two-minute-warnings), Erik Moyer, *Soundcloud*, Mixtape, Electronica Demos, March 2025
 
-## Publications
+<h2 style="text-align: center; font-size: 24px;">Publications</h2>
 
-**Poetry**
+<h3 style="font-size: 18px; font-weight: normal;">Poetry</h3>
 
 "Push, Pull, Dig," *The Pinch*, University of Memphis, Print, Forthcoming, September 2025
 
@@ -70,21 +72,21 @@ Erik Moyer is a teaching fellow and doctoral candidate in creative writing at th
 
 "[Before Di Fara's" & "Watching Episodes of Chopped Junior](http://issuu.com/newreadermagazine/docs/nrm-third-issue)," *New Reader Magazine*, Online, September 2018
 
-**Fiction**
+<h3 style="font-size: 18px; font-weight: normal;">Fiction</h3>
 
 "[The Chronicles of Jackie Flapjacks](http://carteblanchemagazine.com/issue-51/moyer-the-chronicles-of-jackie-flapjacks)," *Carte Blanche*, Online, June 2025
 
-**Creative Nonfiction**
+<h3 style="font-size: 18px; font-weight: normal;">Creative Nonfiction</h3>
 
 "[Self-Portrait as Baby](http://phoebejournal.com/self-portrait-as-baby/)," *Phoebe Journal*, George Mason University, Online, May 2025
 
 "[Ride-Share Roulette](http://nytimes.com/2025/03/05/style/tiny-modern-love-stories-serendipity-still-exists.html)," *The New York Times*, *Modern Love* column, Online & Print, March 2025
 
-**Humor**
+<h3 style="font-size: 18px; font-weight: normal;">Humor</h3>
 
 "[State Championship" & "Sticks and Stones](http://pointsincase.com/author/erik-moyer)," *Points in Case*, Online, October 2024
 
-## Contact
+<h2 style="text-align: center; font-size: 24px;">Contact</h2>
 
 [Email](mailto:erikjosephmoyer@gmail.com)
 
