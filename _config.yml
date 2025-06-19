@@ -9,10 +9,6 @@ markdown: kramdown
 plugins:
   - jekyll-feed
 
-# Minima date format
-minima:
-  date_format: "%b %-d, %Y"
-
 # Exclude from processing
 exclude:
   - Gemfile
