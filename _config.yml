@@ -1,3 +1,25 @@
+# Site settings
 title: Erik Joseph Moyer
 description: Erik's Very Own Webpage
+baseurl: ""
+url: ""
+
+# Build settings
+markdown: kramdown
 theme: minima
+plugins:
+  - jekyll-feed
+
+# Minima date format
+minima:
+  date_format: "%b %-d, %Y"
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
