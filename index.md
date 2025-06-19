@@ -4,7 +4,7 @@ layout: default
 
 <h1>Erik's Very Own Webpage</h1>
 
-<div class="center" style="margin-bottom: 30px;">
+<div style="text-align: center; margin-bottom: 30px;">
   <img src="/assets/images/profile.jpg" alt="Erik Moyer" class="profile-img">
 </div>
 
@@ -92,6 +92,6 @@ Erik Moyer is a teaching fellow and doctoral candidate in creative writing at th
 
 [LinkedIn](https://linkedin.com/in/erikmoyer/)
 
-<div class="center" style="margin-top: 40px;">
+<div style="text-align: center; margin-top: 40px;">
   <img src="/assets/images/xena.jpg" alt="Xena the cat" class="cat-img">
 </div>
