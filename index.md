@@ -64,7 +64,7 @@ Erik Moyer is a teaching fellow and doctoral candidate in creative writing at th
 
 "[Snooze](http://apricitymagazine.com/portfolio/snooze)," *Apricity Magazine*, University of Texas at Austin, Online, January 2022
 
-"[HIPAA Violations](http://constellations-lit.com/issues/vol11.html)," *Constellations*, Print, 2022 Pushcart Prize Nominee, December 2021
+"[HIPAA Violations](http://constellations-lit.com/issues/vol11.html)," *Constellations*, 2022 Pushcart Prize Nominee, Print, December 2021
 
 "[On Letting Go](http://hawaiipacificreview.org/2021/04/05/on-letting-go)," *Hawaii Pacific Review*, Hawaii Pacific University, Online, April 2021
 
