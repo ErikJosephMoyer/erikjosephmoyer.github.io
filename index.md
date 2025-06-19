@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -15,7 +16,7 @@
             background-color: #2a2a2a;
             color: white;
             font-family: 'EB Garamond', serif;
-            font-size: 24pt;
+            font-size: 16pt;
             line-height: 1.0;
             margin: 0 auto;
             padding: 20px;
@@ -24,7 +25,7 @@
         
         h1 {
             font-family: 'EB Garamond', serif;
-            font-size: 72pt;
+            font-size: 48pt;
             font-weight: normal !important;
             text-align: center;
             color: white;
@@ -32,13 +33,21 @@
             margin-top: 0;
         }
         
+        h1::after {
+            display: none !important;
+        }
+        
         h1:hover::after {
+            display: none !important;
+        }
+        
+        h1 .octicon-link {
             display: none !important;
         }
         
         h2 {
             font-family: 'EB Garamond', serif;
-            font-size: 48pt;
+            font-size: 32pt;
             font-weight: normal !important;
             text-align: center;
             color: white;
@@ -46,26 +55,42 @@
             margin-bottom: 10px;
         }
         
+        h2::after {
+            display: none !important;
+        }
+        
         h2:hover::after {
+            display: none !important;
+        }
+        
+        h2 .octicon-link {
             display: none !important;
         }
         
         h3 {
             font-family: 'EB Garamond', serif;
-            font-size: 36pt;
+            font-size: 24pt;
             font-weight: normal !important;
             color: white;
             margin-top: 15px;
             margin-bottom: 5px;
         }
         
+        h3::after {
+            display: none !important;
+        }
+        
         h3:hover::after {
+            display: none !important;
+        }
+        
+        h3 .octicon-link {
             display: none !important;
         }
         
         p {
             font-family: 'EB Garamond', serif;
-            font-size: 24pt;
+            font-size: 16pt;
             font-weight: normal !important;
             color: white;
             margin-bottom: 5px;
@@ -141,8 +166,63 @@
             display: none !important;
         }
         
+        .site-footer {
+            display: none !important;
+        }
+        
+        .page-header {
+            display: none !important;
+        }
+        
+        .project-name {
+            display: none !important;
+        }
+        
+        .project-tagline {
+            display: none !important;
+        }
+        
+        .btn {
+            display: none !important;
+        }
+        
+        .main-content::before {
+            display: none !important;
+        }
+        
+        .main-content::after {
+            display: none !important;
+        }
+        
+        /* Hide any auto-generated content */
+        .octicon {
+            display: none !important;
+        }
+        
+        .anchor {
+            display: none !important;
+        }
+        
         strong, b {
             font-weight: normal !important;
+        }
+        
+        /* Additional overrides for GitHub Pages */
+        .highlight {
+            background: none !important;
+        }
+        
+        .language-plaintext {
+            display: none !important;
+        }
+        
+        /* Hide any dividers or horizontal rules */
+        hr, .divider {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
     </style>
 </head>
