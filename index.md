@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,221 +7,167 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
     <style>
+        /* Force override all GitHub Pages styling */
         * {
             font-weight: normal !important;
         }
         
         body {
-            background-color: #2a2a2a;
-            color: white;
-            font-family: 'EB Garamond', serif;
-            font-size: 16pt;
-            line-height: 1.0;
-            margin: 0 auto;
-            padding: 20px;
-            max-width: 800px;
+            background-color: #2a2a2a !important;
+            color: white !important;
+            font-family: 'EB Garamond', serif !important;
+            font-size: 16pt !important;
+            line-height: 1.0 !important;
+            margin: 0 auto !important;
+            padding: 20px !important;
+            max-width: 800px !important;
         }
         
         h1 {
-            font-family: 'EB Garamond', serif;
-            font-size: 48pt;
+            font-family: 'EB Garamond', serif !important;
+            font-size: 48pt !important;
             font-weight: normal !important;
-            text-align: center;
-            color: white;
-            margin-bottom: 20px;
-            margin-top: 0;
-        }
-        
-        h1::after {
-            display: none !important;
-        }
-        
-        h1:hover::after {
-            display: none !important;
-        }
-        
-        h1 .octicon-link {
-            display: none !important;
+            text-align: center !important;
+            color: white !important;
+            margin-bottom: 20px !important;
+            margin-top: 0 !important;
         }
         
         h2 {
-            font-family: 'EB Garamond', serif;
-            font-size: 32pt;
+            font-family: 'EB Garamond', serif !important;
+            font-size: 32pt !important;
             font-weight: normal !important;
-            text-align: center;
-            color: white;
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
-        
-        h2::after {
-            display: none !important;
-        }
-        
-        h2:hover::after {
-            display: none !important;
-        }
-        
-        h2 .octicon-link {
-            display: none !important;
+            text-align: center !important;
+            color: white !important;
+            margin-top: 20px !important;
+            margin-bottom: 10px !important;
         }
         
         h3 {
-            font-family: 'EB Garamond', serif;
-            font-size: 24pt;
+            font-family: 'EB Garamond', serif !important;
+            font-size: 24pt !important;
             font-weight: normal !important;
-            color: white;
-            margin-top: 15px;
-            margin-bottom: 5px;
-        }
-        
-        h3::after {
-            display: none !important;
-        }
-        
-        h3:hover::after {
-            display: none !important;
-        }
-        
-        h3 .octicon-link {
-            display: none !important;
+            color: white !important;
+            margin-top: 15px !important;
+            margin-bottom: 5px !important;
         }
         
         p {
-            font-family: 'EB Garamond', serif;
-            font-size: 16pt;
+            font-family: 'EB Garamond', serif !important;
+            font-size: 16pt !important;
             font-weight: normal !important;
-            color: white;
-            margin-bottom: 5px;
-            margin-top: 5px;
-            line-height: 1.0;
+            color: white !important;
+            margin-bottom: 5px !important;
+            margin-top: 5px !important;
+            line-height: 1.0 !important;
         }
         
         .about-text {
-            text-align: justify;
+            text-align: justify !important;
         }
         
         a {
-            color: white;
-            text-decoration: underline;
+            color: white !important;
+            text-decoration: underline !important;
             font-weight: normal !important;
         }
         
         a:hover {
-            color: #ccc;
+            color: #ccc !important;
         }
         
         a:visited {
-            color: white;
+            color: white !important;
         }
         
         em {
-            font-style: italic;
+            font-style: italic !important;
             font-weight: normal !important;
-            color: white;
+            color: white !important;
         }
         
         img {
-            max-width: 100%;
-            height: auto;
+            max-width: 100% !important;
+            height: auto !important;
         }
         
         .profile-img {
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            object-fit: cover;
-            display: block;
-            margin: 0 auto 20px auto;
+            width: 300px !important;
+            height: 300px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            display: block !important;
+            margin: 0 auto 20px auto !important;
         }
         
         .cat-img {
-            width: 100%;
-            max-width: 650px;
-            height: auto;
-            border-radius: 15px;
-            display: block;
-            margin: 20px auto 0 auto;
+            width: 100% !important;
+            max-width: 650px !important;
+            height: auto !important;
+            border-radius: 15px !important;
+            display: block !important;
+            margin: 20px auto 0 auto !important;
         }
         
-        /* Override any GitHub Pages styling */
-        hr {
+        /* Aggressive GitHub Pages overrides */
+        .highlight, .highlight * {
             display: none !important;
+            visibility: hidden !important;
         }
         
-        .header-link {
-            display: none !important;
-        }
-        
-        h1 .header-link, h2 .header-link, h3 .header-link, h4 .header-link, h5 .header-link, h6 .header-link {
-            display: none !important;
-        }
-        
-        .site-title {
-            display: none !important;
-        }
-        
-        .site-header {
-            display: none !important;
-        }
-        
-        .site-footer {
-            display: none !important;
-        }
-        
-        .page-header {
-            display: none !important;
-        }
-        
-        .project-name {
-            display: none !important;
-        }
-        
-        .project-tagline {
-            display: none !important;
-        }
-        
-        .btn {
-            display: none !important;
-        }
-        
-        .main-content::before {
-            display: none !important;
-        }
-        
-        .main-content::after {
-            display: none !important;
-        }
-        
-        /* Hide any auto-generated content */
-        .octicon {
-            display: none !important;
-        }
-        
-        .anchor {
-            display: none !important;
-        }
-        
-        strong, b {
-            font-weight: normal !important;
-        }
-        
-        /* Additional overrides for GitHub Pages */
-        .highlight {
-            background: none !important;
-        }
-        
-        .language-plaintext {
-            display: none !important;
-        }
-        
-        /* Hide any dividers or horizontal rules */
         hr, .divider {
             display: none !important;
             visibility: hidden !important;
             height: 0 !important;
             margin: 0 !important;
             padding: 0 !important;
+        }
+        
+        .header-link, .octicon-link, .anchor {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
+        h1::after, h2::after, h3::after, h4::after, h5::after, h6::after {
+            display: none !important;
+            content: none !important;
+        }
+        
+        h1:hover::after, h2:hover::after, h3:hover::after {
+            display: none !important;
+            content: none !important;
+        }
+        
+        .site-title, .site-header, .site-footer, .page-header, .project-name, .project-tagline, .btn {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
+        .main-content::before, .main-content::after {
+            display: none !important;
+            content: none !important;
+        }
+        
+        /* Hide code highlighting */
+        .language-plaintext, .language-html, .highlighter-rouge {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
+        /* Remove any auto-generated links or buttons */
+        .btn-primary, .github-corner, .fork-me {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
+        /* Override theme colors */
+        body, html {
+            background: #2a2a2a !important;
+            color: white !important;
+        }
+        
+        strong, b {
+            font-weight: normal !important;
         }
     </style>
 </head>
