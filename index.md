@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Erik Moyer</title>
+    <title>Erik's Very Own Webpage</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
@@ -88,7 +88,7 @@
             border-radius: 50%;
             object-fit: cover;
             display: block;
-            margin: 0 auto;
+            margin: 0 auto 20px auto;
         }
         
         .cat-img {
@@ -96,21 +96,34 @@
             max-width: 650px;
             height: auto;
             border-radius: 15px;
+            display: block;
+            margin: 20px auto 0 auto;
+        }
+        
+        .contact-section {
+            margin-top: 30px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>Erik Moyer</h1>
+    <h1>Erik's Very Own Webpage</h1>
     
-    <p>Erik Moyer is a teaching fellow and doctoral candidate in creative writing at the University of North Texas. He holds an MFA in writing from the University of California, Irvine and a BS in systems engineering and poetry writing from the University of Virginia. His work appears in Arts & Letters, Epiphany, The New York Times, Oxford Poetry, The Pinch, and elsewhere. Outside of school, he works as a data engineer. In past lives, he's worked as an emergency medical technician and a varsity umpire. In his free time, he enjoys writing songs, performing stand-up, playing chess, and convincing his cat, Xena, that shoelaces are, in fact, snakes. He lives in Denton, Texas.</p>
-
-    <h2>Music</h2>
+    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face" alt="A person smiling for a picture" class="profile-img">
     
-    <p><a href="https://share.amuse.io/DXgagTpCkBVg">Honest Thomas</a>, Erik Moyer, Spotify, Apple, & YouTube, LP, Songs, August 2019</p>
+    <h2>About</h2>
     
-    <p><a href="https://soundcloud.com/erikjosephmoyer/sets/two-minute-warnings">Two-Minute Warnings</a>, Erik Moyer, Soundcloud, Mixtape, Electronica Demos, March 2025</p>
-
-    <h2>Poetry</h2>
+    <p>Erik Moyer is a teaching fellow and doctoral candidate in creative writing at the University of North Texas. He holds an MFA in writing from the University of California, Irvine and a BS in systems engineering and poetry writing from the University of Virginia. His work appears in <em>Arts & Letters, Epiphany, The New York Times, Oxford Poetry, The Pinch</em>, and elsewhere. Outside of school, he works as a data engineer. In past lives, he's worked as an emergency medical technician and a varsity umpire. In his free time, he enjoys writing songs, performing stand-up, playing chess, and convincing his cat, Xena, that shoelaces are, in fact, snakes. He lives in Denton, Texas.</p>
+    
+    <h2>Discography</h2>
+    
+    <p><a href="https://share.amuse.io/DXgagTpCkBVg"><em>Honest Thomas</em></a>, Erik Moyer, <em>Spotify, Apple, & YouTube</em>, LP, Songs, August 2019</p>
+    
+    <p><a href="https://soundcloud.com/erikjosephmoyer/sets/two-minute-warnings"><em>Two-Minute Warnings</em></a>, Erik Moyer, <em>Soundcloud</em>, Mixtape, Electronica Demos, March 2025</p>
+    
+    <h2>Publications</h2>
+    
+    <h3>Poetry</h3>
     
     <p>"Push, Pull, Dig," <em>The Pinch</em>, University of Memphis, Print, Forthcoming, September 2025</p>
     
@@ -161,15 +174,27 @@
     <p>"<a href="http://hawaiipacificreview.org/2021/04/05/on-letting-go">On Letting Go</a>," <em>Hawaii Pacific Review</em>, Hawaii Pacific University, Online, April 2021</p>
     
     <p>"<a href="http://issuu.com/newreadermagazine/docs/nrm-third-issue">Before Di Fara's</a>" & "Watching Episodes of Chopped Junior," <em>New Reader Magazine</em>, Online, September 2018</p>
-
-    <h2>Prose</h2>
+    
+    <h3>Fiction</h3>
     
     <p>"<a href="http://carteblanchemagazine.com/issue-51/moyer-the-chronicles-of-jackie-flapjacks">The Chronicles of Jackie Flapjacks</a>," <em>Carte Blanche</em>, Online, June 2025</p>
     
+    <h3>Creative Nonfiction</h3>
+    
     <p>"<a href="http://phoebejournal.com/self-portrait-as-baby/">Self-Portrait as Baby</a>," <em>Phoebe Journal</em>, George Mason University, Online, May 2025</p>
     
-    <p>"<a href="http://nytimes.com/2025/03/05/style/tiny-modern-love-stories-serendipity-still-exists.html">Ride-Share Roulette</a>," <em>The New York Times</em>, Modern Love column, Online & Print, March 2025</p>
+    <p>"<a href="http://nytimes.com/2025/03/05/style/tiny-modern-love-stories-serendipity-still-exists.html">Ride-Share Roulette</a>," <em>The New York Times</em>, <em>Modern Love</em> column, Online & Print, March 2025</p>
+    
+    <h3>Humor</h3>
     
     <p>"<a href="http://pointsincase.com/author/erik-moyer">State Championship</a>" & "<a href="http://pointsincase.com/author/erik-moyer">Sticks and Stones</a>," <em>Points in Case</em>, Online, October 2024</p>
+    
+    <h2>Contact</h2>
+    
+    <p><a href="mailto:erikjosephmoyer@gmail.com">Email</a></p>
+    
+    <p><a href="https://linkedin.com/in/erikmoyer/">LinkedIn</a></p>
+    
+    <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=650&h=183&fit=crop" alt="A cat lying on a bed" class="cat-img">
 </body>
 </html>
