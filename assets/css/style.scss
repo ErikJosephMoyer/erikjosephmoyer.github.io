@@ -3,58 +3,101 @@
 
 @import "{{ site.theme }}";
 
-// Custom styles to match the Word document formatting
-.page-content {
-  .wrapper {
-    max-width: 800px;
-  }
+// Dark theme with Georgia font
+body {
+  background-color: black !important;
+  color: white !important;
+  font-family: Georgia, serif !important;
+  font-size: 12px !important;
+  line-height: 1.6;
 }
 
-// Ensure proper spacing and typography
-.post-content {
-  h1, h2, h3, h4, h5, h6 {
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-  }
-  
-  h2 {
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  p {
-    margin-bottom: 1rem;
-    line-height: 1.6;
-  }
-  
-  // Style for publication entries
-  p {
-    text-align: left;
-  }
-  
-  // Italic formatting for publication names
-  em {
-    font-style: italic;
-  }
-  
-  // Bold formatting for section headers
-  strong {
-    font-weight: bold;
-  }
-}
-
-// Remove default header and footer styling to keep it minimal
+// Remove header and footer content
 .site-header {
-  border-top: none;
-  border-bottom: 1px solid #e8e8e8;
+  display: none !important;
 }
 
 .site-footer {
-  border-top: 1px solid #e8e8e8;
+  display: none !important;
 }
 
-// Ensure images are responsive
+// Page layout
+.page-content {
+  padding: 20px 0 !important;
+  
+  .wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+}
+
+// Typography
+h1, h2, h3, h4, h5, h6 {
+  color: white !important;
+  font-family: Georgia, serif !important;
+}
+
+h1 {
+  font-size: 36px !important;
+  text-align: center !important;
+  margin-bottom: 30px !important;
+}
+
+h2 {
+  font-size: 24px !important;
+  text-align: center !important;
+  margin-top: 2rem !important;
+  margin-bottom: 1rem !important;
+}
+
+h3 {
+  font-size: 18px !important;
+  font-weight: normal !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 1rem !important;
+}
+
+p {
+  color: white !important;
+  font-family: Georgia, serif !important;
+  font-size: 12px !important;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+// Links styling
+a {
+  color: white !important;
+  text-decoration: underline !important;
+}
+
+a:hover {
+  color: #ccc !important;
+}
+
+a:visited {
+  color: white !important;
+}
+
+// Italic formatting for publication names
+em {
+  font-style: italic;
+  color: white !important;
+}
+
+// Images
 img {
   max-width: 100%;
   height: auto;
+}
+
+// Override any default theme colors
+.post-content, .home {
+  color: white !important;
+}
+
+// Ensure all text is white
+* {
+  color: white !important;
 }
