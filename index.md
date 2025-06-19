@@ -177,7 +177,7 @@
     <img src="assets/images/profile.jpg" alt="A person smiling for a picture" class="profile-img">
     
     <h2>About</h2>
-    <p class="about-text">Erik Moyer is a teaching fellow and doctoral candidate in creative writing at the University of North Texas. He holds an MFA in writing from the University of California, Irvine and a BS in systems engineering and poetry writing from the University of Virginia. His work appears in <em>Arts & Letters, Epiphany, The New York Times, Oxford Poetry, The Pinch</em>, and elsewhere. Outside of school, he works as a data engineer. In past lives, he's worked as an emergency medical technician and a varsity umpire. In his free time, he enjoys writing songs, performing stand-up, playing chess, and convincing his cat, Xena, that shoelaces are, in fact, snakes. He lives in Denton, Texas.</p>
+    <p class="about-text">Erik Moyer is a teaching fellow and doctoral candidate in creative writing at the University of North Texas. He holds an MFA in writing from the University of California, Irvine and a BS in systems engineering and poetry writing from the University of Virginia. His work appears in <em>Arts & Letters, Epiphany, The New York Times, Oxford Poetry, The Pinch</em>, and elsewhere. Outside of school, he's spent the past decade working as a data engineer. In past lives, he's worked as an emergency medical technician and a varsity umpire. In his free time, he enjoys writing songs, performing stand-up, playing chess, and convincing his cat, Xena, that shoelaces are, in fact, snakes. He lives in Denton, Texas.</p>
     
     <h2>Discography</h2>
     <p><a href="https://share.amuse.io/DXgagTpCkBVg"><em>Honest Thomas</em></a>, Erik Moyer, <em>Spotify, Apple, & YouTube</em>, LP, Songs, August 2019</p>
