@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,11 +8,11 @@
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
     <style>
         body {
-            background-color: #333333;
+            background-color: #2a2a2a;
             color: white;
             font-family: 'EB Garamond', serif;
-            font-size: 9pt;
-            line-height: 1.0;
+            font-size: 12pt;
+            line-height: 1.4;
             margin: 0 auto;
             padding: 20px;
             max-width: 800px;
@@ -21,7 +20,8 @@
         
         h1 {
             font-family: 'EB Garamond', serif;
-            font-size: 27pt;
+            font-size: 36pt;
+            font-weight: normal;
             text-align: center;
             color: white;
             margin-bottom: 30px;
@@ -30,7 +30,8 @@
         
         h2 {
             font-family: 'EB Garamond', serif;
-            font-size: 18pt;
+            font-size: 24pt;
+            font-weight: normal;
             text-align: center;
             color: white;
             margin-top: 30px;
@@ -39,7 +40,7 @@
         
         h3 {
             font-family: 'EB Garamond', serif;
-            font-size: 13.5pt;
+            font-size: 18pt;
             font-weight: normal;
             color: white;
             margin-top: 20px;
@@ -48,11 +49,16 @@
         
         p {
             font-family: 'EB Garamond', serif;
-            font-size: 9pt;
+            font-size: 12pt;
+            font-weight: normal;
             color: white;
             margin-bottom: 0;
             margin-top: 0;
-            line-height: 1.0;
+            line-height: 1.4;
+        }
+        
+        .about-text {
+            text-align: justify;
         }
         
         a {
@@ -70,16 +76,13 @@
         
         em {
             font-style: italic;
+            font-weight: normal;
             color: white;
         }
         
         img {
             max-width: 100%;
             height: auto;
-        }
-        
-        .center {
-            text-align: center;
         }
         
         .profile-img {
@@ -99,21 +102,16 @@
             display: block;
             margin: 20px auto 0 auto;
         }
-        
-        .contact-section {
-            margin-top: 30px;
-            margin-bottom: 20px;
-        }
     </style>
 </head>
 <body>
     <h1>Erik's Very Own Webpage</h1>
     
-    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face" alt="A person smiling for a picture" class="profile-img">
+    <img src="assets/images/profile.jpg" alt="A person smiling for a picture" class="profile-img">
     
     <h2>About</h2>
     
-    <p>Erik Moyer is a teaching fellow and doctoral candidate in creative writing at the University of North Texas. He holds an MFA in writing from the University of California, Irvine and a BS in systems engineering and poetry writing from the University of Virginia. His work appears in <em>Arts & Letters, Epiphany, The New York Times, Oxford Poetry, The Pinch</em>, and elsewhere. Outside of school, he works as a data engineer. In past lives, he's worked as an emergency medical technician and a varsity umpire. In his free time, he enjoys writing songs, performing stand-up, playing chess, and convincing his cat, Xena, that shoelaces are, in fact, snakes. He lives in Denton, Texas.</p>
+    <p class="about-text">Erik Moyer is a teaching fellow and doctoral candidate in creative writing at the University of North Texas. He holds an MFA in writing from the University of California, Irvine and a BS in systems engineering and poetry writing from the University of Virginia. His work appears in <em>Arts & Letters, Epiphany, The New York Times, Oxford Poetry, The Pinch</em>, and elsewhere. Outside of school, he works as a data engineer. In past lives, he's worked as an emergency medical technician and a varsity umpire. In his free time, he enjoys writing songs, performing stand-up, playing chess, and convincing his cat, Xena, that shoelaces are, in fact, snakes. He lives in Denton, Texas.</p>
     
     <h2>Discography</h2>
     
@@ -195,6 +193,6 @@
     
     <p><a href="https://linkedin.com/in/erikmoyer/">LinkedIn</a></p>
     
-    <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=650&h=183&fit=crop" alt="A cat lying on a bed" class="cat-img">
+    <img src="assets/images/xena.jpg" alt="A cat lying on a bed" class="cat-img">
 </body>
 </html>
