@@ -5,10 +5,6 @@ layout: default
 
 <h1>Erik's Very Own Webpage</h1>
 
-<div style="text-align: center; margin-bottom: 30px;">
-  <img src="/assets/images/profile.jpg" alt="Erik Moyer" class="profile-img">
-</div>
-
 <h2>About</h2>
 
 Erik Moyer is a teaching fellow and doctoral candidate in creative writing at the University of North Texas. He holds an MFA in writing from the University of California, Irvine and a BS in systems engineering and poetry writing from the University of Virginia. His work appears in *Arts & Letters, Epiphany, The New York Times, Oxford Poetry, The Pinch*, and elsewhere. Outside of school, he works as a data engineer. In past lives, he's worked as an emergency medical technician and a varsity umpire. In his free time, he enjoys writing songs, performing stand-up, playing chess, and convincing his cat, Xena, that shoelaces are, in fact, snakes. He lives in Denton, Texas.
@@ -92,7 +88,3 @@ Erik Moyer is a teaching fellow and doctoral candidate in creative writing at th
 [Email](mailto:erikjosephmoyer@gmail.com)
 
 [LinkedIn](https://linkedin.com/in/erikmoyer/)
-
-<div style="text-align: center; margin-top: 40px;">
-  <img src="/assets/images/xena.jpg" alt="Xena the cat" class="cat-img">
-</div>
