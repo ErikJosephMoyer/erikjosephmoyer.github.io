@@ -1,26 +1,26 @@
 ---
-layout: home
+layout: default
 ---
 
-<h1 style="text-align: center; font-size: 36px; margin-bottom: 30px;">Erik's Very Own Webpage</h1>
+<h1>Erik's Very Own Webpage</h1>
 
-<div style="text-align: center; margin-bottom: 30px;">
-  <img src="/assets/images/profile.jpg" alt="Erik Moyer" style="width: 300px; height: 300px; border-radius: 50%; object-fit: cover;">
+<div class="center" style="margin-bottom: 30px;">
+  <img src="/assets/images/profile.jpg" alt="Erik Moyer" class="profile-img">
 </div>
 
-<h2 style="text-align: center; font-size: 24px;">About</h2>
+<h2>About</h2>
 
 Erik Moyer is a teaching fellow and doctoral candidate in creative writing at the University of North Texas. He holds an MFA in writing from the University of California, Irvine and a BS in systems engineering and poetry writing from the University of Virginia. His work appears in *Arts & Letters, Epiphany, The New York Times, Oxford Poetry, The Pinch*, and elsewhere. Outside of school, he works as a data engineer. In past lives, he's worked as an emergency medical technician and a varsity umpire. In his free time, he enjoys writing songs, performing stand-up, playing chess, and convincing his cat, Xena, that shoelaces are, in fact, snakes. He lives in Denton, Texas.
 
-<h2 style="text-align: center; font-size: 24px;">Discography</h2>
+<h2>Discography</h2>
 
 [*Honest Thomas*](https://share.amuse.io/DXgagTpCkBVg), Erik Moyer, *Spotify, Apple, & YouTube*, LP, Songs, August 2019
 
 [*Two-Minute Warnings*](https://soundcloud.com/erikjosephmoyer/sets/two-minute-warnings), Erik Moyer, *Soundcloud*, Mixtape, Electronica Demos, March 2025
 
-<h2 style="text-align: center; font-size: 24px;">Publications</h2>
+<h2>Publications</h2>
 
-<h3 style="font-size: 18px; font-weight: normal;">Poetry</h3>
+<h3>Poetry</h3>
 
 "Push, Pull, Dig," *The Pinch*, University of Memphis, Print, Forthcoming, September 2025
 
@@ -72,26 +72,26 @@ Erik Moyer is a teaching fellow and doctoral candidate in creative writing at th
 
 "[Before Di Fara's" & "Watching Episodes of Chopped Junior](http://issuu.com/newreadermagazine/docs/nrm-third-issue)," *New Reader Magazine*, Online, September 2018
 
-<h3 style="font-size: 18px; font-weight: normal;">Fiction</h3>
+<h3>Fiction</h3>
 
 "[The Chronicles of Jackie Flapjacks](http://carteblanchemagazine.com/issue-51/moyer-the-chronicles-of-jackie-flapjacks)," *Carte Blanche*, Online, June 2025
 
-<h3 style="font-size: 18px; font-weight: normal;">Creative Nonfiction</h3>
+<h3>Creative Nonfiction</h3>
 
 "[Self-Portrait as Baby](http://phoebejournal.com/self-portrait-as-baby/)," *Phoebe Journal*, George Mason University, Online, May 2025
 
 "[Ride-Share Roulette](http://nytimes.com/2025/03/05/style/tiny-modern-love-stories-serendipity-still-exists.html)," *The New York Times*, *Modern Love* column, Online & Print, March 2025
 
-<h3 style="font-size: 18px; font-weight: normal;">Humor</h3>
+<h3>Humor</h3>
 
 "[State Championship" & "Sticks and Stones](http://pointsincase.com/author/erik-moyer)," *Points in Case*, Online, October 2024
 
-<h2 style="text-align: center; font-size: 24px;">Contact</h2>
+<h2>Contact</h2>
 
 [Email](mailto:erikjosephmoyer@gmail.com)
 
 [LinkedIn](https://linkedin.com/in/erikmoyer/)
 
-<div style="text-align: center; margin-top: 40px;">
-  <img src="/assets/images/xena.jpg" alt="Xena the cat" style="width: 100%; max-width: 650px; height: auto;">
+<div class="center" style="margin-top: 40px;">
+  <img src="/assets/images/xena.jpg" alt="Xena the cat" class="cat-img">
 </div>
