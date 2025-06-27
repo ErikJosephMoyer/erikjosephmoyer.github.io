@@ -86,5 +86,26 @@ img[src*="XenaAtRest"]{width:100%;max-width:100%;display:block;margin:0 auto 8pt
 </div>
 <br>
 <img src="assets/images/XenaAtRest.png" alt="Xena at Rest">
+<script>
+  if (!localStorage.getItem('visitedToday')) {
+    localStorage.setItem('visitedToday', '1');
+
+    fetch("https://api.ipify.org?format=json")
+      .then(res => res.json())
+      .then(ipData => {
+        const payload = {
+          ip: ipData.ip,
+          userAgent: navigator.userAgent,
+          referrer: document.referrer
+        };
+
+        fetch("https://script.google.com/macros/s/AKfycbyGOEbCkiWFHZnEcwRAjpV8W2uhB8qvynAOgSmn5IYC4xCwLebSLDcn6CsPt7NmSzsy/exec", {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+      });
+  }
+</script>
+
 </body>
 </html>
