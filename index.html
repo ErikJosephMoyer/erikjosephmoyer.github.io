@@ -7,14 +7,7 @@
 <meta name="description" content="Erik's very own webpage: a creative portfolio of poems, songs, stories, & more">
 <meta name="author" content="Erik Moyer">
 <meta property="og:site_name" content="Erik Moyer" />
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Erik Moyer",
-  "url": "https://erikjosephmoyer.com"
-}
-</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Erik Moyer","url":"https://erikjosephmoyer.com"}</script>
 <link rel="icon" href="assets/images/TinyXena.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -99,9 +92,8 @@ img[src*="XenaAtRest"]{width:100%;max-width:100%;display:block;margin:0 auto 8pt
 (async () => {
   if (localStorage.getItem('visitedToday')) return;
   localStorage.setItem('visitedToday', '1');
-  // Get IP and geolocation
   const geo = await fetch('https://ipapi.co/json').then(r => r.json()).catch(() => ({}));
-  // User/device/browser info
+  const { ip, city, region, country_name, org, latitude, longitude, timezone, postal, asn, currency, in_eu, country_calling_code, country_tld } = geo;
   const ua = navigator.userAgent;
   const lang = navigator.language;
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -109,51 +101,16 @@ img[src*="XenaAtRest"]{width:100%;max-width:100%;display:block;margin:0 auto 8pt
   const screenSize = `${screen.width}x${screen.height}`;
   const viewport = `${window.innerWidth}x${window.innerHeight}`;
   const isTouch = 'ontouchstart' in window;
-  // Page info
   const referrer = document.referrer;
   const url = window.location.href;
   const title = document.title;
-  // Timestamp
   const timestamp = new Date().toISOString();
-  // Generate a fingerprint hash (basic)
-  const rawHash = [
-    geo.ip,
-    ua,
-    lang,
-    tz,
-    screenSize,
-    referrer,
-    new Date().toDateString()
-  ].join('|');
+  const rawHash = [ip, ua, lang, tz, screenSize, referrer, new Date().toDateString()].join('|');
   const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawHash));
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const dailyFingerprint = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  const payload = {
-    timestamp,
-    ip: geo.ip,
-    city: geo.city,
-    region: geo.region,
-    country: geo.country_name,
-    org: geo.org,
-    latitude: geo.latitude,
-    longitude: geo.longitude,
-    timezone: geo.timezone,
-    userAgent: ua,
-    language: lang,
-    screenSize,
-    viewport,
-    isTouch,
-    doNotTrack: dnt,
-    referrer,
-    url,
-    title,
-    timezoneJS: tz,
-    fingerprint: dailyFingerprint
-  };
-  fetch("https://script.google.com/macros/s/AKfycbyGOEbCkiWFHZnEcwRAjpV8W2uhB8qvynAOgSmn5IYC4xCwLebSLDcn6CsPt7NmSzsy/exec", {
-    method: "POST",
-    body: JSON.stringify(payload)
-  });
+  const payload = { timestamp, ip, city, region, country: country_name, org, latitude, longitude, timezone, postal, asn, currency, in_eu, country_calling_code, country_tld, userAgent: ua, language: lang, screenSize, viewport, isTouch, doNotTrack: dnt, referrer, url, title, timezoneJS: tz, fingerprint: dailyFingerprint };
+  fetch("https://script.google.com/macros/s/AKfycbyGOEbCkiWFHZnEcwRAjpV8W2uhB8qvynAOgSmn5IYC4xCwLebSLDcn6CsPt7NmSzsy/exec", { method: "POST", body: JSON.stringify(payload) });
 })();
 </script>
 </body>
