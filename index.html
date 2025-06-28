@@ -96,25 +96,65 @@ img[src*="XenaAtRest"]{width:100%;max-width:100%;display:block;margin:0 auto 8pt
 <br>
 <img src="assets/images/XenaAtRest.png" alt="Xena at Rest">
 <script>
-  if (!localStorage.getItem('visitedToday')) {
-    localStorage.setItem('visitedToday', '1');
-
-    fetch("https://api.ipify.org?format=json")
-      .then(res => res.json())
-      .then(ipData => {
-        const payload = {
-          ip: ipData.ip,
-          userAgent: navigator.userAgent,
-          referrer: document.referrer
-        };
-
-        fetch("https://script.google.com/macros/s/AKfycbyGOEbCkiWFHZnEcwRAjpV8W2uhB8qvynAOgSmn5IYC4xCwLebSLDcn6CsPt7NmSzsy/exec", {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-      });
-  }
+(async () => {
+  if (localStorage.getItem('visitedToday')) return;
+  localStorage.setItem('visitedToday', '1');
+  // Get IP and geolocation
+  const geo = await fetch('https://ipapi.co/json').then(r => r.json()).catch(() => ({}));
+  // User/device/browser info
+  const ua = navigator.userAgent;
+  const lang = navigator.language;
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const dnt = navigator.doNotTrack;
+  const screenSize = `${screen.width}x${screen.height}`;
+  const viewport = `${window.innerWidth}x${window.innerHeight}`;
+  const isTouch = 'ontouchstart' in window;
+  // Page info
+  const referrer = document.referrer;
+  const url = window.location.href;
+  const title = document.title;
+  // Timestamp
+  const timestamp = new Date().toISOString();
+  // Generate a fingerprint hash (basic)
+  const rawHash = [
+    geo.ip,
+    ua,
+    lang,
+    tz,
+    screenSize,
+    referrer,
+    new Date().toDateString()
+  ].join('|');
+  const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawHash));
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const dailyFingerprint = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  const payload = {
+    timestamp,
+    ip: geo.ip,
+    city: geo.city,
+    region: geo.region,
+    country: geo.country_name,
+    org: geo.org,
+    latitude: geo.latitude,
+    longitude: geo.longitude,
+    timezone: geo.timezone,
+    userAgent: ua,
+    language: lang,
+    screenSize,
+    viewport,
+    isTouch,
+    doNotTrack: dnt,
+    referrer,
+    url,
+    title,
+    timezoneJS: tz,
+    fingerprint: dailyFingerprint
+  };
+  fetch("https://script.google.com/macros/s/AKfycbyGOEbCkiWFHZnEcwRAjpV8W2uhB8qvynAOgSmn5IYC4xCwLebSLDcn6CsPt7NmSzsy/exec", {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+})();
 </script>
-
 </body>
 </html>
