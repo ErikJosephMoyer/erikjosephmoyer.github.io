@@ -113,7 +113,7 @@ a, a * {cursor: pointer !important}
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const dailyFingerprint = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   const payload = { timestamp, ip, city, region, country: country_name, org, latitude, longitude, timezone, postal, asn, currency, in_eu, country_calling_code, country_tld, userAgent: ua, language: lang, screenSize, viewport, isTouch, doNotTrack: dnt, referrer, url, title, timezoneJS: tz, fingerprint: dailyFingerprint };
-  fetch("https://script.google.com/macros/s/AKfycbyGOEbCkiWFHZnEcwRAjpV8W2uhB8qvynAOgSmn5IYC4xCwLebSLDcn6CsPt7NmSzsy/exec", { method: "POST", body: JSON.stringify(payload) });
+  fetch("https://script.google.com/macros/s/AKfycbyGOEbCkiWFHZnEcwRAjpV8W2uhB8qvynAOgSmn5IYC4xCwLebSLDcn6CsPt7NmSzsy/exec", { method: "POST", headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
 })();
 </script>
 </body>
