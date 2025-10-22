@@ -37,13 +37,16 @@ img[src*="XenaAtRest"]{width:100%;max-width:100%;display:block;margin:0 auto 8pt
 .pub-entry img{width:100px;height:100px;border-radius:8px;margin-right:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1)}
 .pub-text{flex:1}
 a, a * {cursor: pointer !important}
+
 .poem-card{width:100px;height:100px;border-radius:8px;cursor:pointer;margin-left:auto;box-shadow:0 1px 5px rgba(0,0,0,0.3);flex-shrink:0;overflow:hidden;display:block;text-decoration:none}
-.poem-card img{width:100%;height:100%;object-fit:cover;margin:0;border-radius:8px;margin-right:0;}
-.modal{display:none;position:fixed;z-index:1000;padding-top:50px;left:0;top:0;width:100%;height:100%;overflow:auto;background-color:rgba(0,0,0,0.9);text-decoration:none}
-.modal:target{display:block}
-.modal-content{margin:auto;display:block;width:500px;max-width:90%;text-align:center}
-.modal-content img{width:500px;max-width:100%;height:auto;display:block;margin:0 auto; border-radius:8px}
-.close-button{position:absolute;top:15px;right:35px;color:#f1f1f1;font-size:40px;font-weight:lighter;cursor:pointer;text-decoration:none}
+.poem-card img{width:100%;height:100%;object-fit:cover;margin:0;border-radius:8px;margin-right:0}
+.modal{display:none;position:fixed;z-index:1000;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.9);overflow:auto}
+.modal:target{display:flex;justify-content:center;align-items:center}
+.modal-content{display:flex;justify-content:center;align-items:center;background-color:transparent;max-width:500px;max-height:100vh}
+.modal-content img{max-width:500px;max-height:500px;width:auto;height:auto;border-radius:8px;box-shadow:0 0 20px rgba(0,0,0,0.5)}
+.close-button{position:fixed;top:15px;right:35px;color:#f1f1f1;font-size:40px;font-weight:lighter;cursor:pointer;text-decoration:none}
+.modal a.overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:999}
+
 </style>
 </head>
 <body>
@@ -118,6 +121,9 @@ a, a * {cursor: pointer !important}
 <img src="assets/images/XenaAtRest.png" alt="Xena at Rest">
 <br>
 <img src="assets/images/Logophile.png" alt="Logophile">
+
+<div id="modal-ThePinchJournalPoem" class="modal"> <a href="#" class="close-button">&times;</a> <div class="modal-content"> <img src="assets/images/ThePinchJournalPoem.png" alt="Full Text of Poem"> </div> </div>
+
 <script>
 (async () => {
   if (localStorage.getItem('visitedToday')) return;
