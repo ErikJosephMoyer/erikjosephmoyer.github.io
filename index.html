@@ -37,12 +37,12 @@ img[src*="XenaAtRest"]{width:100%;max-width:100%;display:block;margin:0 auto 8pt
 .pub-entry img{width:100px;height:100px;border-radius:8px;margin-right:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1)}
 .pub-text{flex:1}
 a, a * {cursor: pointer !important}
-.poem-card{width:100px;height:100px;border-radius:8px;cursor:pointer;margin-left:auto;box-shadow:0 1px 5px rgba(0,0,0,0.3);flex-shrink:0;overflow:hidden;display:block}
-.poem-card img{width:100%;height:100%;object-fit:cover;margin:0;border-radius:8px}
+.poem-card{width:100px;height:100px;border-radius:8px;cursor:pointer;margin-left:auto;box-shadow:0 1px 5px rgba(0,0,0,0.3);flex-shrink:0;overflow:hidden;display:block;text-decoration:none}
+.poem-card img{width:100%;height:100%;object-fit:cover;margin:0;border-radius:8px;margin-right:0;}
 .modal{display:none;position:fixed;z-index:1000;padding-top:50px;left:0;top:0;width:100%;height:100%;overflow:auto;background-color:rgba(0,0,0,0.9);text-decoration:none}
-.modal:target{display:block} /* SHOW MODAL WHEN TARGETED */
+.modal:target{display:block}
 .modal-content{margin:auto;display:block;width:500px;max-width:90%;text-align:center}
-.modal-content img{width:500px;max-width:100%;height:auto;display:block;margin:0 auto}
+.modal-content img{width:500px;max-width:100%;height:auto;display:block;margin:0 auto; border-radius:8px}
 .close-button{position:absolute;top:15px;right:35px;color:#f1f1f1;font-size:40px;font-weight:lighter;cursor:pointer;text-decoration:none}
 </style>
 </head>
@@ -66,9 +66,7 @@ a, a * {cursor: pointer !important}
 <div class="pub-entry"><img src="assets/images/LightPoetryMagazine.png" alt="Light Poetry Magazine"><div class="pub-text"><p>"School for the Gifted," <em>Light Poetry Magazine</em>, Online, Forthcoming, November 2025</p></div></div>
 <div class="pub-entry"><a href="https://www.pinchjournal.com/blog-posts/fall-2025-452"><img src="assets/images/ThePinchJournal.png" alt="The Pinch Journal"><div class="pub-text"><p>"<a href="assets/images/ThePinchJournalPoem.png">Push, Pull, Dig</a>," <em>The Pinch Journal</em>, University of Memphis, Print, October 2025</p></div></div>
 
-<div class="pub-entry"><a href="https://www.pinchjournal.com/blog-posts/fall-2025-452"><img src="assets/images/ThePinchJournal.png" alt="The Pinch Journal">
-<div class="pub-text"><p>"<a href="assets/images/ThePinchJournalPoem.png">Push, Pull, Dig</a>," <em>The Pinch Journal</em>, University of Memphis, Print, October 2025</p></div></div>
-<a href="#modal-ThePinchJournalPoem" class="poem-card"><img src="assets/images/ThePinchJournalPoem.png" alt="Poem Preview"></a></div>
+<div class="pub-entry"> <a href="https://www.pinchjournal.com/blog-posts/fall-2025-452"> <img src="assets/images/ThePinchJournal.png" alt="The Pinch Journal"> </a> <div class="pub-text"> <p>"<a href="assets/images/ThePinchJournalPoem.png">Push, Pull, Dig</a>," <em>The Pinch Journal</em>, University of Memphis, Print, October 2025</p> </div> <a href="#modal-ThePinchJournalPoem" class="poem-card"> <img src="assets/images/ThePinchJournalPoem.png" alt="Poem Preview"> </a> </div>
 
 <div class="pub-entry"><a href="https://oneartpoetry.com/the-book-of-jobs/"><img src="assets/images/ONEART.png" alt="ONE ART"></a><div class="pub-text"><p>"The Painter," <em>ONE ART</em>, Republication, Anthology, Online, September 2025</p></div></div>
 <div class="pub-entry"><a href="https://nostalgiapress.com/erik-moyer-3"><img src="assets/images/HEART.png" alt="HEART"></a><div class="pub-text"><p>"Behind the Cue Ball," <em>HEART</em>, Online, July 2025</p></div></div>
