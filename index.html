@@ -128,7 +128,14 @@ img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:
 function openModal(imageSource) { const modal = document.getElementById('poemModal'); const poemImage = document.getElementById('poemImage');
 poemImage.src = imageSource; modal.style.display = "flex"; document.body.style.overflow = "hidden"; }
 function closeModal() { document.getElementById('poemModal').style.display = "none"; document.body.style.overflow = ""; }
-document.addEventListener('keydown', e => e.key === 'Escape' && closeModal());
+
+// document.addEventListener('keydown', e => e.key === 'Escape' && closeModal());
+
+document.addEventListener('keydown', function(event) { const modalIsVisible = document.getElementById('poemModal').style.display === 'flex'; if (!modalIsVisible) return;
+if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') { navigateModal(-1); }
+else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') { navigateModal(1); }
+else if (event.key === 'Escape') { closeModal(event); } });
+
 document.addEventListener('DOMContentLoaded', () => { document.querySelectorAll('a[href^="images/"]').forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); openModal(link.href); }); }); });
 </script>
 
