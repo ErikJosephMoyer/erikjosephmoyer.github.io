@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Erik Moyer</title>
@@ -16,39 +17,34 @@
 
 <style>
 body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
-h1{font-size:36pt;font-weight:400;font-family:'EB Garamond',serif;line-height:1;text-align:center;margin:0 0 16pt}
-h2{font-family:'EB Garamond',serif;font-weight:400;line-height:1;text-align:center;margin:8pt 0 16pt}
-h2{font-size:32pt}
-h3{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 0 16pt}  
-h3{font-size:28pt;margin-bottom:16pt}
-h4{font-family:'EB Garamond',serif;font-weight:400;line-height:1;text-align:center;margin:0 0 8pt}  
-h4{font-size:20pt;margin-bottom:8pt}
+h1,h2,h3,h4{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 0 16pt}
+h1{font-size:36pt;text-align:center}
+h2{font-size:32pt;text-align:center;margin:8pt 0 16pt}
+h3{font-size:28pt}
+h4{font-size:20pt;text-align:center;margin:0 0 8pt}
 p{margin:0 0 8pt}
 .about-text{text-align:justify}
-a{color:white;text-decoration:underline;cursor:pointer}
-a:visited{color:white;cursor:pointer}
-a:hover{color:#ccc;cursor:pointer}
-a img{cursor:pointer}
-a *{cursor:pointer}
-img{max-width:100%;height:auto;object-fit:cover;width:500px;max-height:none}
-img[src*="Favicon"]{width:100px;height:100px;border-radius:50%;display:block;margin:0 auto 0pt}
-img[src*="Logophile"]{width:100px;height:100px;border-radius:15px;display:block;margin:0 auto 8pt}
+a,a:visited{color:white;text-decoration:underline;cursor:pointer}
+a:hover{color:#ccc}
+a,a *,a img{cursor:pointer}
+img{max-width:100%;height:auto;object-fit:cover;width:500px}
+img[src*="Favicon"],img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt}
+img[src*="Favicon"]{border-radius:50%;margin-bottom:0}
+img[src*="Logophile"]{border-radius:15px}
 img[src*="ErikInTheWild"]{width:250px;height:250px;border-radius:50%;display:block;margin:0 auto 8pt}
-img[src*="XenaAtRest"]{width:100%;max-width:100%;display:block;margin:0 auto 8pt;border-radius:15px}
+img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:15px}
 .pub-entry{display:flex;align-items:flex-start;margin-bottom:20px}
 .pub-entry img{width:100px;height:100px;border-radius:8px;margin-right:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1)}
 .pub-text{flex:1}
-a, a * {cursor: pointer}
-
-.pub-text{flex:1}
-.modal{display:none;position:fixed;z-index:1000;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.9);overflow:auto;justify-content:center;align-items:center}
-.modal-content{display:flex;justify-content:center;align-items:center;background-color:transparent;min-width:0;min-height:0}
-#poemImage{max-width:80vmin;max-height:80vmin;width:auto;height:auto;border-radius:8px;box-shadow:0 0 20px rgba(0,0,0,0.5);object-fit:contain}
-
+.modal{display:none;position:fixed;z-index:1000;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.9);justify-content:center;align-items:center}
+.modal-content{max-width:80vw;max-height:80vh}
+#poemImage{max-width:100%;max-height:100%;width:auto;height:auto;border-radius:8px;box-shadow:0 0 20px rgba(0,0,0,0.5);object-fit:contain}
 </style>
+
 </head>
 
 <body>
+
 <img src="images/Logophile.png" alt="Logophile">
 <h1>Erik's Very Own Webpage</h1>
 <h4>A digital cornucopia of poems, songs, stories, & more</h4>
@@ -123,19 +119,15 @@ a, a * {cursor: pointer}
 <br>
 <img src="images/Logophile.png" alt="Logophile">
 
-
 <div id="poemModal" class="modal" onclick="closeModal()"> <div class="modal-content"> <img id="poemImage" src="" alt="Full Text of Poem" onclick="event.stopPropagation()"> </div> </div>
 
-
-<!---->
 <script>
-function openModal(imageSource) { const modal = document.getElementById('poemModal'); const poemImage = document.getElementById('poemImage'); poemImage.style.width = 'auto'; poemImage.style.height = 'auto';
+
+function openModal(imageSource) { const modal = document.getElementById('poemModal'); const poemImage = document.getElementById('poemImage');
 poemImage.src = imageSource; modal.style.display = "flex"; document.body.style.overflow = "hidden"; }
-function closeModal() { const modal = document.getElementById('poemModal'); modal.style.display = "none"; document.body.style.overflow = ""; }
-document.addEventListener('keydown', function(event) { if (event.key === 'Escape') { closeModal(); } });
-</script>
+function closeModal() { document.getElementById('poemModal').style.display = "none"; document.body.style.overflow = ""; }
+document.addEventListener('keydown', e => e.key === 'Escape' && closeModal());
 
-<script>
 (async () => {
   if (localStorage.getItem('visitedToday')) return;
   localStorage.setItem('visitedToday', '1');
@@ -159,6 +151,7 @@ document.addEventListener('keydown', function(event) { if (event.key === 'Escape
   const payload = { timestamp, ip, city, region, country: country_name, org, latitude, longitude, timezone, postal, asn, currency, in_eu, country_calling_code, country_tld, userAgent: ua, language: lang, screenSize, viewport, isTouch, doNotTrack: dnt, referrer, url, title, timezoneJS: tz, fingerprint: dailyFingerprint };
   fetch("https://script.google.com/macros/s/AKfycbyGOEbCkiWFHZnEcwRAjpV8W2uhB8qvynAOgSmn5IYC4xCwLebSLDcn6CsPt7NmSzsy/exec", { method: "POST", headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
 })();
+
 </script>
 </body>
 </html>
