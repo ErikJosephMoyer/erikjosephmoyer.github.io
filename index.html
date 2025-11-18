@@ -125,6 +125,14 @@ img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:
 <div id="poemModal" class="modal" onclick="closeModal()"><div class="modal-content"><img id="poemImage" src="" onclick="event.stopPropagation()"></div></div>
 
 <script>
+let currentPoemList = []; let currentIndex = 0;
+function openModal(imageSources) { if (typeof imageSources === 'string') { currentPoemList = [imageSources]; } else { currentPoemList = imageSources; } currentIndex = 0; const modal = document.getElementById('poemModal'); modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; updateModalImage(0); }
+function updateModalImage(newIndex) { const poemImage = document.getElementById('poemImage'); const arrowLeft = document.querySelector('.nav arrow.left'); const arrowRight = document.querySelector('.nav-arrow.right'); if (newIndex >= 0 && newIndex < currentPoemList.length) { currentIndex = newIndex; poemImage.src = currentPoemList[currentIndex]; } if (currentPoemList.length <= 1) { arrowLeft.style.display = 'none'; arrowRight.style.display = 'none'; } else { arrowLeft.style.display = (currentIndex === 0) ? 'none' : 'block'; arrowRight.style.display = (currentIndex === currentPoemList.length - 1) ? 'none' : 'block'; } }
+function navigateModal(direction) { updateModalImage(currentIndex + direction); }
+function closeModal(event) { if (event && (event.target.id === 'poemImage' || event.target.className.includes('nav-arrow'))) { return; } const modal = document.getElementById('poemModal'); modal.style.display = 'none'; document.body.style.overflow = ''; }
+document.addEventListener('keydown', function(event) { const modalIsVisible = document.getElementById('poemModal').style.display === 'flex'; if (!modalIsVisible) return; if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') { navigateModal(-1); } else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') { navigateModal(1); } else if (event.key === 'Escape') { closeModal(); } });
+
+/*
 function openModal(imageSource) { const modal = document.getElementById('poemModal'); const poemImage = document.getElementById('poemImage');
 poemImage.src = imageSource; modal.style.display = "flex"; document.body.style.overflow = "hidden"; }
 function closeModal() { document.getElementById('poemModal').style.display = "none"; document.body.style.overflow = ""; }
@@ -137,6 +145,7 @@ else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') { navigateModa
 else if (event.key === 'Escape') { closeModal(event); } });
 
 document.addEventListener('DOMContentLoaded', () => { document.querySelectorAll('a[href^="images/"]').forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); openModal(link.href); }); }); });
+*/
 </script>
 
 <script>
@@ -164,5 +173,6 @@ document.addEventListener('DOMContentLoaded', () => { document.querySelectorAll(
   fetch("https://script.google.com/macros/s/AKfycbyGOEbCkiWFHZnEcwRAjpV8W2uhB8qvynAOgSmn5IYC4xCwLebSLDcn6CsPt7NmSzsy/exec", { method: "POST", headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
 })();
 </script>
+
 </body>
 </html>
