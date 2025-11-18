@@ -132,6 +132,7 @@ function openModal(imageSource) { const modal = document.getElementById('poemMod
 poemImage.src = imageSource; modal.style.display = "flex"; document.body.style.overflow = "hidden"; }
 function closeModal() { document.getElementById('poemModal').style.display = "none"; document.body.style.overflow = ""; }
 document.addEventListener('keydown', e => e.key === 'Escape' && closeModal());
+document.addEventListener('DOMContentLoaded', () => { document.querySelectorAll('a[href^="images/"]').forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); openModal(link.href); }); }); });
 </script>
 
 <script>
