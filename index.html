@@ -48,7 +48,6 @@ img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:
 
 </style>
 </head>
-
 <body>
 
 <img src="images/Logophile.png" alt="Logophile">
@@ -152,16 +151,12 @@ poemImage.src = imageSource; modal.style.display = "flex"; document.body.style.o
 function closeModal() { document.getElementById('poemModal').style.display = "none"; document.body.style.overflow = ""; }
 document.addEventListener('keydown', e => e.key === 'Escape' && closeModal());
 document.addEventListener('DOMContentLoaded', () => { document.querySelectorAll('a[href^="images/"]').forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); openModal(link.href); }); }); });
+function togglePlayer(clickedId) { const playerContainerIds = ['soundcloud-embed', 'spotify-embed', 'apple-embed', 'youtube-embed', 'soundcloud-track-embed', 'spotify-artist-embed']; const iframeMap = { 'soundcloud-embed': 'sc-iframe', 'spotify-embed': 'sp-iframe', 'apple-embed': 'ap-iframe', 'youtube-embed': 'yt-iframe', 'soundcloud-track-embed': 'sc-track-iframe', 'spotify-artist-embed': 'sp-artist-iframe' }; const element = document.getElementById(clickedId); const iframeId = iframeMap[clickedId]; const iframe = document.getElementById(iframeId); const isCurrentlyOpen = element.style.display === 'block'; playerContainerIds.forEach(id => { const playerContainer = document.getElementById(id); const playerIframe = document.getElementById(iframeMap[id]); if (playerContainer && playerContainer.style.display === 'block') { playerContainer.style.display = 'none'; if (playerIframe) { playerIframe.src = ''; } } }); if (!isCurrentlyOpen) { if (iframe) { iframe.src = iframe.getAttribute('data-original-src'); } element.style.display = 'block'; } }
 
 /*
 function toggleDisplay(id) { const element = document.getElementById(id); if (element.style.display === 'none') { element.style.display = 'block'; } else { element.style.display = 'none'; } }
-*/
-
-/*
 function togglePlayer(clickedId) { const playerIds = ['soundcloud-embed', 'spotify-embed', 'apple-embed', 'youtube-embed', 'soundcloud-track-embed', 'spotify-artist-embed']; const element = document.getElementById(clickedId); const isCurrentlyVisible = element.style.display === 'block'; playerIds.forEach(id => { const player = document.getElementById(id); if (player && player.style.display === 'block') { player.style.display = 'none'; } }); if (!isCurrentlyVisible) { element.style.display = 'block'; } }
 */
-
-function togglePlayer(clickedId) { const playerContainerIds = ['soundcloud-embed', 'spotify-embed', 'apple-embed', 'youtube-embed', 'soundcloud-track-embed', 'spotify-artist-embed']; const iframeMap = { 'soundcloud-embed': 'sc-iframe', 'spotify-embed': 'sp-iframe', 'apple-embed': 'ap-iframe', 'youtube-embed': 'yt-iframe', 'soundcloud-track-embed': 'sc-track-iframe', 'spotify-artist-embed': 'sp-artist-iframe' }; const element = document.getElementById(clickedId); const iframeId = iframeMap[clickedId]; const iframe = document.getElementById(iframeId); const isCurrentlyOpen = element.style.display === 'block'; playerContainerIds.forEach(id => { const playerContainer = document.getElementById(id); const playerIframe = document.getElementById(iframeMap[id]); if (playerContainer && playerContainer.style.display === 'block') { playerContainer.style.display = 'none'; if (playerIframe) { playerIframe.src = ''; } } }); if (!isCurrentlyOpen) { if (iframe) { iframe.src = iframe.getAttribute('data-original-src'); } element.style.display = 'block'; } }
 
 </script>
 
