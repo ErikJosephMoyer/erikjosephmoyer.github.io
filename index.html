@@ -49,6 +49,8 @@ img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:
 .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; margin-bottom: 16pt; }
 .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 .video-portrait { padding-bottom: 177.77%; }
+.video-portrait-9-16 { padding-bottom: 177.77%; }
+#performance-embed { display: none; margin: 16pt 0; }
 
 </style>
 </head>
@@ -135,9 +137,12 @@ img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:
 <div class="pub-entry"><a href="http://dx.doi.org/10.1109/SIEDS.2016.7489306"><img src="images/UVAEngineeringCapstone.png" alt="UVA Engineering Capstone"></a><div class="pub-text"><p>"<a href="images/FacilitatingPatientCareInfoEMS.png" alt="Facilitating the Collection and Dissemination of Patient Care Information for Emergency Medical Personnel">Facilitating the Collection and Dissemination of Patient Care Information for Emergency Medical Personnel</a>,” <em>SIEDS 2016</em>, IEEE, University of Virginia, Undergraduate Engineering Capstone Project, Design-Prototype Conference Paper, Online, April 2016</p></div></div>
 <br>
 
-<h2>Performances</h2>
+<h2>Readings</h2>
 <div class="video-container"><iframe src="https://www.youtube.com/embed/8zkVoLmDIWk?si=51hCwTwPrT8mDNQE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+<div class="pub-entry"> <div class="pub-text"> <p> <a href="javascript:void(0)" onclick="toggleVideo('performance-embed')" style="text-decoration: underline;">Five Poems</a>, Patchouli Joe's, Denton, Texas, <i>American Literary Review</i>, University of North Texas, ALR Reading Series, September 2025</p></div></div>
 <br>
+
+<div id="performance-embed" class="video-container"><iframe src="https://www.youtube.com/embed/8zkVoLmDIWk?si=51hCwTwPrT8mDNQE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
 
 <h2>Contact</h2>
 <div class="pub-entry"><a href="mailto:erik@erikjosephmoyer.com"><img src="images/VanGoghThePostman.png" alt="Van Gogh The Postman"></a><div class="pub-text"><p><p>Email</p></div></div>
@@ -151,12 +156,18 @@ img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:
 <div id="poemModal" class="modal" onclick="closeModal()"><div class="modal-content"><img id="poemImage" src="" onclick="event.stopPropagation()"></div></div>
 
 <script>
+
 function openModal(imageSource) { const modal = document.getElementById('poemModal'); const poemImage = document.getElementById('poemImage');
 poemImage.src = imageSource; modal.style.display = "flex"; document.body.style.overflow = "hidden"; }
+
 function closeModal() { document.getElementById('poemModal').style.display = "none"; document.body.style.overflow = ""; }
 document.addEventListener('keydown', e => e.key === 'Escape' && closeModal());
 document.addEventListener('DOMContentLoaded', () => { document.querySelectorAll('a[href^="images/"]').forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); openModal(link.href); }); }); });
+
 function togglePlayer(clickedId) { const playerContainerIds = ['soundcloud-embed', 'spotify-embed', 'apple-embed', 'youtube-embed', 'soundcloud-track-embed', 'spotify-artist-embed']; const iframeMap = { 'soundcloud-embed': 'sc-iframe', 'spotify-embed': 'sp-iframe', 'apple-embed': 'ap-iframe', 'youtube-embed': 'yt-iframe', 'soundcloud-track-embed': 'sc-track-iframe', 'spotify-artist-embed': 'sp-artist-iframe' }; const element = document.getElementById(clickedId); const iframeId = iframeMap[clickedId]; const iframe = document.getElementById(iframeId); const isClickedPlayerOpen = element.style.display === 'block'; if (isClickedPlayerOpen) { element.style.display = 'none'; return; } playerContainerIds.forEach(id => { const playerContainer = document.getElementById(id); const playerIframe = document.getElementById(iframeMap[id]); if (playerContainer && playerContainer.style.display === 'block') { playerContainer.style.display = 'none'; if (playerIframe) { playerIframe.src = ''; } } }); if (iframe) { iframe.src = iframe.getAttribute('data-original-src'); } element.style.display = 'block'; }
+
+function toggleVideo(id) { const element = document.getElementById(id); if (element.style.display === 'none' || element.style.display === '') { element.style.display = 'block'; } else { element.style.display = 'none'; } }
+
 </script>
 
 <script>
