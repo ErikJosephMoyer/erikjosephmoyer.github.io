@@ -142,6 +142,12 @@ function fmtMS(s){
   return m+':'+String(sec).padStart(2,'0');
 }
 function truncate(s,n){ return (!s)?'': s.length>n ? s.substring(0,n)+'...' : s; }
+function fmtSize(bytes){
+  const mb=bytes/1048576;
+  if(mb<0.05) return '0.1MB';
+  if(mb<0.5) return mb.toFixed(1)+'MB';
+  return Math.round(mb)+'MB';
+}
 
 // === PROGRESS PERSISTENCE ===
 function saveProgress(){
@@ -168,7 +174,7 @@ document.getElementById('file-input').onchange = async function(){
 };
 
 async function loadSingleFile(file){
-  const sizeStr = file.size>1048576?(file.size/1048576).toFixed(1)+' MB':(file.size/1024).toFixed(1)+' KB';
+  const sizeStr = fmtSize(file.size);
   document.getElementById('file-info').textContent = file.name+', '+sizeStr+' (loading...)';
   document.getElementById('upload-btn').textContent = 'Replace Audiobook';
 
@@ -223,7 +229,7 @@ document.getElementById('folder-input').onchange = async function(){
   // Get folder name from path
   const folderName = audioFiles[0].webkitRelativePath.split('/')[0] || 'Audiobook';
   const totalSize = audioFiles.reduce((s,f)=>s+f.size, 0);
-  const sizeStr = totalSize>1048576?(totalSize/1048576).toFixed(1)+' MB':(totalSize/1024).toFixed(1)+' KB';
+  const sizeStr = fmtSize(totalSize);
   document.getElementById('file-info').textContent = folderName+', '+audioFiles.length+' files, '+sizeStr;
   document.getElementById('folder-link').textContent = 'or select different audiobook folder';
 
