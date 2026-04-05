@@ -25,7 +25,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 #rec-indicator{text-align:center;font-size:14pt;color:#ff4444;margin:0 0 8pt;display:none}
 
 #output{
-  width:100%;height:180px;background:transparent;
+  width:100%;height:135px;background:transparent;
   border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;
   padding:10px;resize:none;overflow-y:auto;display:block;margin:0 0 8pt;
 }
@@ -44,7 +44,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 </head>
 <body>
 
-<img src="/images/Logophile.png" alt="EM" style="width:50px;height:50px;display:block;margin:0 auto 8pt;border-radius:8px">
+<img src="/images/Logophile.png" alt="EM" style="width:75px;height:75px;display:block;margin:0 auto 8pt;border-radius:8px">
 <h1>Erik's Textualizer</h1>
 <h2>A Speech-to-Text Tool</h2>
 
@@ -139,34 +139,9 @@ async function toggleRecord(){
     document.getElementById('replay-btn').style.display = 'none';
     document.getElementById('waveform-area').style.display = 'none';
 
-    // Start MediaRecorder for audio capture
-    recordChunks = [];
-    mediaRecorder = new MediaRecorder(stream, {mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : ''});
-    mediaRecorder.ondataavailable = (e) => { if(e.data.size>0) recordChunks.push(e.data); };
-    mediaRecorder.onstop = () => {
-      stream.getTracks().forEach(t=>t.stop());
-      audioBlob = new Blob(recordChunks, {type:'audio/webm'});
-      audioFileName = 'recording.mp3';
-      if(audioUrl) URL.revokeObjectURL(audioUrl);
-      audioUrl = URL.createObjectURL(audioBlob);
-
-      document.getElementById('file-info').textContent = 'Recording, '+fmtSize(audioBlob.size);
-      document.getElementById('replay-btn').style.display = 'inline-block';
-      document.getElementById('dl-audio').style.display = 'inline-block';
-      drawWaveform(audioBlob);
-
-      // Delay finalization to let SpeechRecognition finish processing
-      setTimeout(() => {
-        const text = document.getElementById('output').value.trim() || liveFinalText.trim();
-        if(text) document.getElementById('output').value = text;
-        const wc = text.split(/\s+/).filter(Boolean).length;
-        document.getElementById('status').textContent = wc > 0 ? `Status: Done, ${wc} words` : 'Status: Done';
-        document.getElementById('dl-text').style.display = 'inline-block';
-      }, 2000);
-    };
-    mediaRecorder.start();
-
-    // Start live SpeechRecognition simultaneously
+    // Start SpeechRecognition FIRST (before MediaRecorder on mobile)
+    // On Android Chrome, recognition must start before recorder claims the mic
+    let recognitionActive = false;
     if(SR){
       liveRecognition = new SR();
       liveRecognition.lang = 'en-US';
@@ -183,14 +158,66 @@ async function toggleRecord(){
         document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
       };
       liveRecognition.onend = () => {
-        if(isRecording) try { liveRecognition.start(); } catch(e){}
+        // Auto-restart on mobile (recognition stops after silence)
+        if(isRecording){
+          try { liveRecognition.start(); } catch(e){
+            // If restart fails, try again after brief delay
+            setTimeout(() => {
+              if(isRecording) try { liveRecognition.start(); } catch(e2){}
+            }, 500);
+          }
+        }
       };
       liveRecognition.onerror = (e) => {
         if(e.error==='no-speech' && isRecording) return;
-        if(e.error==='aborted') return;
+        if(e.error==='aborted' && isRecording){
+          // Mobile often aborts — restart
+          setTimeout(() => {
+            if(isRecording) try { liveRecognition.start(); } catch(e2){}
+          }, 500);
+          return;
+        }
+        if(e.error==='not-allowed'){
+          document.getElementById('status').textContent = 'Status: Speech recognition denied';
+        }
       };
-      liveRecognition.start();
+      try {
+        liveRecognition.start();
+        recognitionActive = true;
+      } catch(e){
+        // Recognition failed to start — continue with recording only
+      }
     }
+
+    // Start MediaRecorder AFTER recognition
+    recordChunks = [];
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' :
+                     MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
+    mediaRecorder = new MediaRecorder(stream, mimeType ? {mimeType} : {});
+    mediaRecorder.ondataavailable = (e) => { if(e.data.size>0) recordChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t=>t.stop());
+      const recType = mimeType || 'audio/webm';
+      audioBlob = new Blob(recordChunks, {type:recType});
+      audioFileName = 'recording.mp3';
+      if(audioUrl) URL.revokeObjectURL(audioUrl);
+      audioUrl = URL.createObjectURL(audioBlob);
+
+      document.getElementById('file-info').textContent = 'Recording, '+fmtSize(audioBlob.size);
+      document.getElementById('replay-btn').style.display = 'inline-block';
+      document.getElementById('dl-audio').style.display = 'inline-block';
+      drawWaveform(audioBlob);
+
+      // Delay finalization to let SpeechRecognition finish processing
+      setTimeout(() => {
+        const text = document.getElementById('output').value.trim() || liveFinalText.trim();
+        if(text) document.getElementById('output').value = text;
+        const wc = text.split(/\s+/).filter(Boolean).length;
+        document.getElementById('status').textContent = wc > 0 ? `Status: Done, ${wc} words` : 'Status: Done';
+        document.getElementById('dl-text').style.display = 'inline-block';
+      }, 3000); // 3s delay for mobile to finish processing
+    };
+    mediaRecorder.start(1000); // Collect data every 1s (helps mobile)
   } catch(e){
     document.getElementById('status').textContent = 'Status: Microphone access denied';
     isRecording = false;
