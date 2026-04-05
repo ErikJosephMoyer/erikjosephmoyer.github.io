@@ -449,149 +449,223 @@ function parseMetadata(file){
   return parseID3Metadata(file);
 }
 
-// === M4B/MP4 CHAPTER PARSER ===
+// === M4B/MP4 CHAPTER PARSER (supports Nero chpl + Apple chapter tracks) ===
 function parseM4BMetadata(file){
-  return new Promise((resolve) => {
-    // M4B chapters use Nero format (chpl atom) or Apple chapter track
-    // We need to scan the moov atom. For large files, moov may be at the end.
-    // Strategy: read first 2MB, if no moov found, read last 2MB
-    const SCAN_SIZE = 2*1024*1024;
-    const reader = new FileReader();
-    reader.onerror = () => resolve();
+  return new Promise(async (resolve) => {
+    try {
+      // Step 1: Find moov atom location by reading top-level atoms
+      let moovStart=-1, moovSize=0;
+      const headerBuf = new Uint8Array(await readSlice(file, 0, Math.min(64, file.size)));
+      let scanPos = 0;
+      // Scan top-level atoms to find moov
+      const topBuf = new Uint8Array(await readSlice(file, 0, Math.min(128, file.size)));
+      // Read just atom headers sequentially
+      scanPos = 0;
+      while(scanPos < file.size - 8){
+        const hdr = new Uint8Array(await readSlice(file, scanPos, 8));
+        const sz = (hdr[0]<<24)|(hdr[1]<<16)|(hdr[2]<<8)|hdr[3];
+        const tp = String.fromCharCode(hdr[4],hdr[5],hdr[6],hdr[7]);
+        if(sz < 8) break;
+        if(tp === 'moov'){ moovStart=scanPos; moovSize=sz; break; }
+        scanPos += sz;
+        if(scanPos > file.size) break;
+      }
+      if(moovStart < 0){ resolve(); return; }
 
-    function parseMP4Atoms(buf){
-      const view = new DataView(buf.buffer || buf);
+      // Step 2: Read entire moov atom
+      const moovBuf = new Uint8Array(await readSlice(file, moovStart, Math.min(moovSize, 16*1024*1024)));
+      const mv = new DataView(moovBuf.buffer);
+
       let title='', album='';
-      const parsedChapters = [];
+      let chapTimescale=0, chapDurations=[], chapOffsets=[], chapSizes=[];
 
-      // Recursively find atoms
-      function findAtoms(start, end, path){
-        let pos = start;
-        while(pos < end - 8){
-          const size = view.getUint32(pos);
-          const type = String.fromCharCode(buf[pos+4],buf[pos+5],buf[pos+6],buf[pos+7]);
-          if(size < 8 || pos+size > end) break;
-          const atomPath = path+'/'+type;
+      // Recursively parse atoms within moov
+      function scan(start, end){
+        let p = start;
+        while(p < end-8){
+          const sz = mv.getUint32(p);
+          const tp = String.fromCharCode(moovBuf[p+4],moovBuf[p+5],moovBuf[p+6],moovBuf[p+7]);
+          if(sz<8||p+sz>end) break;
 
-          // Container atoms — recurse into them
-          if(['moov','udta','meta','ilst','trak','mdia','minf','stbl','\u00A9nam','\u00A9alb','covr','aART','\u00A9ART'].includes(type)){
-            let dataStart = pos+8;
-            if(type==='meta') dataStart = pos+12; // meta has 4-byte version/flags
-            findAtoms(dataStart, pos+size, atomPath);
+          // Container atoms
+          if(['moov','trak','mdia','minf','stbl','udta','meta','ilst',
+              '\u00A9nam','\u00A9alb','covr'].includes(tp)){
+            scan(tp==='meta'?p+12:p+8, p+sz);
           }
 
-          // Nero chapter list
-          if(type==='chpl'){
-            let i = pos+16; // skip size(4)+type(4)+version(4)+reserved(4)
-            if(i+4 <= pos+size){
-              const count = view.getUint32(i); i+=4;
-              for(let c=0; c<count && i<pos+size-9; c++){
-                // Each entry: timestamp(8 bytes, in 100ns units) + titleLen(1) + title
-                const tsHi = view.getUint32(i); const tsLo = view.getUint32(i+4); i+=8;
-                const ms = (tsHi*4294967296 + tsLo) / 10000; // 100ns to ms
-                const titleLen = buf[i]; i++;
-                let chapTitle = '';
-                for(let j=0; j<titleLen && i+j<pos+size; j++) chapTitle += String.fromCharCode(buf[i+j]);
-                i += titleLen;
-                parsedChapters.push({title: chapTitle||'Chapter '+(parsedChapters.length+1), startMs: ms});
+          // Nero chapters
+          if(tp==='chpl'){
+            let i=p+16;
+            if(i+4<=p+sz){
+              const cnt=mv.getUint32(i); i+=4;
+              for(let c=0;c<cnt&&i<p+sz-9;c++){
+                const hi=mv.getUint32(i),lo=mv.getUint32(i+4); i+=8;
+                const ms=(hi*4294967296+lo)/10000;
+                const tl=moovBuf[i]; i++;
+                let t=''; for(let j=0;j<tl&&i+j<p+sz;j++) t+=String.fromCharCode(moovBuf[i+j]);
+                i+=tl;
+                chapters.push({title:t||'Chapter '+(chapters.length+1),startTime:ms/1000,endTime:0,duration:0});
+              }
+              // Fix end times
+              for(let c=0;c<chapters.length-1;c++){
+                chapters[c].endTime=chapters[c+1].startTime;
+                chapters[c].duration=chapters[c].endTime-chapters[c].startTime;
               }
             }
           }
 
-          // iTunes metadata: title
-          if(type==='\u00A9nam' || type==='\u00A9alb'){
-            // Look for 'data' sub-atom
-            let di = pos+8;
-            while(di < pos+size-8){
-              const ds = view.getUint32(di);
-              const dt = String.fromCharCode(buf[di+4],buf[di+5],buf[di+6],buf[di+7]);
-              if(dt==='data' && ds>16){
-                const text = new TextDecoder('utf-8').decode(buf.slice(di+16, di+ds));
-                if(type==='\u00A9nam') title = text;
-                if(type==='\u00A9alb') album = text;
+          // Detect text handler (Apple chapter track)
+          if(tp==='hdlr' && p+20<p+sz){
+            const handler=String.fromCharCode(moovBuf[p+16],moovBuf[p+17],moovBuf[p+18],moovBuf[p+19]);
+            if(handler==='text'){
+              // We're inside the chapter track's mdia — find stbl sibling
+              // Look for stts, stsz, stco in the parent range
+            }
+          }
+
+          // mdhd in text track — get timescale
+          if(tp==='mdhd'){
+            const ver=moovBuf[p+8];
+            const ts = ver===0 ? mv.getUint32(p+20) : mv.getUint32(p+28);
+            if(ts>0 && ts<100000) chapTimescale=ts; // reasonable timescale
+          }
+
+          // stts — time-to-sample (chapter durations)
+          if(tp==='stts' && chapTimescale===0){
+            // Skip — only use stts from text track
+          }
+          if(tp==='stts' && sz<500000){ // chapter stts is small
+            const cnt=mv.getUint32(p+12);
+            if(cnt>0 && cnt<10000){
+              const durs=[];
+              for(let i=0;i<cnt;i++){
+                const sc=mv.getUint32(p+16+i*8);
+                const sd=mv.getUint32(p+20+i*8);
+                for(let j=0;j<sc;j++) durs.push(sd);
               }
-              if(ds<8) break;
-              di += ds;
+              if(durs.length>chapDurations.length) chapDurations=durs;
+            }
+          }
+
+          // stsz — sample sizes (chapter name lengths)
+          if(tp==='stsz' && sz<500000){
+            const defSz=mv.getUint32(p+12);
+            const cnt=mv.getUint32(p+16);
+            if(cnt>0 && cnt<10000){
+              const sizes=[];
+              for(let i=0;i<cnt;i++) sizes.push(defSz||mv.getUint32(p+20+i*4));
+              if(sizes.length>chapSizes.length) chapSizes=sizes;
+            }
+          }
+
+          // stco — chunk offsets (where chapter names are stored in file)
+          if(tp==='stco' && sz<500000){
+            const cnt=mv.getUint32(p+12);
+            if(cnt>0 && cnt<10000){
+              const offs=[];
+              for(let i=0;i<cnt;i++) offs.push(mv.getUint32(p+16+i*4));
+              if(offs.length>chapOffsets.length) chapOffsets=offs;
+            }
+          }
+
+          // iTunes title/album
+          if(tp==='\u00A9nam'||tp==='\u00A9alb'){
+            let di=p+8;
+            while(di<p+sz-8){
+              const ds=mv.getUint32(di);
+              const dt=String.fromCharCode(moovBuf[di+4],moovBuf[di+5],moovBuf[di+6],moovBuf[di+7]);
+              if(dt==='data'&&ds>16){
+                const txt=new TextDecoder('utf-8').decode(moovBuf.slice(di+16,di+ds));
+                if(tp==='\u00A9nam') title=txt;
+                if(tp==='\u00A9alb') album=txt;
+              }
+              if(ds<8) break; di+=ds;
             }
           }
 
           // Cover art
-          if(type==='covr' && !hasCover){
-            let di = pos+8;
-            while(di < pos+size-8){
-              const ds = view.getUint32(di);
-              const dt = String.fromCharCode(buf[di+4],buf[di+5],buf[di+6],buf[di+7]);
-              if(dt==='data' && ds>16){
-                const imgData = buf.slice(di+16, di+ds);
-                const mime = (imgData[0]===0xFF && imgData[1]===0xD8) ? 'image/jpeg' : 'image/png';
-                const blob = new Blob([imgData], {type:mime});
-                document.getElementById('cover-img').src = URL.createObjectURL(blob);
-                document.getElementById('cover-wrap').style.display = 'block';
-                document.getElementById('cover-upload-btn').style.display = 'none';
-                hasCover = true;
+          if(tp==='covr'&&!hasCover){
+            let di=p+8;
+            while(di<p+sz-8){
+              const ds=mv.getUint32(di);
+              const dt=String.fromCharCode(moovBuf[di+4],moovBuf[di+5],moovBuf[di+6],moovBuf[di+7]);
+              if(dt==='data'&&ds>16){
+                const img=moovBuf.slice(di+16,di+ds);
+                const mime=(img[0]===0xFF&&img[1]===0xD8)?'image/jpeg':'image/png';
+                document.getElementById('cover-img').src=URL.createObjectURL(new Blob([img],{type:mime}));
+                document.getElementById('cover-wrap').style.display='block';
+                document.getElementById('cover-upload-btn').style.display='none';
+                hasCover=true;
               }
-              if(ds<8) break;
-              di += ds;
+              if(ds<8) break; di+=ds;
             }
           }
 
-          pos += size;
+          p+=sz;
         }
       }
-
-      findAtoms(0, buf.length, '');
+      scan(8, moovBuf.length); // skip moov header
 
       // Apply title
-      const bookTitle = album || title || '';
+      const bookTitle=album||title||'';
       if(bookTitle){
-        document.getElementById('book-title').textContent = bookTitle;
-        document.getElementById('book-title').style.display = 'block';
+        document.getElementById('book-title').textContent=bookTitle;
+        document.getElementById('book-title').style.display='block';
       }
 
-      // Convert chapter start times to proper format
-      if(parsedChapters.length > 0 && !multiFileMode){
-        parsedChapters.sort((a,b) => a.startMs - b.startMs);
-        for(let i=0; i<parsedChapters.length; i++){
-          const startSec = parsedChapters[i].startMs / 1000;
-          const endSec = (i+1 < parsedChapters.length) ? parsedChapters[i+1].startMs/1000 : 0;
+      // Step 3: If we have Apple chapter track data (durations + offsets), read chapter names
+      if(chapters.length===0 && chapDurations.length>0 && chapOffsets.length>0 && chapTimescale>0){
+        // Read chapter name samples from file using offsets
+        let cumTime=0;
+        for(let i=0;i<chapDurations.length;i++){
+          const startSec=cumTime/chapTimescale;
+          const durSec=chapDurations[i]/chapTimescale;
+          let chapTitle='Chapter '+(i+1);
+
+          // Read chapter name from file at offset
+          if(i<chapOffsets.length && chapOffsets[i]>0){
+            const nameSize = i<chapSizes.length ? chapSizes[i] : 256;
+            try {
+              const nameBuf=new Uint8Array(await readSlice(file, chapOffsets[i], Math.min(nameSize,512)));
+              // Text samples: first 2 bytes = string length, then UTF-8 text
+              if(nameBuf.length>=2){
+                const strLen=(nameBuf[0]<<8)|nameBuf[1];
+                if(strLen>0 && strLen<=nameBuf.length-2){
+                  chapTitle=new TextDecoder('utf-8').decode(nameBuf.slice(2,2+strLen));
+                }
+              }
+            }catch(e){}
+          }
+
           chapters.push({
-            title: parsedChapters[i].title,
-            startTime: startSec,
-            endTime: endSec, // will be fixed when duration is known
-            duration: endSec > 0 ? endSec - startSec : 0
+            title:chapTitle, startTime:startSec,
+            endTime:startSec+durSec, duration:durSec
           });
+          cumTime+=chapDurations[i];
         }
       }
-    }
 
-    // Read first chunk
-    const slice1 = file.slice(0, Math.min(SCAN_SIZE, file.size));
-    reader.onload = function(){
-      const buf = new Uint8Array(reader.result);
-      // Check if moov is in first chunk
-      let hasMoov = false;
-      for(let i=0; i<buf.length-8; i++){
-        if(buf[i]===0x6D && buf[i+1]===0x6F && buf[i+2]===0x6F && buf[i+3]===0x76){ hasMoov=true; break; }
+      // Fix Nero chapter end times
+      if(chapters.length>0 && chapters[chapters.length-1].endTime===0){
+        for(let i=0;i<chapters.length-1;i++){
+          if(chapters[i].endTime===0){
+            chapters[i].endTime=chapters[i+1].startTime;
+            chapters[i].duration=chapters[i].endTime-chapters[i].startTime;
+          }
+        }
       }
 
-      if(hasMoov){
-        parseMP4Atoms(buf);
-        resolve();
-      } else if(file.size > SCAN_SIZE){
-        // moov might be at end of file — read last chunk
-        const reader2 = new FileReader();
-        const slice2 = file.slice(Math.max(0, file.size - SCAN_SIZE));
-        reader2.onload = function(){
-          parseMP4Atoms(new Uint8Array(reader2.result));
-          resolve();
-        };
-        reader2.onerror = () => resolve();
-        reader2.readAsArrayBuffer(slice2);
-      } else {
-        resolve();
-      }
-    };
-    reader.readAsArrayBuffer(slice1);
+      resolve();
+    } catch(e){ resolve(); }
+  });
+}
+
+function readSlice(file, offset, length){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve(r.result);
+    r.onerror=()=>reject(r.error);
+    r.readAsArrayBuffer(file.slice(offset, offset+length));
   });
 }
 
