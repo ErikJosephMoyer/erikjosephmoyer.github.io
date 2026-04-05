@@ -11,44 +11,36 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#2a2a2a;color:#fff;font:normal 16pt/1.2 'EB Garamond',serif;margin:0 auto;padding:12px 20px;max-width:700px}
 h1{font-size:24pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
-h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
 
 button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:8px 32px}
 button:hover{background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
 
-.btn-row{display:flex;justify-content:center;gap:12px;margin:0 0 8pt}
-.btn-row button{min-width:160px;max-width:220px}
+.btn-row{display:flex;justify-content:center;gap:12px;margin:0 0 8pt;flex-wrap:wrap}
+.btn-row button{min-width:140px;max-width:200px}
+.action-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
 #file-info{text-align:center;font-size:14pt;color:#fff;margin:0 0 8pt}
-
-/* Language dropdown */
-#lang-select{
-  width:100%;background:transparent;border:1px solid #fff;
-  color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;
-  appearance:auto;margin:0 0 8pt;
-}
-#lang-select option{background:#2a2a2a;color:#fff}
-#lang-select:focus{outline:none}
-
-/* Status */
 #status{text-align:center;font-size:16pt;color:#fff;margin:0 0 8pt}
+#rec-indicator{text-align:center;font-size:14pt;color:#ff4444;margin:0 0 8pt;display:none}
 
-/* Output textbox */
 #output{
-  width:100%;height:200px;background:transparent;
+  width:100%;height:180px;background:transparent;
   border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;
   padding:10px;resize:none;overflow-y:auto;display:block;margin:0 0 8pt;
 }
 #output::placeholder{color:#666;font-family:'EB Garamond',serif}
 #output:focus{outline:none;border-color:#fff}
 
-/* Download link */
 #dl-row{text-align:center;margin:0 0 8pt}
-#dl-link{color:#fff;font-size:16pt;text-decoration:underline;cursor:pointer}
+#dl-link{color:#fff;font-size:16pt;text-decoration:underline;cursor:pointer;display:none}
 #dl-link:hover{color:#ccc}
 
-/* Record indicator */
-#rec-indicator{text-align:center;font-size:14pt;color:#ff4444;margin:0 0 8pt;display:none}
+/* Waveform */
+#waveform-area{width:100%;height:60px;position:relative;overflow:hidden;margin:0 0 8pt;display:none}
+#waveform-canvas{width:100%;height:100%}
+
+/* Replay button */
+#replay-btn{display:none}
 
 .hidden-input{display:none}
 </style>
@@ -58,68 +50,68 @@ button:disabled{background:#555;color:#888;cursor:default}
 <img src="/images/Logophile.png" alt="EM" style="width:75px;height:75px;display:block;margin:0 auto 8pt;border-radius:12px">
 <h1>Erik's Textillery</h1>
 
-<!-- Upload or Record -->
 <div class="btn-row">
   <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload Audio</button>
   <button id="record-btn" onclick="toggleRecord()">Record</button>
+  <button id="dictate-btn" onclick="toggleDictate()">Dictate</button>
 </div>
 <input type="file" id="file-input" class="hidden-input" accept="audio/*,.mp3,.m4a,.m4b,.wav,.ogg,.webm,.mp4,.flac,.aac">
 
 <div id="file-info">No file selected</div>
 <div id="rec-indicator">Recording...</div>
 
-<!-- Language -->
-<select id="lang-select">
-  <option value="en-US">English (US)</option>
-  <option value="en-GB">English (UK)</option>
-  <option value="es-ES">Spanish</option>
-  <option value="fr-FR">French</option>
-  <option value="de-DE">German</option>
-  <option value="it-IT">Italian</option>
-  <option value="pt-BR">Portuguese</option>
-  <option value="ja-JP">Japanese</option>
-  <option value="zh-CN">Chinese (Mandarin)</option>
-  <option value="ko-KR">Korean</option>
-  <option value="ru-RU">Russian</option>
-  <option value="ar-SA">Arabic</option>
-  <option value="hi-IN">Hindi</option>
-</select>
+<button id="transcribe-btn" class="action-btn" onclick="transcribe()" disabled>Transcribe</button>
 
-<!-- Transcribe button -->
-<button id="transcribe-btn" style="display:block;margin:0 auto 8pt;min-width:180px;max-width:250px" onclick="transcribe()" disabled>Transcribe</button>
-
-<!-- Status -->
 <div id="status">Status: Ready</div>
 
-<!-- Output -->
+<div id="waveform-area"><canvas id="waveform-canvas"></canvas></div>
+
 <textarea id="output" placeholder="Transcribed text will appear here..." readonly></textarea>
 
-<!-- Download -->
 <div id="dl-row">
-  <a id="dl-link" style="display:none" onclick="downloadText()">Download as .txt</a>
+  <a id="dl-link" onclick="downloadText()">Download Text File</a>
 </div>
 
+<button id="replay-btn" class="action-btn" onclick="replayAudio()">Replay Audio</button>
+
 <script>
-// === STATE ===
 let audioBlob = null;
 let audioFileName = '';
+let audioUrl = '';
+let replayEl = null;
 let mediaRecorder = null;
 let recordChunks = [];
 let isRecording = false;
+let isDictating = false;
+let dictRecognition = null;
 
-// === FILE UPLOAD ===
+function fmtSize(bytes){
+  const mb=bytes/1048576;
+  if(mb<0.05) return '0.1MB';
+  if(mb<0.5) return mb.toFixed(1)+'MB';
+  return Math.round(mb)+'MB';
+}
+function sanitizeName(name, maxLen){
+  name = name.replace(/\.[^.]+$/,'').toLowerCase();
+  name = name.replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+  return name.substring(0, maxLen||20);
+}
+
+// === UPLOAD ===
 document.getElementById('file-input').onchange = function(){
   const file = this.files[0];
   if(!file) return;
   audioBlob = file;
   audioFileName = file.name;
-  const mb = file.size/1048576;
-  const sizeStr = mb<0.05?'0.1MB': mb<0.5?mb.toFixed(1)+'MB': Math.round(mb)+'MB';
-  document.getElementById('file-info').textContent = file.name+', '+sizeStr;
+  if(audioUrl) URL.revokeObjectURL(audioUrl);
+  audioUrl = URL.createObjectURL(file);
+  document.getElementById('file-info').textContent = file.name+', '+fmtSize(file.size);
   document.getElementById('upload-btn').textContent = 'Replace Audio';
   document.getElementById('transcribe-btn').disabled = false;
-  document.getElementById('output').value = '';
+  document.getElementById('replay-btn').style.display = 'none';
   document.getElementById('dl-link').style.display = 'none';
+  document.getElementById('output').value = '';
+  drawWaveform(file);
 };
 
 // === RECORD ===
@@ -134,170 +126,225 @@ async function toggleRecord(){
   try {
     const stream = await navigator.mediaDevices.getUserMedia({audio:true});
     recordChunks = [];
-    mediaRecorder = new MediaRecorder(stream, {mimeType:'audio/webm'});
+    mediaRecorder = new MediaRecorder(stream, {mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : ''});
     mediaRecorder.ondataavailable = (e) => { if(e.data.size>0) recordChunks.push(e.data); };
     mediaRecorder.onstop = () => {
       stream.getTracks().forEach(t=>t.stop());
       audioBlob = new Blob(recordChunks, {type:'audio/webm'});
       audioFileName = 'recording.webm';
-      const mb = audioBlob.size/1048576;
-      const sizeStr = mb<0.05?'0.1MB': mb<0.5?mb.toFixed(1)+'MB': Math.round(mb)+'MB';
-      document.getElementById('file-info').textContent = 'Recording, '+sizeStr;
+      if(audioUrl) URL.revokeObjectURL(audioUrl);
+      audioUrl = URL.createObjectURL(audioBlob);
+      document.getElementById('file-info').textContent = 'Recording, '+fmtSize(audioBlob.size);
       document.getElementById('transcribe-btn').disabled = false;
-      document.getElementById('output').value = '';
+      document.getElementById('replay-btn').style.display = 'none';
       document.getElementById('dl-link').style.display = 'none';
+      document.getElementById('output').value = '';
+      drawWaveform(audioBlob);
     };
     mediaRecorder.start();
     isRecording = true;
     document.getElementById('record-btn').textContent = 'Stop';
     document.getElementById('rec-indicator').style.display = 'block';
+    document.getElementById('output').value = '';
   } catch(e){
     document.getElementById('status').textContent = 'Status: Microphone access denied';
   }
 }
 
-// === TRANSCRIBE ===
-// Uses browser's built-in Web Speech API for recognition
-// For uploaded files: decode audio and play through AudioContext to feed SpeechRecognition
-// For live recording: direct SpeechRecognition on microphone
+// === LIVE DICTATION ===
+function toggleDictate(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    document.getElementById('status').textContent = 'Status: Speech recognition not supported, use Chrome';
+    return;
+  }
 
-async function transcribe(){
+  if(isDictating){
+    isDictating = false;
+    dictRecognition.stop();
+    document.getElementById('dictate-btn').textContent = 'Dictate';
+    document.getElementById('rec-indicator').style.display = 'none';
+    const wc = document.getElementById('output').value.trim().split(/\s+/).filter(Boolean).length;
+    document.getElementById('status').textContent = wc > 0 ? `Status: Done, ${wc} words` : 'Status: Ready';
+    if(wc > 0) document.getElementById('dl-link').style.display = 'inline';
+    return;
+  }
+
+  isDictating = true;
+  document.getElementById('dictate-btn').textContent = 'Stop';
+  document.getElementById('rec-indicator').textContent = 'Listening...';
+  document.getElementById('rec-indicator').style.display = 'block';
+  document.getElementById('status').textContent = 'Status: Dictating live';
+  document.getElementById('output').value = '';
+  document.getElementById('dl-link').style.display = 'none';
+  document.getElementById('replay-btn').style.display = 'none';
+
+  let finalText = '';
+  dictRecognition = new SR();
+  dictRecognition.lang = 'en-US';
+  dictRecognition.continuous = true;
+  dictRecognition.interimResults = true;
+
+  dictRecognition.onresult = (e) => {
+    let interim = '';
+    for(let i=e.resultIndex; i<e.results.length; i++){
+      if(e.results[i].isFinal) finalText += e.results[i][0].transcript + ' ';
+      else interim += e.results[i][0].transcript;
+    }
+    document.getElementById('output').value = finalText + interim;
+    document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
+  };
+
+  dictRecognition.onend = () => {
+    if(isDictating){ try { dictRecognition.start(); } catch(e){} }
+  };
+
+  dictRecognition.onerror = (e) => {
+    if(e.error==='no-speech' && isDictating) return;
+    if(e.error==='aborted') return;
+  };
+
+  dictRecognition.start();
+}
+
+// === TRANSCRIBE UPLOADED/RECORDED AUDIO ===
+function transcribe(){
   if(!audioBlob){
     document.getElementById('status').textContent = 'Status: No audio to transcribe';
     return;
   }
-
-  const lang = document.getElementById('lang-select').value;
-  document.getElementById('status').textContent = 'Status: Transcribing...';
-  document.getElementById('transcribe-btn').disabled = true;
-  document.getElementById('output').value = '';
-
-  // Check if SpeechRecognition is available
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if(!SpeechRecognition){
-    // Fallback: use the audio element approach with chunked recognition
-    document.getElementById('status').textContent = 'Status: Speech recognition not supported in this browser. Use Chrome.';
-    document.getElementById('transcribe-btn').disabled = false;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    document.getElementById('status').textContent = 'Status: Speech recognition not supported, use Chrome';
     return;
   }
 
-  // Play audio through hidden audio element and capture with SpeechRecognition
-  // This is the only way to transcribe uploaded files client-side
-  const audioUrl = URL.createObjectURL(audioBlob);
-  const audioEl = new Audio(audioUrl);
+  document.getElementById('status').textContent = 'Status: Playing audio for transcription, keep volume up...';
+  document.getElementById('transcribe-btn').disabled = true;
+  document.getElementById('output').value = '';
+  document.getElementById('dl-link').style.display = 'none';
+  document.getElementById('replay-btn').style.display = 'none';
 
-  const recognition = new SpeechRecognition();
-  recognition.lang = lang;
+  const playEl = new Audio(audioUrl);
+  let finalTranscript = '';
+
+  const recognition = new SR();
+  recognition.lang = 'en-US';
   recognition.continuous = true;
   recognition.interimResults = true;
-  recognition.maxAlternatives = 1;
-
-  let finalTranscript = '';
-  let interimTranscript = '';
 
   recognition.onresult = (e) => {
-    interimTranscript = '';
+    let interim = '';
     for(let i=e.resultIndex; i<e.results.length; i++){
-      if(e.results[i].isFinal){
-        finalTranscript += e.results[i][0].transcript + ' ';
-      } else {
-        interimTranscript += e.results[i][0].transcript;
-      }
+      if(e.results[i].isFinal) finalTranscript += e.results[i][0].transcript + ' ';
+      else interim += e.results[i][0].transcript;
     }
-    document.getElementById('output').value = finalTranscript + interimTranscript;
-    // Auto-scroll to bottom
+    document.getElementById('output').value = finalTranscript + interim;
     document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
   };
 
   recognition.onerror = (e) => {
-    if(e.error === 'no-speech'){
-      // Restart recognition if audio is still playing
-      if(!audioEl.paused && !audioEl.ended){
-        try { recognition.start(); } catch(ex){}
-      }
-      return;
+    if(e.error==='no-speech' && !playEl.paused && !playEl.ended){
+      try { recognition.start(); } catch(ex){}
     }
-    console.log('Recognition error:', e.error);
   };
 
   recognition.onend = () => {
-    // Restart if audio is still playing (recognition times out after silence)
-    if(!audioEl.paused && !audioEl.ended){
+    if(!playEl.paused && !playEl.ended){
       try { recognition.start(); } catch(e){}
     } else {
-      // Done
       document.getElementById('output').value = finalTranscript.trim();
       const wc = finalTranscript.trim().split(/\s+/).filter(Boolean).length;
       document.getElementById('status').textContent = `Status: Done, ${wc} words`;
       document.getElementById('transcribe-btn').disabled = false;
       document.getElementById('dl-link').style.display = 'inline';
+      document.getElementById('replay-btn').style.display = 'block';
     }
   };
 
-  audioEl.onended = () => {
-    // Give recognition a moment to finish processing
-    setTimeout(()=>{
-      try { recognition.stop(); } catch(e){}
-    }, 2000);
+  playEl.onended = () => {
+    setTimeout(()=>{ try { recognition.stop(); } catch(e){} }, 2000);
   };
 
-  // For uploaded files, we need to play the audio out loud for SpeechRecognition to hear it
-  // OR use AudioContext to route audio to a virtual output
-  // Unfortunately, SpeechRecognition only listens to the microphone, not audio output
-  // So for uploaded files, we use a different approach: read the file in chunks
-  // and feed each chunk's text to the output
-
-  // Best client-side approach: play audio at low volume and hope mic picks it up
-  // This is unreliable. Better approach: use the Web Speech API in "offline" mode
-  // which doesn't exist. The reality is that true offline STT requires a model.
-
-  // Most reliable free approach: use SpeechRecognition API which requires live audio
-  // For uploaded files, we'll play them and let the system audio feed recognition
-  // On most systems this works if "Stereo Mix" or loopback is enabled
-
-  // Actually, the most practical approach for a client-side tool:
-  // Use the media element as source and route through AudioContext
-  // SpeechRecognition still only listens to mic, so we need a different strategy
-
-  // PRACTICAL SOLUTION: For uploaded files, decode to PCM, split into small chunks,
-  // and use the Google Web Speech API endpoint directly (same as what Chrome uses)
-  // This works without a microphone.
-
-  // Simplest working approach: just start recognition and play audio.
-  // If user has headphones, they need to turn on "listen to this device" or similar.
-  // If on speakers, the mic will pick up the audio.
-  // On mobile, this works naturally since the speaker is near the mic.
-
-  document.getElementById('status').textContent = 'Status: Playing audio for transcription (keep volume up)...';
-  try {
-    recognition.start();
-    audioEl.volume = 1.0;
-    audioEl.play();
-  } catch(e) {
-    document.getElementById('status').textContent = 'Status: Error starting transcription';
-    document.getElementById('transcribe-btn').disabled = false;
-  }
+  recognition.start();
+  playEl.volume = 1.0;
+  playEl.play();
 }
 
-// === DOWNLOAD TEXT ===
+// === REPLAY ===
+function replayAudio(){
+  if(!audioUrl) return;
+  if(replayEl && !replayEl.paused){ replayEl.pause(); replayEl.currentTime=0; document.getElementById('replay-btn').textContent='Replay Audio'; return; }
+  replayEl = new Audio(audioUrl);
+  replayEl.play();
+  document.getElementById('replay-btn').textContent = 'Stop Replay';
+  replayEl.onended = () => { document.getElementById('replay-btn').textContent = 'Replay Audio'; };
+}
+
+// === DOWNLOAD ===
 function downloadText(){
   const text = document.getElementById('output').value;
   if(!text) return;
-  const name = audioFileName.replace(/\.[^.]+$/,'') || 'transcription';
+  const src = sanitizeName(audioFileName || 'dictation', 20);
   const blob = new Blob([text], {type:'text/plain'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'stt_ejm_'+name.toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').substring(0,20)+'.txt';
+  a.download = `stt_ejm_${src}.txt`;
   a.click();
 }
 
-// === KEYBOARD: Ctrl+Enter to transcribe ===
-document.addEventListener('keydown',(e)=>{
-  if(e.ctrlKey && e.key==='Enter' && audioBlob){
-    e.preventDefault();
-    transcribe();
+// === WAVEFORM ===
+function drawWaveform(fileOrBlob){
+  const area = document.getElementById('waveform-area');
+  const canvas = document.getElementById('waveform-canvas');
+  const ctx = canvas.getContext('2d');
+  area.style.display = 'block';
+
+  // For large files (>5MB), use generated pattern
+  if(fileOrBlob.size > 5*1024*1024){
+    const W = area.clientWidth; canvas.width=W; canvas.height=60;
+    ctx.fillStyle='#fff';
+    for(let x=0;x<W;x++){
+      const h=5+Math.sin(x*0.05)*12+Math.sin(x*0.13)*8+Math.random()*6;
+      ctx.fillRect(x,30-h/2,1,h);
+    }
+    return;
   }
+
+  const reader = new FileReader();
+  reader.onload = function(){
+    const actx = new (window.AudioContext||window.webkitAudioContext)();
+    actx.decodeAudioData(reader.result, decoded => {
+      const data = decoded.getChannelData(0);
+      const W = area.clientWidth; canvas.width=W; canvas.height=60;
+      const step = Math.max(1,Math.ceil(data.length/W));
+      ctx.clearRect(0,0,W,60); ctx.fillStyle='#fff';
+      for(let x=0;x<W;x++){
+        let min=1,max=-1;
+        for(let j=0;j<step;j++){
+          const v=data[x*step+j]||0;
+          if(v<min)min=v;if(v>max)max=v;
+        }
+        ctx.fillRect(x,(1+min)/2*60,1,Math.max(1,(1+max)/2*60-(1+min)/2*60));
+      }
+      actx.close();
+    }, ()=>{
+      // Decode failed — show generated pattern
+      const W=area.clientWidth; canvas.width=W; canvas.height=60;
+      ctx.fillStyle='#fff';
+      for(let x=0;x<W;x++){
+        const h=5+Math.sin(x*0.05)*12+Math.sin(x*0.13)*8+Math.random()*6;
+        ctx.fillRect(x,30-h/2,1,h);
+      }
+    });
+  };
+  reader.readAsArrayBuffer(fileOrBlob);
+}
+
+// === KEYBOARD ===
+document.addEventListener('keydown',(e)=>{
+  if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  if(e.ctrlKey && e.key==='Enter' && audioBlob){ e.preventDefault(); transcribe(); }
 });
 </script>
 </body>
