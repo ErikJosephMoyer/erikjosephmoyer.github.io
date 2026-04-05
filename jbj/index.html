@@ -63,6 +63,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 </head>
 <body>
 
+<img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:15px">
 <h1>Erik's Jibber-Jabberer</h1>
 
 <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload Audiobook</button>
@@ -272,7 +273,10 @@ async function loadSingleFile(file){
   } catch(e) {}
 
   const url = URL.createObjectURL(file);
+  let metadataLoaded = false;
   audio.onloadedmetadata = () => {
+    if(metadataLoaded) return;
+    metadataLoaded = true;
     totalBookDuration = audio.duration;
     if(chapters.length === 0){
       chapters = [{title:file.name.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}];
@@ -280,9 +284,30 @@ async function loadSingleFile(file){
     document.getElementById('file-info').textContent = displayName;
     finishLoad();
   };
-  audio.onerror = () => { document.getElementById('file-info').textContent = 'Error: Could not load audio file'; };
+  audio.onerror = () => {
+    if(!metadataLoaded) mobileReadyFallback(file, displayName, url);
+  };
   audio.src = url;
   audio.load();
+
+  // Mobile fallback: if metadata hasn't loaded after 3s, enable player anyway
+  setTimeout(() => {
+    if(!metadataLoaded) mobileReadyFallback(file, displayName, url);
+  }, 3000);
+}
+
+function mobileReadyFallback(file, displayName, url){
+  // Enable player with chapters from ID3 parsing (or single chapter fallback)
+  if(chapters.length === 0){
+    chapters = [{title:file.name.replace(/\.[^.]+$/,''), startTime:0, endTime:0, duration:0}];
+  }
+  document.getElementById('file-info').textContent = displayName+' (tap Play)';
+  populateChapterDropdown();
+  enablePlayer();
+  // Store url for deferred play
+  pendingRestore = {url, needsLoad:true};
+  const saved = restoreProgress();
+  if(saved) currentChapter = saved.ch || 0;
 }
 
 // === FOLDER UPLOAD ===
@@ -557,15 +582,20 @@ function enablePlayer(){
 }
 
 function togglePlay(){
-  // Handle deferred restore on mobile (first user gesture loads audio)
+  // Handle deferred load on mobile (first user gesture triggers audio load)
   if(pendingRestore && pendingRestore.url){
     const pr = pendingRestore;
     pendingRestore = null;
     audio.onloadedmetadata = () => {
       totalBookDuration = audio.duration;
-      if(chapters.length===0){
-        chapters=[{title:pr.stored.meta.fileName.replace(/\.[^.]+$/,''),startTime:0,endTime:audio.duration,duration:audio.duration}];
+      // Update chapter durations if they were 0 (mobile fallback)
+      if(chapters.length===1 && chapters[0].duration===0){
+        chapters[0].endTime = audio.duration;
+        chapters[0].duration = audio.duration;
         populateChapterDropdown();
+      }
+      if(pr.stored){
+        document.getElementById('file-info').textContent=pr.stored.meta.displayName;
       }
       const saved = restoreProgress();
       if(saved){
@@ -576,9 +606,20 @@ function togglePlay(){
       audio.play();
       document.getElementById('play-icon').style.display='none';
       document.getElementById('pause-icon').style.display='';
-      document.getElementById('file-info').textContent=pr.stored.meta.displayName;
       updateBookProgress();
     };
+    if(pr.needsLoad){
+      // Fresh upload that failed to load metadata — just play, it'll load on user gesture
+      audio.play().then(()=>{
+        document.getElementById('play-icon').style.display='none';
+        document.getElementById('pause-icon').style.display='';
+      }).catch(()=>{
+        // If play fails, try setting src again
+        audio.src = pr.url;
+        audio.load();
+      });
+      return;
+    }
     audio.src = pr.url;
     audio.load();
     return;
