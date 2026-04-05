@@ -18,10 +18,10 @@ button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;c
 button:hover{background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
 
-#upload-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
+#upload-btn,#cover-upload-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
 #file-info{text-align:center;font-size:14pt;color:#666;margin:0 0 8pt}
 
-/* Cover art — square, full width, center-crop */
+/* Cover art */
 #cover-wrap{width:100%;max-width:700px;aspect-ratio:1;overflow:hidden;margin:0 0 8pt;display:none}
 #cover-img{width:100%;height:100%;object-fit:cover;object-position:center}
 
@@ -36,7 +36,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 #chapter-select option{background:#2a2a2a;color:#fff}
 #chapter-select:focus{outline:none}
 
-/* Book progress bar text */
+/* Book progress */
 #book-progress{text-align:center;font-size:16pt;color:#fff;margin:0 0 8pt}
 
 /* Player */
@@ -63,20 +63,25 @@ button:disabled{background:#555;color:#888;cursor:default}
 #play-btn svg{width:28px;height:28px}
 .btn-spacer{width:16px;flex-shrink:0}
 
-#file-input{display:none}
+.hidden-input{display:none}
 </style>
 </head>
 <body>
 
 <h1>Erik's Jibber-Jabberer</h1>
 
-<button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
-<input type="file" id="file-input" accept=".mp3,.m4b,.m4a,.ogg,.wav,.mp4,.webm">
+<button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload Audiobook</button>
+<input type="file" id="file-input" class="hidden-input" accept=".mp3,.m4b,.m4a,.ogg,.wav,.mp4,.webm">
+<input type="file" id="folder-input" class="hidden-input" webkitdirectory>
 
 <div id="file-info">No file selected</div>
 
-<!-- Cover art (hidden until image found) -->
+<!-- Cover art (hidden until image found or uploaded) -->
 <div id="cover-wrap"><img id="cover-img" src="" alt="Cover"></div>
+
+<!-- Upload Cover Image button (only shows if no cover found) -->
+<button id="cover-upload-btn" style="display:none" onclick="document.getElementById('cover-input').click()">Upload Cover Image</button>
+<input type="file" id="cover-input" class="hidden-input" accept="image/*">
 
 <!-- Book title (hidden until metadata found) -->
 <h2 id="book-title"></h2>
@@ -96,33 +101,26 @@ button:disabled{background:#555;color:#888;cursor:default}
   <div id="progress-bar" onclick="seekChapter(event)"><div id="progress-fill"></div></div>
   <div id="time-row"><span id="cur-time">0:00</span><span id="tot-time">0:00</span></div>
   <div id="btn-row">
-    <!-- Speed -->
     <button id="speed-btn" title="Speed" disabled onclick="cycleSpeed()">
       <span id="speed-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">1x</span>
     </button>
-    <!-- Pitch -->
     <button id="pitch-btn" title="Pitch" disabled onclick="cyclePitch()">
       <span id="pitch-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">0</span>
     </button>
     <div class="btn-spacer"></div>
-    <!-- Prev track -->
     <button id="prev-btn" title="Previous Chapter" disabled onclick="prevChapter()">
       <svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16" fill="#2a2a2a"/><polygon points="20,4 9,12 20,20" fill="#2a2a2a"/></svg>
     </button>
-    <!-- Skip back 10s -->
     <button id="skipb-btn" title="Back 10s" disabled onclick="skip(-10)">
       <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="#2a2a2a" stroke="none"/></svg>
     </button>
-    <!-- Play/Pause -->
     <button id="play-btn" title="Play" disabled onclick="togglePlay()">
       <svg viewBox="0 0 24 24" id="play-icon"><polygon points="8,5 19,12 8,19" fill="#2a2a2a" stroke="none"/></svg>
       <svg viewBox="0 0 24 24" id="pause-icon" style="display:none"><rect x="6" y="4" width="4" height="16" fill="#2a2a2a"/><rect x="14" y="4" width="4" height="16" fill="#2a2a2a"/></svg>
     </button>
-    <!-- Skip forward 10s -->
     <button id="skipf-btn" title="Forward 10s" disabled onclick="skip(10)">
       <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z" fill="#2a2a2a" stroke="none"/></svg>
     </button>
-    <!-- Next track -->
     <button id="next-btn" title="Next Chapter" disabled onclick="nextChapter()">
       <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20" fill="#2a2a2a"/><rect x="17" y="4" width="3" height="16" fill="#2a2a2a"/></svg>
     </button>
@@ -132,86 +130,98 @@ button:disabled{background:#555;color:#888;cursor:default}
 <script>
 // === STATE ===
 let audio = new Audio();
-let chapters = []; // [{title, startTime, endTime, duration}]
+let chapters = [];
 let currentChapter = 0;
 let totalBookDuration = 0;
-let fileKey = ''; // localStorage key
-let audioUrl = '';
+let fileKey = '';
+let fileSize = 0;
 let speedIdx = 0;
 const speeds = [1, 1.2, 1.5, 2, 0.5, 0.8];
-let pitchIdx = 2; // index into pitchLevels, default "normal"
+let pitchIdx = 2;
 const pitchLevels = [
-  {label: '--', rate: 0.85},  // much lower (15% down)
-  {label: '-',  rate: 0.92},  // lower (8% down)
-  {label: '0',  rate: 1.0},   // normal
-  {label: '+',  rate: 1.04},  // higher (4% up)
-  {label: '++', rate: 1.08},  // much higher (8% up)
+  {label:'--', rate:0.85},
+  {label:'-',  rate:0.92},
+  {label:'0',  rate:1.0},
+  {label:'+',  rate:1.04},
+  {label:'++', rate:1.08},
 ];
 let baseSpeed = 1;
+let hasCover = false;
 
-// === FORMAT HELPERS ===
+// === HELPERS ===
 function fmtHMS(s){
   if(!s||isNaN(s)||s<0) return '0:00:00';
-  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=Math.floor(s%60);
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=Math.floor(s%60);
   return h+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
 }
 function fmtMS(s){
   if(!s||isNaN(s)||s<0) return '0:00';
-  const m=Math.floor(s/60), sec=Math.floor(s%60);
+  const m=Math.floor(s/60),sec=Math.floor(s%60);
   return m+':'+String(sec).padStart(2,'0');
 }
-function truncate(s, n){
-  if(!s) return '';
-  return s.length > n ? s.substring(0, n) + '...' : s;
-}
+function truncate(s,n){ return (!s)?'': s.length>n ? s.substring(0,n)+'...' : s; }
 
-// === SAVE/RESTORE PROGRESS ===
+// === PROGRESS PERSISTENCE ===
 function saveProgress(){
   if(!fileKey) return;
-  const data = {ch: currentChapter, time: audio.currentTime, ts: Date.now()};
-  localStorage.setItem('jbj_' + fileKey, JSON.stringify(data));
+  localStorage.setItem('jbj_'+fileKey, JSON.stringify({ch:currentChapter, time:audio.currentTime, ts:Date.now()}));
 }
 function restoreProgress(){
   if(!fileKey) return null;
-  try { return JSON.parse(localStorage.getItem('jbj_' + fileKey)); } catch(e){ return null; }
+  try{return JSON.parse(localStorage.getItem('jbj_'+fileKey));}catch(e){return null;}
 }
-// Auto-save every 3 seconds
 setInterval(saveProgress, 3000);
+window.addEventListener('beforeunload', saveProgress);
 
-// === FILE UPLOAD ===
+// === AUDIOBOOK UPLOAD ===
 document.getElementById('file-input').onchange = async function(){
   const file = this.files[0];
   if(!file) return;
-  const sz = file.size;
-  const sizeStr = sz > 1048576 ? (sz/1048576).toFixed(1)+' MB' : (sz/1024).toFixed(1)+' KB';
-  document.getElementById('file-info').textContent = file.name + ', ' + sizeStr;
-  document.getElementById('upload-btn').textContent = 'Replace File';
+  await loadAudioFile(file);
+};
 
-  // Create object URL for audio
-  if(audioUrl) URL.revokeObjectURL(audioUrl);
-  audioUrl = URL.createObjectURL(file);
+async function loadAudioFile(file){
+  fileSize = file.size;
+  const sizeStr = fileSize>1048576 ? (fileSize/1048576).toFixed(1)+' MB' : (fileSize/1024).toFixed(1)+' KB';
+  document.getElementById('file-info').textContent = file.name+', '+sizeStr;
+  document.getElementById('upload-btn').textContent = 'Replace Audiobook';
 
-  // Generate file key for localStorage (hash of name + size)
-  const raw = file.name + '|' + file.size;
+  // File key for localStorage
+  const raw = file.name+'|'+file.size;
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
   fileKey = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').substring(0,16);
 
-  // Parse metadata (ID3 tags)
+  // Reset state
+  chapters = [];
+  hasCover = false;
+  document.getElementById('cover-wrap').style.display = 'none';
+  document.getElementById('cover-upload-btn').style.display = 'none';
+  document.getElementById('book-title').style.display = 'none';
+
+  // Parse metadata (non-blocking, reads only header bytes)
   parseMetadata(file);
 
-  // Load audio
-  audio.src = audioUrl;
+  // Load audio — createObjectURL is instant, browser streams on demand
+  const url = URL.createObjectURL(file);
+  audio.src = url;
   audio.load();
+
   audio.onloadedmetadata = () => {
     totalBookDuration = audio.duration;
-    // If no chapters detected from ID3, treat as single chapter
     if(chapters.length === 0){
-      chapters = [{title: file.name.replace(/\.[^.]+$/,''), startTime: 0, endTime: audio.duration, duration: audio.duration}];
+      chapters = [{title:file.name.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}];
     }
     populateChapterDropdown();
     enablePlayer();
 
-    // Restore saved progress
+    // Show cover upload button if no cover found (after short delay for metadata parsing)
+    setTimeout(()=>{
+      if(!hasCover){
+        document.getElementById('cover-upload-btn').style.display = 'block';
+      }
+    }, 1500);
+
+    // Restore progress
     const saved = restoreProgress();
     if(saved && saved.ch < chapters.length){
       currentChapter = saved.ch;
@@ -222,76 +232,91 @@ document.getElementById('file-input').onchange = async function(){
       audio.currentTime = chapters[0].startTime;
     }
     updateBookProgress();
-  };
-};
 
-// === METADATA PARSING ===
+    // Draw waveform only for small files (<20MB), otherwise show simple bar
+    if(fileSize < 20*1024*1024){
+      drawWaveformFromFile(file);
+    } else {
+      // Hide music note, show simple gradient bar for large files
+      document.getElementById('music-note').style.display = 'none';
+      const canvas = document.getElementById('waveform-canvas');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.parentElement.clientWidth;
+      canvas.width = W; canvas.height = 80;
+      canvas.style.display = 'block';
+      // Simple centered bars pattern
+      ctx.fillStyle = '#fff';
+      for(let x=0; x<W; x++){
+        const h = 10 + Math.sin(x*0.05)*15 + Math.sin(x*0.13)*10 + Math.random()*8;
+        ctx.fillRect(x, 40-h/2, 1, h);
+      }
+    }
+  };
+}
+
+// === METADATA ===
 function parseMetadata(file){
-  chapters = [];
   jsmediatags.read(file, {
     onSuccess: function(tag){
       const tags = tag.tags;
-
       // Cover art
       if(tags.picture){
         const pic = tags.picture;
-        const bytes = new Uint8Array(pic.data);
-        const blob = new Blob([bytes], {type: pic.format});
-        const url = URL.createObjectURL(blob);
-        document.getElementById('cover-img').src = url;
+        const blob = new Blob([new Uint8Array(pic.data)], {type:pic.format});
+        document.getElementById('cover-img').src = URL.createObjectURL(blob);
         document.getElementById('cover-wrap').style.display = 'block';
+        document.getElementById('cover-upload-btn').style.display = 'none';
+        hasCover = true;
       }
-
-      // Book title
+      // Title
       const title = tags.album || tags.title || '';
       if(title){
         document.getElementById('book-title').textContent = title;
         document.getElementById('book-title').style.display = 'block';
       }
-
-      // Chapters from CHAP frames
+      // Chapters
       if(tags.CHAP){
         const chapTags = Array.isArray(tags.CHAP) ? tags.CHAP : [tags.CHAP];
-        chapTags.forEach(c => {
-          const startMs = c.data?.startTime || 0;
-          const endMs = c.data?.endTime || 0;
-          let chapTitle = '';
-          if(c.data?.subFrames?.TIT2?.data) chapTitle = c.data.subFrames.TIT2.data;
-          chapters.push({
-            title: chapTitle || 'Chapter ' + (chapters.length + 1),
-            startTime: startMs / 1000,
-            endTime: endMs / 1000,
-            duration: (endMs - startMs) / 1000
-          });
+        chapTags.forEach(c=>{
+          const s = (c.data?.startTime||0)/1000, e = (c.data?.endTime||0)/1000;
+          let t = ''; if(c.data?.subFrames?.TIT2?.data) t = c.data.subFrames.TIT2.data;
+          chapters.push({title:t||'Chapter '+(chapters.length+1), startTime:s, endTime:e, duration:e-s});
         });
-        // Sort by start time
-        chapters.sort((a,b) => a.startTime - b.startTime);
+        chapters.sort((a,b)=>a.startTime-b.startTime);
       }
     },
-    onError: function(){ /* No metadata — will use single chapter fallback */ }
+    onError: function(){}
   });
 }
+
+// === COVER IMAGE UPLOAD ===
+document.getElementById('cover-input').onchange = function(){
+  const file = this.files[0];
+  if(!file) return;
+  document.getElementById('cover-img').src = URL.createObjectURL(file);
+  document.getElementById('cover-wrap').style.display = 'block';
+  document.getElementById('cover-upload-btn').textContent = 'Replace Image';
+  hasCover = true;
+};
 
 // === CHAPTER DROPDOWN ===
 function populateChapterDropdown(){
   const sel = document.getElementById('chapter-select');
-  sel.innerHTML = '';
-  sel.disabled = false;
-  chapters.forEach((ch, i) => {
+  sel.innerHTML = ''; sel.disabled = false;
+  chapters.forEach((ch,i)=>{
     const o = document.createElement('option');
     o.value = i;
-    o.textContent = truncate(ch.title, 20) + ', ' + fmtHMS(ch.duration);
+    o.textContent = truncate(ch.title,20)+', '+fmtHMS(ch.duration);
     sel.appendChild(o);
   });
-  sel.onchange = () => {
+  sel.onchange = ()=>{
     currentChapter = parseInt(sel.value);
     audio.currentTime = chapters[currentChapter].startTime;
     updateBookProgress();
-    drawWaveform();
   };
 }
 
-// === PLAYER CONTROLS ===
+// === PLAYER ===
 function enablePlayer(){
   ['speed-btn','pitch-btn','prev-btn','skipb-btn','play-btn','skipf-btn','next-btn'].forEach(id=>{
     document.getElementById(id).disabled = false;
@@ -301,175 +326,131 @@ function enablePlayer(){
 function togglePlay(){
   if(audio.paused){
     audio.play();
-    document.getElementById('play-icon').style.display = 'none';
-    document.getElementById('pause-icon').style.display = '';
+    document.getElementById('play-icon').style.display='none';
+    document.getElementById('pause-icon').style.display='';
   } else {
     audio.pause();
-    document.getElementById('play-icon').style.display = '';
-    document.getElementById('pause-icon').style.display = 'none';
+    document.getElementById('play-icon').style.display='';
+    document.getElementById('pause-icon').style.display='none';
   }
 }
-
-function skip(s){
-  if(!audio.src) return;
-  audio.currentTime = Math.max(0, Math.min(audio.duration||0, audio.currentTime + s));
-}
-
+function skip(s){ if(audio.src) audio.currentTime=Math.max(0,Math.min(audio.duration||0,audio.currentTime+s)); }
 function prevChapter(){
-  if(currentChapter > 0){
-    currentChapter--;
-    audio.currentTime = chapters[currentChapter].startTime;
-    document.getElementById('chapter-select').value = currentChapter;
-    updateBookProgress();
-    drawWaveform();
-  }
+  if(currentChapter>0){ currentChapter--; audio.currentTime=chapters[currentChapter].startTime;
+    document.getElementById('chapter-select').value=currentChapter; updateBookProgress(); }
 }
-
 function nextChapter(){
-  if(currentChapter < chapters.length - 1){
-    currentChapter++;
-    audio.currentTime = chapters[currentChapter].startTime;
-    document.getElementById('chapter-select').value = currentChapter;
-    updateBookProgress();
-    drawWaveform();
-  }
+  if(currentChapter<chapters.length-1){ currentChapter++; audio.currentTime=chapters[currentChapter].startTime;
+    document.getElementById('chapter-select').value=currentChapter; updateBookProgress(); }
 }
-
 function cycleSpeed(){
-  speedIdx = (speedIdx + 1) % speeds.length;
-  baseSpeed = speeds[speedIdx];
-  applyPlaybackRate();
-  document.getElementById('speed-label').textContent = speeds[speedIdx] + 'x';
+  speedIdx=(speedIdx+1)%speeds.length; baseSpeed=speeds[speedIdx]; applyRate();
+  document.getElementById('speed-label').textContent=speeds[speedIdx]+'x';
 }
-
 function cyclePitch(){
-  pitchIdx = (pitchIdx + 1) % pitchLevels.length;
-  applyPlaybackRate();
-  document.getElementById('pitch-label').textContent = pitchLevels[pitchIdx].label;
+  pitchIdx=(pitchIdx+1)%pitchLevels.length; applyRate();
+  document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
 }
-
-function applyPlaybackRate(){
-  // Combine speed and pitch: pitch changes playbackRate with preservesPitch=false
-  // Speed changes playbackRate with preservesPitch=true
-  // Since we can't have both simultaneously, we blend them
-  const pitchRate = pitchLevels[pitchIdx].rate;
-  audio.preservesPitch = false;
-  audio.playbackRate = baseSpeed * pitchRate;
-}
+function applyRate(){ audio.preservesPitch=false; audio.playbackRate=baseSpeed*pitchLevels[pitchIdx].rate; }
 
 function seekChapter(e){
-  if(!audio.duration || chapters.length === 0) return;
-  const ch = chapters[currentChapter];
-  const bar = document.getElementById('progress-bar');
-  const pct = (e.clientX - bar.getBoundingClientRect().left) / bar.clientWidth;
-  audio.currentTime = ch.startTime + pct * ch.duration;
+  if(!audio.duration||!chapters.length) return;
+  const ch=chapters[currentChapter], bar=document.getElementById('progress-bar');
+  const pct=(e.clientX-bar.getBoundingClientRect().left)/bar.clientWidth;
+  audio.currentTime=ch.startTime+pct*ch.duration;
 }
 
 // === TIME UPDATES ===
-audio.ontimeupdate = () => {
-  if(chapters.length === 0) return;
-  const ch = chapters[currentChapter];
-
-  // Auto-advance to next chapter
-  if(audio.currentTime >= ch.endTime - 0.1 && currentChapter < chapters.length - 1){
-    currentChapter++;
-    audio.currentTime = chapters[currentChapter].startTime;
-    document.getElementById('chapter-select').value = currentChapter;
-    drawWaveform();
+audio.ontimeupdate = ()=>{
+  if(!chapters.length) return;
+  const ch=chapters[currentChapter];
+  // Auto-advance
+  if(audio.currentTime>=ch.endTime-0.1 && currentChapter<chapters.length-1){
+    currentChapter++; audio.currentTime=chapters[currentChapter].startTime;
+    document.getElementById('chapter-select').value=currentChapter;
   }
-
-  // Chapter progress (bottom of waveform)
-  const chTime = Math.max(0, audio.currentTime - ch.startTime);
-  document.getElementById('cur-time').textContent = fmtMS(chTime);
-  document.getElementById('tot-time').textContent = fmtMS(ch.duration);
-  if(ch.duration > 0){
-    document.getElementById('progress-fill').style.width = (chTime / ch.duration * 100) + '%';
-  }
-
-  // Book progress
+  // Chapter time (bottom of waveform)
+  const ct=Math.max(0,audio.currentTime-chapters[currentChapter].startTime);
+  document.getElementById('cur-time').textContent=fmtMS(ct);
+  document.getElementById('tot-time').textContent=fmtMS(chapters[currentChapter].duration);
+  if(chapters[currentChapter].duration>0)
+    document.getElementById('progress-fill').style.width=(ct/chapters[currentChapter].duration*100)+'%';
   updateBookProgress();
 };
-
-audio.onended = () => {
-  document.getElementById('play-icon').style.display = '';
-  document.getElementById('pause-icon').style.display = 'none';
+audio.onended=()=>{
+  document.getElementById('play-icon').style.display='';
+  document.getElementById('pause-icon').style.display='none';
   saveProgress();
 };
 
 function updateBookProgress(){
-  if(chapters.length === 0 || !totalBookDuration) return;
-
-  // Total time listened = sum of completed chapters + current chapter progress
-  let listened = 0;
-  for(let i = 0; i < currentChapter; i++) listened += chapters[i].duration;
-  const ch = chapters[currentChapter];
-  listened += Math.max(0, (audio.currentTime || 0) - ch.startTime);
-
-  const remaining = Math.max(0, totalBookDuration - listened);
-  let pct = totalBookDuration > 0 ? (listened / totalBookDuration) * 100 : 0;
-
-  // Cap at 99% until truly complete
-  if(pct >= 99.5 && pct < 100) pct = 99;
-  pct = Math.min(100, Math.round(pct));
-
-  document.getElementById('book-progress').textContent =
+  if(!chapters.length||!totalBookDuration) return;
+  let listened=0;
+  for(let i=0;i<currentChapter;i++) listened+=chapters[i].duration;
+  listened+=Math.max(0,(audio.currentTime||0)-chapters[currentChapter].startTime);
+  const remaining=Math.max(0,totalBookDuration-listened);
+  let pct=totalBookDuration>0?(listened/totalBookDuration)*100:0;
+  if(pct>=99.5&&pct<100) pct=99;
+  pct=Math.min(100,Math.round(pct));
+  document.getElementById('book-progress').textContent=
     `Read ${fmtHMS(listened)} of ${fmtHMS(totalBookDuration)}, ${pct}%, ${fmtHMS(remaining)} Remaining`;
 }
 
-// === WAVEFORM ===
-function drawWaveform(){
-  document.getElementById('music-note').style.display = 'none';
-  const canvas = document.getElementById('waveform-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.parentElement.clientWidth;
-  const H = 80;
-  canvas.width = W; canvas.height = H;
-  canvas.style.display = 'block';
+// === WAVEFORM (only for small files) ===
+function drawWaveformFromFile(file){
+  document.getElementById('music-note').style.display='none';
+  const canvas=document.getElementById('waveform-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.parentElement.clientWidth;
+  canvas.width=W; canvas.height=80; canvas.style.display='block';
 
-  // Draw waveform for current chapter from audio buffer
-  // Use simpler approach: fetch the full audio and decode
-  if(!audioUrl) return;
-  fetch(audioUrl).then(r=>r.arrayBuffer()).then(buf=>{
-    const actx = new (window.AudioContext||window.webkitAudioContext)();
-    actx.decodeAudioData(buf.slice(0), decoded=>{
-      const ch = chapters[currentChapter];
-      const sr = decoded.sampleRate;
-      const startSample = Math.floor(ch.startTime * sr);
-      const endSample = Math.floor(ch.endTime * sr);
-      const data = decoded.getChannelData(0);
-      const len = endSample - startSample;
-      const step = Math.max(1, Math.ceil(len / W));
-      ctx.clearRect(0,0,W,H);
-      ctx.fillStyle = '#fff';
-      for(let x=0; x<W; x++){
-        let min=1, max=-1;
+  const reader=new FileReader();
+  reader.onload=function(){
+    const actx=new(window.AudioContext||window.webkitAudioContext)();
+    actx.decodeAudioData(reader.result, decoded=>{
+      const ch=chapters[currentChapter];
+      const sr=decoded.sampleRate;
+      const startS=Math.floor(ch.startTime*sr), endS=Math.floor(ch.endTime*sr);
+      const data=decoded.getChannelData(0);
+      const len=endS-startS, step=Math.max(1,Math.ceil(len/W));
+      ctx.clearRect(0,0,W,80); ctx.fillStyle='#fff';
+      for(let x=0;x<W;x++){
+        let min=1,max=-1;
         for(let j=0;j<step;j++){
-          const idx = startSample + x*step + j;
-          if(idx < data.length){
-            const v = data[idx];
-            if(v<min) min=v; if(v>max) max=v;
-          }
+          const idx=startS+x*step+j;
+          if(idx<data.length){const v=data[idx];if(v<min)min=v;if(v>max)max=v;}
         }
-        const y1=(1+min)/2*H, y2=(1+max)/2*H;
-        ctx.fillRect(x, y1, 1, Math.max(1, y2-y1));
+        const y1=(1+min)/2*80,y2=(1+max)/2*80;
+        ctx.fillRect(x,y1,1,Math.max(1,y2-y1));
       }
       actx.close();
     });
-  }).catch(()=>{});
+  };
+  reader.readAsArrayBuffer(file);
 }
 
-window.onresize = () => { if(audioUrl) drawWaveform(); };
+window.onresize=()=>{
+  // Only redraw simple bar for large files
+  if(fileSize>=20*1024*1024&&audio.src){
+    const canvas=document.getElementById('waveform-canvas');
+    const ctx=canvas.getContext('2d');
+    const W=canvas.parentElement.clientWidth;
+    canvas.width=W;canvas.height=80;
+    ctx.fillStyle='#fff';
+    for(let x=0;x<W;x++){
+      const h=10+Math.sin(x*0.05)*15+Math.sin(x*0.13)*10+Math.random()*8;
+      ctx.fillRect(x,40-h/2,1,h);
+    }
+  }
+};
 
 // === KEYBOARD SHORTCUTS ===
-document.addEventListener('keydown', (e) => {
+document.addEventListener('keydown',(e)=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
-  if(e.key===' '||e.key==='Enter'){e.preventDefault(); togglePlay();}
-  if(e.key==='ArrowLeft'){e.preventDefault(); skip(-10);}
-  if(e.key==='ArrowRight'){e.preventDefault(); skip(10);}
+  if(e.key===' '||e.key==='Enter'){e.preventDefault();togglePlay();}
+  if(e.key==='ArrowLeft'){e.preventDefault();skip(-10);}
+  if(e.key==='ArrowRight'){e.preventDefault();skip(10);}
 });
-
-// === SAVE ON PAGE UNLOAD ===
-window.addEventListener('beforeunload', saveProgress);
 </script>
 </body>
 </html>
