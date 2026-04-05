@@ -32,14 +32,12 @@ button:disabled{background:#555;color:#888;cursor:default}
 #output::placeholder{color:#666;font-family:'EB Garamond',serif}
 #output:focus{outline:none;border-color:#fff}
 
-.dl-row{display:flex;justify-content:center;gap:24px;margin:0 0 8pt}
-.dl-row a{color:#fff;font-size:16pt;text-decoration:underline;cursor:pointer;display:none}
-.dl-row a:hover{color:#ccc}
+.dl-row{display:flex;justify-content:center;gap:12px;margin:0 0 8pt}
+.dl-row button{min-width:140px;max-width:200px;display:none}
 
 #waveform-area{width:100%;height:60px;position:relative;overflow:hidden;margin:0 0 8pt;display:none}
 #waveform-canvas{width:100%;height:100%}
 
-#replay-btn{display:none}
 
 .hidden-input{display:none}
 </style>
@@ -68,11 +66,10 @@ button:disabled{background:#555;color:#888;cursor:default}
 <div id="waveform-area"><canvas id="waveform-canvas"></canvas></div>
 
 <div class="dl-row">
-  <a id="dl-text" onclick="downloadText()">Download Text File</a>
-  <a id="dl-audio" onclick="downloadAudio()">Download Audio File</a>
+  <button id="dl-text" onclick="downloadText()">Download Text</button>
+  <button id="replay-btn" onclick="replayAudio()">Replay Audio</button>
+  <button id="dl-audio" onclick="downloadAudio()">Download Audio</button>
 </div>
-
-<button id="replay-btn" class="action-btn" onclick="replayAudio()">Replay Audio</button>
 
 <script>
 let audioBlob = null;
@@ -107,9 +104,9 @@ document.getElementById('file-input').onchange = function(){
   document.getElementById('file-info').textContent = file.name+', '+fmtSize(file.size);
   document.getElementById('upload-btn').textContent = 'Replace Audio';
   document.getElementById('transcribe-btn').disabled = false;
-  document.getElementById('replay-btn').style.display = 'block';
+  document.getElementById('replay-btn').style.display = 'inline-block';
   document.getElementById('dl-text').style.display = 'none';
-  document.getElementById('dl-audio').style.display = 'inline';
+  document.getElementById('dl-audio').style.display = 'inline-block';
   document.getElementById('output').value = '';
   drawWaveform(file);
 };
@@ -154,8 +151,8 @@ async function toggleRecord(){
       audioUrl = URL.createObjectURL(audioBlob);
 
       document.getElementById('file-info').textContent = 'Recording, '+fmtSize(audioBlob.size);
-      document.getElementById('replay-btn').style.display = 'block';
-      document.getElementById('dl-audio').style.display = 'inline';
+      document.getElementById('replay-btn').style.display = 'inline-block';
+      document.getElementById('dl-audio').style.display = 'inline-block';
       drawWaveform(audioBlob);
 
       // Delay finalization to let SpeechRecognition finish processing
@@ -164,7 +161,7 @@ async function toggleRecord(){
         if(text) document.getElementById('output').value = text;
         const wc = text.split(/\s+/).filter(Boolean).length;
         document.getElementById('status').textContent = wc > 0 ? `Status: Done, ${wc} words` : 'Status: Done';
-        document.getElementById('dl-text').style.display = 'inline';
+        document.getElementById('dl-text').style.display = 'inline-block';
       }, 2000);
     };
     mediaRecorder.start();
@@ -249,7 +246,7 @@ function transcribe(){
       const wc = finalTranscript.trim().split(/\s+/).filter(Boolean).length;
       document.getElementById('status').textContent = `Status: Done, ${wc} words`;
       document.getElementById('transcribe-btn').disabled = false;
-      if(wc > 0) document.getElementById('dl-text').style.display = 'inline';
+      if(wc > 0) document.getElementById('dl-text').style.display = 'inline-block';
     }
   };
 
