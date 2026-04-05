@@ -18,8 +18,9 @@ button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;c
 button:hover{background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
 
-.upload-row{display:flex;justify-content:center;gap:12px;margin:0 0 8pt}
-.upload-row button{min-width:160px;max-width:220px}
+#upload-btn{display:block;margin:0 auto 4pt;min-width:180px;max-width:250px}
+#folder-link{display:block;text-align:center;font-size:13pt;color:#666;margin:0 0 8pt;cursor:pointer;text-decoration:underline}
+#folder-link:hover{color:#fff}
 #file-info{text-align:center;font-size:14pt;color:#666;margin:0 0 8pt}
 
 #cover-wrap{width:100%;max-width:700px;aspect-ratio:1;overflow:hidden;margin:0 0 8pt;display:none}
@@ -63,10 +64,8 @@ button:disabled{background:#555;color:#888;cursor:default}
 
 <h1>Erik's Jibber-Jabberer</h1>
 
-<div class="upload-row">
-  <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload Audiobook</button>
-  <button id="folder-btn" onclick="document.getElementById('folder-input').click()">Upload Folder</button>
-</div>
+<button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload Audiobook</button>
+<span id="folder-link" onclick="document.getElementById('folder-input').click()">or select folder</span>
 <input type="file" id="file-input" class="hidden-input" accept=".mp3,.m4b,.m4a,.ogg,.wav,.mp4,.webm">
 <input type="file" id="folder-input" class="hidden-input" webkitdirectory>
 
@@ -219,7 +218,7 @@ document.getElementById('folder-input').onchange = async function(){
   const totalSize = audioFiles.reduce((s,f)=>s+f.size, 0);
   const sizeStr = totalSize>1048576?(totalSize/1048576).toFixed(1)+' MB':(totalSize/1024).toFixed(1)+' KB';
   document.getElementById('file-info').textContent = folderName+', '+audioFiles.length+' files, '+sizeStr;
-  document.getElementById('folder-btn').textContent = 'Replace Folder';
+  document.getElementById('folder-link').textContent = 'or select different folder';
 
   // Parse metadata from first file (for cover art + title)
   parseMetadata(audioFiles[0]);
