@@ -68,7 +68,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 
 <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload Audiobook</button>
 <span id="folder-link" onclick="document.getElementById('folder-input').click()">or select audiobook folder</span>
-<input type="file" id="file-input" class="hidden-input" accept=".mp3,.m4b,.m4a,.ogg,.wav,.mp4,.webm">
+<input type="file" id="file-input" class="hidden-input" accept="audio/*,.m4b,.mp3,.m4a,.ogg,.wav,.mp4,.webm,.aac,.flac,.opus">
 <input type="file" id="folder-input" class="hidden-input" webkitdirectory>
 
 <div id="file-info">No file selected</div>
@@ -268,7 +268,9 @@ async function loadSingleFile(file){
 
   // Store in IndexedDB for reload persistence
   try {
-    const blob = new Blob([file], {type: file.type || 'audio/mpeg'});
+    const ext = file.name.split('.').pop().toLowerCase();
+    const mimeMap = {mp3:'audio/mpeg',m4b:'audio/mp4',m4a:'audio/mp4',ogg:'audio/ogg',wav:'audio/wav',mp4:'audio/mp4',webm:'audio/webm',aac:'audio/aac',flac:'audio/flac',opus:'audio/ogg'};
+    const blob = new Blob([file], {type: file.type || mimeMap[ext] || 'audio/mpeg'});
     await storeFile(fileKey, blob, {fileName:file.name, displayName, multiFile:false});
   } catch(e) {}
 
