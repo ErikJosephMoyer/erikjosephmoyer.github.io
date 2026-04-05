@@ -220,6 +220,17 @@ let pendingRestore = null;
     resetUI();
     try { await parseMetadata(file); } catch(e) {}
 
+    // Restore saved cover image
+    if(!hasCover){
+      const savedCover = await loadCover(lastKey);
+      if(savedCover && savedCover.blob){
+        document.getElementById('cover-img').src = URL.createObjectURL(savedCover.blob);
+        document.getElementById('cover-wrap').style.display = 'block';
+        document.getElementById('cover-upload-btn').style.display = 'none';
+        hasCover = true;
+      }
+    }
+
     // Create blob URL but don't load yet — wait for user gesture on mobile
     const url = URL.createObjectURL(stored.blob);
     audio.preload = 'metadata';
@@ -696,14 +707,43 @@ function decodeID3Text(data){
   return new TextDecoder('utf-8').decode(raw).replace(/\0/g,'');
 }
 
-// === COVER IMAGE UPLOAD ===
-document.getElementById('cover-input').onchange = function(){
+// === COVER IMAGE UPLOAD + PERSISTENCE ===
+document.getElementById('cover-input').onchange = async function(){
   const f = this.files[0]; if(!f) return;
   document.getElementById('cover-img').src = URL.createObjectURL(f);
   document.getElementById('cover-wrap').style.display = 'block';
   document.getElementById('cover-upload-btn').textContent = 'Replace Image';
   hasCover = true;
+  // Save cover to IndexedDB
+  if(fileKey){
+    try {
+      const blob = new Blob([f], {type: f.type || 'image/jpeg'});
+      await storeCover(fileKey, blob);
+    } catch(e){}
+  }
 };
+
+async function storeCover(key, blob){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('files','readwrite');
+    tx.objectStore('files').put({blob}, 'cover_'+key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject();
+  });
+}
+
+async function loadCover(key){
+  try {
+    const db = await openDB();
+    return new Promise((resolve)=>{
+      const tx = db.transaction('files','readonly');
+      const req = tx.objectStore('files').get('cover_'+key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch(e){ return null; }
+}
 
 // === CHAPTER DROPDOWN ===
 function populateChapterDropdown(){
