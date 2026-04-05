@@ -26,6 +26,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 #cover-wrap{width:100%;max-width:700px;aspect-ratio:1;overflow:hidden;margin:0 0 8pt;display:none}
 #cover-img{width:100%;height:100%;object-fit:cover;object-position:center}
 #cover-upload-btn{display:none;margin:0 auto 8pt;min-width:180px;max-width:250px}
+@media(pointer:coarse){#folder-link{display:none}}
 
 #book-title{display:none}
 
@@ -199,31 +200,48 @@ setInterval(saveProgress, 3000);
 window.addEventListener('beforeunload', saveProgress);
 
 // === AUTO-RELOAD ON PAGE OPEN ===
+let pendingRestore = null;
 (async function autoReload(){
   const lastKey = localStorage.getItem('jbj_last');
   if(!lastKey) return;
   try {
     const stored = await loadFile(lastKey);
     if(!stored || !stored.blob) return;
+    // Store for deferred loading (mobile won't load audio without user gesture)
+    pendingRestore = {key: lastKey, stored};
     fileKey = lastKey;
     multiFileMode = stored.meta.multiFile || false;
-    document.getElementById('file-info').textContent = stored.meta.displayName+' (restoring...)';
+    document.getElementById('file-info').textContent = stored.meta.displayName+' (tap Play to resume)';
     document.getElementById('upload-btn').textContent = 'Replace Audiobook';
 
-    const file = new File([stored.blob], stored.meta.fileName, {type: stored.blob.type});
+    const file = new File([stored.blob], stored.meta.fileName, {type: stored.blob.type || 'audio/mpeg'});
     resetUI();
     try { await parseMetadata(file); } catch(e) {}
 
+    // Create blob URL but don't load yet — wait for user gesture on mobile
     const url = URL.createObjectURL(stored.blob);
+    audio.preload = 'metadata';
     audio.onloadedmetadata = () => {
       totalBookDuration = audio.duration;
       if(chapters.length === 0){
         chapters = [{title:stored.meta.fileName.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}];
       }
       document.getElementById('file-info').textContent = stored.meta.displayName;
+      pendingRestore = null;
       finishLoad();
     };
-    audio.onerror = () => { document.getElementById('file-info').textContent = 'Error restoring audio'; };
+    audio.onerror = () => {
+      // On mobile, metadata load may fail until user gesture — keep pending
+      if(chapters.length > 0){
+        // Chapters from ID3 parsing already available, enable UI anyway
+        document.getElementById('file-info').textContent = stored.meta.displayName;
+        populateChapterDropdown();
+        enablePlayer();
+        const saved = restoreProgress();
+        if(saved) currentChapter = saved.ch || 0;
+        pendingRestore = {key:lastKey, stored, url, savedTime: saved?.time||0};
+      }
+    };
     audio.src = url;
     audio.load();
   } catch(e) {}
@@ -249,7 +267,7 @@ async function loadSingleFile(file){
 
   // Store in IndexedDB for reload persistence
   try {
-    const blob = await file.arrayBuffer().then(b => new Blob([b], {type:file.type}));
+    const blob = new Blob([file], {type: file.type || 'audio/mpeg'});
     await storeFile(fileKey, blob, {fileName:file.name, displayName, multiFile:false});
   } catch(e) {}
 
@@ -539,6 +557,32 @@ function enablePlayer(){
 }
 
 function togglePlay(){
+  // Handle deferred restore on mobile (first user gesture loads audio)
+  if(pendingRestore && pendingRestore.url){
+    const pr = pendingRestore;
+    pendingRestore = null;
+    audio.onloadedmetadata = () => {
+      totalBookDuration = audio.duration;
+      if(chapters.length===0){
+        chapters=[{title:pr.stored.meta.fileName.replace(/\.[^.]+$/,''),startTime:0,endTime:audio.duration,duration:audio.duration}];
+        populateChapterDropdown();
+      }
+      const saved = restoreProgress();
+      if(saved){
+        currentChapter = saved.ch||0;
+        document.getElementById('chapter-select').value=currentChapter;
+        audio.currentTime = saved.time||chapters[currentChapter].startTime;
+      }
+      audio.play();
+      document.getElementById('play-icon').style.display='none';
+      document.getElementById('pause-icon').style.display='';
+      document.getElementById('file-info').textContent=pr.stored.meta.displayName;
+      updateBookProgress();
+    };
+    audio.src = pr.url;
+    audio.load();
+    return;
+  }
   if(audio.paused){
     audio.play();
     document.getElementById('play-icon').style.display='none';
