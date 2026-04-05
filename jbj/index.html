@@ -114,11 +114,11 @@ button:disabled{background:#555;color:#888;cursor:default}
 <script>
 // === STATE ===
 let audio = new Audio();
-let chapters = []; // [{title, startTime, endTime, duration, fileUrl?}]
+let chapters = [];
 let currentChapter = 0;
 let totalBookDuration = 0;
 let fileKey = '';
-let multiFileMode = false; // true = folder with multiple audio files
+let multiFileMode = false;
 let speedIdx = 0;
 const speeds = [1, 1.2, 1.5, 2, 0.5, 0.8];
 let pitchIdx = 2;
@@ -148,15 +148,48 @@ function fmtSize(bytes){
   if(mb<0.5) return mb.toFixed(1)+'MB';
   return Math.round(mb)+'MB';
 }
+async function makeFileKey(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').substring(0,16);
+}
 
-// === PROGRESS PERSISTENCE ===
+// === INDEXEDDB — stores audio blobs for reload persistence ===
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open('jbj_audiobooks', 1);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains('files')) db.createObjectStore('files');
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function storeFile(key, blob, meta){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('files','readwrite');
+    tx.objectStore('files').put({blob, meta}, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function loadFile(key){
+  const db = await openDB();
+  return new Promise((resolve,reject)=>{
+    const tx = db.transaction('files','readonly');
+    const req = tx.objectStore('files').get(key);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// === PROGRESS PERSISTENCE (localStorage for position, IndexedDB for files) ===
 function saveProgress(){
   if(!fileKey) return;
-  localStorage.setItem('jbj_'+fileKey, JSON.stringify({
-    ch: currentChapter,
-    time: multiFileMode ? audio.currentTime : audio.currentTime,
-    ts: Date.now()
-  }));
+  const time = multiFileMode ? audio.currentTime : audio.currentTime;
+  localStorage.setItem('jbj_'+fileKey, JSON.stringify({ch:currentChapter, time, ts:Date.now()}));
+  localStorage.setItem('jbj_last', fileKey);
 }
 function restoreProgress(){
   if(!fileKey) return null;
@@ -164,6 +197,37 @@ function restoreProgress(){
 }
 setInterval(saveProgress, 3000);
 window.addEventListener('beforeunload', saveProgress);
+
+// === AUTO-RELOAD ON PAGE OPEN ===
+(async function autoReload(){
+  const lastKey = localStorage.getItem('jbj_last');
+  if(!lastKey) return;
+  try {
+    const stored = await loadFile(lastKey);
+    if(!stored || !stored.blob) return;
+    fileKey = lastKey;
+    multiFileMode = stored.meta.multiFile || false;
+    document.getElementById('file-info').textContent = stored.meta.displayName+' (restoring...)';
+    document.getElementById('upload-btn').textContent = 'Replace Audiobook';
+
+    const file = new File([stored.blob], stored.meta.fileName, {type: stored.blob.type});
+    resetUI();
+    try { await parseMetadata(file); } catch(e) {}
+
+    const url = URL.createObjectURL(stored.blob);
+    audio.onloadedmetadata = () => {
+      totalBookDuration = audio.duration;
+      if(chapters.length === 0){
+        chapters = [{title:stored.meta.fileName.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}];
+      }
+      document.getElementById('file-info').textContent = stored.meta.displayName;
+      finishLoad();
+    };
+    audio.onerror = () => { document.getElementById('file-info').textContent = 'Error restoring audio'; };
+    audio.src = url;
+    audio.load();
+  } catch(e) {}
+})();
 
 // === SINGLE FILE UPLOAD ===
 document.getElementById('file-input').onchange = async function(){
@@ -175,31 +239,30 @@ document.getElementById('file-input').onchange = async function(){
 
 async function loadSingleFile(file){
   const sizeStr = fmtSize(file.size);
-  document.getElementById('file-info').textContent = file.name+', '+sizeStr+' (loading...)';
+  const displayName = file.name+', '+sizeStr;
+  document.getElementById('file-info').textContent = displayName+' (loading...)';
   document.getElementById('upload-btn').textContent = 'Replace Audiobook';
 
-  const raw = file.name+'|'+file.size;
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
-  fileKey = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').substring(0,16);
-
+  fileKey = await makeFileKey(file.name+'|'+file.size);
   resetUI();
-  try { await parseMetadata(file); } catch(e) { /* metadata parsing is optional */ }
+  try { await parseMetadata(file); } catch(e) {}
+
+  // Store in IndexedDB for reload persistence
+  try {
+    const blob = await file.arrayBuffer().then(b => new Blob([b], {type:file.type}));
+    await storeFile(fileKey, blob, {fileName:file.name, displayName, multiFile:false});
+  } catch(e) {}
 
   const url = URL.createObjectURL(file);
-
-  // Set handlers BEFORE loading to avoid race condition
   audio.onloadedmetadata = () => {
     totalBookDuration = audio.duration;
     if(chapters.length === 0){
       chapters = [{title:file.name.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}];
     }
-    document.getElementById('file-info').textContent = file.name+', '+sizeStr;
+    document.getElementById('file-info').textContent = displayName;
     finishLoad();
   };
-  audio.onerror = () => {
-    document.getElementById('file-info').textContent = 'Error: Could not load audio file';
-  };
-
+  audio.onerror = () => { document.getElementById('file-info').textContent = 'Error: Could not load audio file'; };
   audio.src = url;
   audio.load();
 }
@@ -215,28 +278,21 @@ document.getElementById('folder-input').onchange = async function(){
     return;
   }
 
-  // Sort alphabetically (handles 01_, 02_ naming)
   audioFiles.sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
-
   multiFileMode = true;
   resetUI();
 
-  // Build file key from folder contents
-  const raw = audioFiles.map(f=>f.name+'|'+f.size).join('||');
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
-  fileKey = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').substring(0,16);
+  fileKey = await makeFileKey(audioFiles.map(f=>f.name+'|'+f.size).join('||'));
 
-  // Get folder name from path
   const folderName = audioFiles[0].webkitRelativePath.split('/')[0] || 'Audiobook';
   const totalSize = audioFiles.reduce((s,f)=>s+f.size, 0);
   const sizeStr = fmtSize(totalSize);
-  document.getElementById('file-info').textContent = folderName+', '+audioFiles.length+' files, '+sizeStr;
+  const displayName = folderName+', '+audioFiles.length+' files, '+sizeStr;
+  document.getElementById('file-info').textContent = displayName;
   document.getElementById('folder-link').textContent = 'or select different audiobook folder';
 
-  // Parse metadata from first file (for cover art + title)
   try { await parseMetadata(audioFiles[0]); } catch(e) {}
 
-  // Check for image files in folder
   const imgExts = ['.jpg','.jpeg','.png','.webp','.bmp'];
   const imgFile = files.find(f => imgExts.some(ext => f.name.toLowerCase().endsWith(ext)));
   if(imgFile){
@@ -246,8 +302,7 @@ document.getElementById('folder-input').onchange = async function(){
     hasCover = true;
   }
 
-  // Load durations for each file to build chapters
-  document.getElementById('file-info').textContent += ' (loading...)';
+  document.getElementById('file-info').textContent = displayName+' (loading...)';
   chapters = [];
   let cumulative = 0;
 
@@ -255,26 +310,21 @@ document.getElementById('folder-input').onchange = async function(){
     const f = audioFiles[i];
     const url = URL.createObjectURL(f);
     const dur = await getAudioDuration(url);
-    const title = f.name.replace(/\.[^.]+$/,'').replace(/^\d+[\s._-]*/,''); // strip leading numbers
-    chapters.push({
-      title: title || 'Chapter '+(i+1),
-      startTime: cumulative,
-      endTime: cumulative + dur,
-      duration: dur,
-      fileUrl: url,
-      fileIndex: i
-    });
+    const title = f.name.replace(/\.[^.]+$/,'').replace(/^\d+[\s._-]*/,'');
+    chapters.push({title:title||'Chapter '+(i+1), startTime:cumulative, endTime:cumulative+dur, duration:dur, fileUrl:url, fileIndex:i});
     cumulative += dur;
   }
 
   totalBookDuration = cumulative;
-  document.getElementById('file-info').textContent = folderName+', '+audioFiles.length+' files, '+sizeStr;
+  document.getElementById('file-info').textContent = displayName;
 
-  // Load first chapter — set handler BEFORE load
+  // Store concatenated blob in IndexedDB (for single-file reload)
+  // For folders, we store all files as one blob — folder reload re-uploads
+  // TODO: folder persistence requires storing multiple blobs — skip for now
+  // Single-file audiobooks persist fully. Folders save position but require re-upload.
+
   audio.onloadedmetadata = () => finishLoad();
-  audio.onerror = () => {
-    document.getElementById('file-info').textContent = 'Error: Could not load audio';
-  };
+  audio.onerror = () => { document.getElementById('file-info').textContent = 'Error: Could not load audio'; };
   audio.src = chapters[0].fileUrl;
   audio.load();
 }
@@ -286,7 +336,6 @@ function getAudioDuration(url){
     a.src = url;
     a.onloadedmetadata = () => resolve(a.duration || 0);
     a.onerror = () => resolve(0);
-    // Timeout fallback
     setTimeout(() => resolve(0), 5000);
   });
 }
@@ -302,6 +351,7 @@ function resetUI(){
 function finishLoad(){
   populateChapterDropdown();
   enablePlayer();
+  localStorage.setItem('jbj_last', fileKey);
 
   setTimeout(()=>{
     if(!hasCover) document.getElementById('cover-upload-btn').style.display = 'block';
