@@ -147,23 +147,23 @@ async function toggleRecord(){
     mediaRecorder.onstop = () => {
       stream.getTracks().forEach(t=>t.stop());
       audioBlob = new Blob(recordChunks, {type:'audio/webm'});
-      audioFileName = 'recording.webm';
+      audioFileName = 'recording.mp3';
       if(audioUrl) URL.revokeObjectURL(audioUrl);
       audioUrl = URL.createObjectURL(audioBlob);
 
       document.getElementById('file-info').textContent = 'Recording, '+fmtSize(audioBlob.size);
-
-      // Finalize transcription
-      const wc = liveFinalText.trim().split(/\s+/).filter(Boolean).length;
-      document.getElementById('output').value = liveFinalText.trim();
-      document.getElementById('status').textContent = wc > 0 ? `Status: Done, ${wc} words` : 'Status: Done, no speech detected';
-
-      // Show all post-recording options
       document.getElementById('replay-btn').style.display = 'block';
       document.getElementById('dl-audio').style.display = 'inline';
-      if(wc > 0) document.getElementById('dl-text').style.display = 'inline';
-
       drawWaveform(audioBlob);
+
+      // Delay finalization to let SpeechRecognition finish processing
+      setTimeout(() => {
+        const text = document.getElementById('output').value.trim() || liveFinalText.trim();
+        if(text) document.getElementById('output').value = text;
+        const wc = text.split(/\s+/).filter(Boolean).length;
+        document.getElementById('status').textContent = wc > 0 ? `Status: Done, ${wc} words` : 'Status: Done';
+        document.getElementById('dl-text').style.display = 'inline';
+      }, 2000);
     };
     mediaRecorder.start();
 
@@ -289,10 +289,9 @@ function downloadText(){
 function downloadAudio(){
   if(!audioUrl) return;
   const src = sanitizeName(audioFileName || 'recording', 20);
-  const ext = audioFileName.split('.').pop() || 'webm';
   const a = document.createElement('a');
   a.href = audioUrl;
-  a.download = `stt_ejm_${src}.${ext}`;
+  a.download = `stt_ejm_${src}.mp3`;
   a.click();
 }
 
