@@ -39,7 +39,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 #book-progress{text-align:center;font-size:16pt;color:#fff;margin:0 0 8pt}
 
 /* Chapter progress bar (replaces waveform) */
-#ch-bar{width:100%;height:6px;background:#555;cursor:pointer;margin:0 0 4px;position:relative}
+#ch-bar{width:100%;height:16px;background:#555;cursor:pointer;margin:0 0 4px;position:relative}
 #ch-fill{height:100%;background:#fff;width:0%;pointer-events:none}
 #time-row{display:flex;justify-content:space-between;font-size:14pt;color:#fff;margin:0 0 8pt}
 
@@ -72,15 +72,15 @@ button:disabled{background:#555;color:#888;cursor:default}
 
 <div id="file-info">No file selected</div>
 
-<div id="cover-wrap"><img id="cover-img" src="" alt="Cover"></div>
-<button id="cover-upload-btn" onclick="document.getElementById('cover-input').click()">Upload Cover Image</button>
-<input type="file" id="cover-input" class="hidden-input" accept="image/*">
-
 <h2 id="book-title"></h2>
 
 <select id="chapter-select" disabled><option>No audiobook loaded</option></select>
 
 <div id="book-progress">Read 0:00:00 of 0:00:00 (0%), 0:00:00 Left</div>
+
+<div id="cover-wrap"><img id="cover-img" src="" alt="Cover"></div>
+<button id="cover-upload-btn" onclick="document.getElementById('cover-input').click()">Upload Cover Image</button>
+<input type="file" id="cover-input" class="hidden-input" accept="image/*">
 
 <div id="ch-bar" onclick="seekChapter(event)"><div id="ch-fill"></div></div>
 <div id="time-row"><span id="cur-time">0:00</span><span id="tot-time">0:00</span></div>
