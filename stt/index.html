@@ -277,23 +277,30 @@ function replayAudio(){
 }
 
 // === DOWNLOADS ===
+function getOutputName(){
+  // For uploads: use uploaded filename. For recordings: use first 20 chars of transcribed text.
+  if(audioFileName && audioFileName !== 'recording.mp3' && audioFileName !== 'recording.webm'){
+    return sanitizeName(audioFileName, 20);
+  }
+  const text = document.getElementById('output').value.trim();
+  if(text) return sanitizeName(text.substring(0, 40), 20);
+  return 'recording';
+}
+
 function downloadText(){
   const text = document.getElementById('output').value;
   if(!text) return;
-  const src = sanitizeName(audioFileName || 'recording', 20);
-  const blob = new Blob([text], {type:'text/plain'});
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `stt_ejm_${src}.txt`;
+  a.href = URL.createObjectURL(new Blob([text], {type:'text/plain'}));
+  a.download = `stt_ejm_${getOutputName()}.txt`;
   a.click();
 }
 
 function downloadAudio(){
   if(!audioUrl) return;
-  const src = sanitizeName(audioFileName || 'recording', 20);
   const a = document.createElement('a');
   a.href = audioUrl;
-  a.download = `stt_ejm_${src}.mp3`;
+  a.download = `stt_ejm_${getOutputName()}.mp3`;
   a.click();
 }
 
