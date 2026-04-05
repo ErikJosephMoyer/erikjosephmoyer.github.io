@@ -428,7 +428,11 @@ function cyclePitch(){
   pitchIdx=(pitchIdx+1)%pitchLevels.length; applyRate();
   document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
 }
-function applyRate(){ audio.preservesPitch=false; audio.playbackRate=baseSpeed*pitchLevels[pitchIdx].rate; }
+function applyRate(){
+  const pitchRate = pitchLevels[pitchIdx].rate;
+  audio.preservesPitch = (pitchRate === 1.0); // preserve pitch when pitch is normal, disable when shifted
+  audio.playbackRate = baseSpeed * pitchRate;
+}
 
 function seekChapter(e){
   const ch=chapters[currentChapter];
