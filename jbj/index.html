@@ -283,6 +283,14 @@ async function loadSingleFile(file){
     if(chapters.length === 0){
       chapters = [{title:file.name.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}];
     }
+    // Fix M4B chapter end times (last chapter endTime was unknown during parsing)
+    for(let i=0; i<chapters.length; i++){
+      if(chapters[i].endTime === 0 || chapters[i].duration === 0){
+        const end = (i+1 < chapters.length) ? chapters[i+1].startTime : audio.duration;
+        chapters[i].endTime = end;
+        chapters[i].duration = end - chapters[i].startTime;
+      }
+    }
     document.getElementById('file-info').textContent = displayName;
     finishLoad();
   };
@@ -422,16 +430,168 @@ function finishLoad(){
 
 // === METADATA ===
 function parseMetadata(file){
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(['m4b','m4a','mp4','aac'].includes(ext)){
+    return parseM4BMetadata(file);
+  }
+  return parseID3Metadata(file);
+}
+
+// === M4B/MP4 CHAPTER PARSER ===
+function parseM4BMetadata(file){
   return new Promise((resolve) => {
-  // Custom ID3v2 parser — reads CHAP, TIT2, TALB, APIC directly from bytes
+    // M4B chapters use Nero format (chpl atom) or Apple chapter track
+    // We need to scan the moov atom. For large files, moov may be at the end.
+    // Strategy: read first 2MB, if no moov found, read last 2MB
+    const SCAN_SIZE = 2*1024*1024;
+    const reader = new FileReader();
+    reader.onerror = () => resolve();
+
+    function parseMP4Atoms(buf){
+      const view = new DataView(buf.buffer || buf);
+      let title='', album='';
+      const parsedChapters = [];
+
+      // Recursively find atoms
+      function findAtoms(start, end, path){
+        let pos = start;
+        while(pos < end - 8){
+          const size = view.getUint32(pos);
+          const type = String.fromCharCode(buf[pos+4],buf[pos+5],buf[pos+6],buf[pos+7]);
+          if(size < 8 || pos+size > end) break;
+          const atomPath = path+'/'+type;
+
+          // Container atoms — recurse into them
+          if(['moov','udta','meta','ilst','trak','mdia','minf','stbl','\u00A9nam','\u00A9alb','covr','aART','\u00A9ART'].includes(type)){
+            let dataStart = pos+8;
+            if(type==='meta') dataStart = pos+12; // meta has 4-byte version/flags
+            findAtoms(dataStart, pos+size, atomPath);
+          }
+
+          // Nero chapter list
+          if(type==='chpl'){
+            let i = pos+16; // skip size(4)+type(4)+version(4)+reserved(4)
+            if(i+4 <= pos+size){
+              const count = view.getUint32(i); i+=4;
+              for(let c=0; c<count && i<pos+size-9; c++){
+                // Each entry: timestamp(8 bytes, in 100ns units) + titleLen(1) + title
+                const tsHi = view.getUint32(i); const tsLo = view.getUint32(i+4); i+=8;
+                const ms = (tsHi*4294967296 + tsLo) / 10000; // 100ns to ms
+                const titleLen = buf[i]; i++;
+                let chapTitle = '';
+                for(let j=0; j<titleLen && i+j<pos+size; j++) chapTitle += String.fromCharCode(buf[i+j]);
+                i += titleLen;
+                parsedChapters.push({title: chapTitle||'Chapter '+(parsedChapters.length+1), startMs: ms});
+              }
+            }
+          }
+
+          // iTunes metadata: title
+          if(type==='\u00A9nam' || type==='\u00A9alb'){
+            // Look for 'data' sub-atom
+            let di = pos+8;
+            while(di < pos+size-8){
+              const ds = view.getUint32(di);
+              const dt = String.fromCharCode(buf[di+4],buf[di+5],buf[di+6],buf[di+7]);
+              if(dt==='data' && ds>16){
+                const text = new TextDecoder('utf-8').decode(buf.slice(di+16, di+ds));
+                if(type==='\u00A9nam') title = text;
+                if(type==='\u00A9alb') album = text;
+              }
+              if(ds<8) break;
+              di += ds;
+            }
+          }
+
+          // Cover art
+          if(type==='covr' && !hasCover){
+            let di = pos+8;
+            while(di < pos+size-8){
+              const ds = view.getUint32(di);
+              const dt = String.fromCharCode(buf[di+4],buf[di+5],buf[di+6],buf[di+7]);
+              if(dt==='data' && ds>16){
+                const imgData = buf.slice(di+16, di+ds);
+                const mime = (imgData[0]===0xFF && imgData[1]===0xD8) ? 'image/jpeg' : 'image/png';
+                const blob = new Blob([imgData], {type:mime});
+                document.getElementById('cover-img').src = URL.createObjectURL(blob);
+                document.getElementById('cover-wrap').style.display = 'block';
+                document.getElementById('cover-upload-btn').style.display = 'none';
+                hasCover = true;
+              }
+              if(ds<8) break;
+              di += ds;
+            }
+          }
+
+          pos += size;
+        }
+      }
+
+      findAtoms(0, buf.length, '');
+
+      // Apply title
+      const bookTitle = album || title || '';
+      if(bookTitle){
+        document.getElementById('book-title').textContent = bookTitle;
+        document.getElementById('book-title').style.display = 'block';
+      }
+
+      // Convert chapter start times to proper format
+      if(parsedChapters.length > 0 && !multiFileMode){
+        parsedChapters.sort((a,b) => a.startMs - b.startMs);
+        for(let i=0; i<parsedChapters.length; i++){
+          const startSec = parsedChapters[i].startMs / 1000;
+          const endSec = (i+1 < parsedChapters.length) ? parsedChapters[i+1].startMs/1000 : 0;
+          chapters.push({
+            title: parsedChapters[i].title,
+            startTime: startSec,
+            endTime: endSec, // will be fixed when duration is known
+            duration: endSec > 0 ? endSec - startSec : 0
+          });
+        }
+      }
+    }
+
+    // Read first chunk
+    const slice1 = file.slice(0, Math.min(SCAN_SIZE, file.size));
+    reader.onload = function(){
+      const buf = new Uint8Array(reader.result);
+      // Check if moov is in first chunk
+      let hasMoov = false;
+      for(let i=0; i<buf.length-8; i++){
+        if(buf[i]===0x6D && buf[i+1]===0x6F && buf[i+2]===0x6F && buf[i+3]===0x76){ hasMoov=true; break; }
+      }
+
+      if(hasMoov){
+        parseMP4Atoms(buf);
+        resolve();
+      } else if(file.size > SCAN_SIZE){
+        // moov might be at end of file — read last chunk
+        const reader2 = new FileReader();
+        const slice2 = file.slice(Math.max(0, file.size - SCAN_SIZE));
+        reader2.onload = function(){
+          parseMP4Atoms(new Uint8Array(reader2.result));
+          resolve();
+        };
+        reader2.onerror = () => resolve();
+        reader2.readAsArrayBuffer(slice2);
+      } else {
+        resolve();
+      }
+    };
+    reader.readAsArrayBuffer(slice1);
+  });
+}
+
+// === ID3 (MP3) METADATA PARSER ===
+function parseID3Metadata(file){
+  return new Promise((resolve) => {
   const reader = new FileReader();
-  // Read first 512KB (enough for all ID3 tags including cover art)
   const slice = file.slice(0, 512*1024);
   reader.onerror = () => resolve();
   reader.onload = function(){
     const buf = new Uint8Array(reader.result);
-    // Verify ID3v2 header
-    if(buf[0]!==0x49||buf[1]!==0x44||buf[2]!==0x33) return; // not "ID3"
+    if(buf[0]!==0x49||buf[1]!==0x44||buf[2]!==0x33){ resolve(); return; }
     const ver = buf[3]; // ID3 version (3 or 4)
     const tagSize = ((buf[6]&0x7f)<<21)|((buf[7]&0x7f)<<14)|((buf[8]&0x7f)<<7)|(buf[9]&0x7f);
     let pos = 10;
