@@ -169,7 +169,7 @@ document.getElementById('file-input').onchange = async function(){
 
 async function loadSingleFile(file){
   const sizeStr = file.size>1048576?(file.size/1048576).toFixed(1)+' MB':(file.size/1024).toFixed(1)+' KB';
-  document.getElementById('file-info').textContent = file.name+', '+sizeStr;
+  document.getElementById('file-info').textContent = file.name+', '+sizeStr+' (loading...)';
   document.getElementById('upload-btn').textContent = 'Replace Audiobook';
 
   const raw = file.name+'|'+file.size;
@@ -177,18 +177,25 @@ async function loadSingleFile(file){
   fileKey = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').substring(0,16);
 
   resetUI();
-  parseMetadata(file);
+  try { parseMetadata(file); } catch(e) { /* metadata parsing is optional */ }
 
   const url = URL.createObjectURL(file);
-  audio.src = url;
-  audio.load();
+
+  // Set handlers BEFORE loading to avoid race condition
   audio.onloadedmetadata = () => {
     totalBookDuration = audio.duration;
     if(chapters.length === 0){
       chapters = [{title:file.name.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}];
     }
+    document.getElementById('file-info').textContent = file.name+', '+sizeStr;
     finishLoad();
   };
+  audio.onerror = () => {
+    document.getElementById('file-info').textContent = 'Error: Could not load audio file';
+  };
+
+  audio.src = url;
+  audio.load();
 }
 
 // === FOLDER UPLOAD ===
@@ -221,7 +228,7 @@ document.getElementById('folder-input').onchange = async function(){
   document.getElementById('folder-link').textContent = 'or select different audiobook folder';
 
   // Parse metadata from first file (for cover art + title)
-  parseMetadata(audioFiles[0]);
+  try { parseMetadata(audioFiles[0]); } catch(e) {}
 
   // Check for image files in folder
   const imgExts = ['.jpg','.jpeg','.png','.webp','.bmp'];
@@ -257,10 +264,13 @@ document.getElementById('folder-input').onchange = async function(){
   totalBookDuration = cumulative;
   document.getElementById('file-info').textContent = folderName+', '+audioFiles.length+' files, '+sizeStr;
 
-  // Load first chapter
+  // Load first chapter — set handler BEFORE load
+  audio.onloadedmetadata = () => finishLoad();
+  audio.onerror = () => {
+    document.getElementById('file-info').textContent = 'Error: Could not load audio';
+  };
   audio.src = chapters[0].fileUrl;
   audio.load();
-  audio.onloadedmetadata = () => finishLoad();
 }
 
 function getAudioDuration(url){
@@ -296,9 +306,9 @@ function finishLoad(){
     currentChapter = saved.ch;
     document.getElementById('chapter-select').value = currentChapter;
     if(multiFileMode && chapters[currentChapter].fileUrl){
+      audio.onloadedmetadata = () => { audio.currentTime = saved.time || 0; };
       audio.src = chapters[currentChapter].fileUrl;
       audio.load();
-      audio.onloadedmetadata = () => { audio.currentTime = saved.time || 0; };
     } else {
       audio.currentTime = saved.time || chapters[saved.ch].startTime;
     }
@@ -311,6 +321,7 @@ function finishLoad(){
 
 // === METADATA ===
 function parseMetadata(file){
+  if(typeof jsmediatags === 'undefined') return; // CDN failed, skip gracefully
   jsmediatags.read(file, {
     onSuccess: function(tag){
       const tags = tag.tags;
@@ -368,13 +379,13 @@ function goToChapter(idx){
   currentChapter = idx;
   document.getElementById('chapter-select').value = idx;
   if(multiFileMode && chapters[idx].fileUrl){
-    audio.src = chapters[idx].fileUrl;
-    audio.load();
     audio.onloadedmetadata = () => {
       audio.currentTime = 0;
       applyRate();
       if(wasPlaying) audio.play();
     };
+    audio.src = chapters[idx].fileUrl;
+    audio.load();
   } else {
     audio.currentTime = chapters[idx].startTime;
   }
