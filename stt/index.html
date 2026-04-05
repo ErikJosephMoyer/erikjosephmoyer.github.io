@@ -31,15 +31,13 @@ button:disabled{background:#555;color:#888;cursor:default}
 #output::placeholder{color:#666;font-family:'EB Garamond',serif}
 #output:focus{outline:none;border-color:#fff}
 
-#dl-row{text-align:center;margin:0 0 8pt}
-#dl-link{color:#fff;font-size:16pt;text-decoration:underline;cursor:pointer;display:none}
-#dl-link:hover{color:#ccc}
+.dl-row{display:flex;justify-content:center;gap:24px;margin:0 0 8pt}
+.dl-row a{color:#fff;font-size:16pt;text-decoration:underline;cursor:pointer;display:none}
+.dl-row a:hover{color:#ccc}
 
-/* Waveform */
 #waveform-area{width:100%;height:60px;position:relative;overflow:hidden;margin:0 0 8pt;display:none}
 #waveform-canvas{width:100%;height:100%}
 
-/* Replay button */
 #replay-btn{display:none}
 
 .hidden-input{display:none}
@@ -53,7 +51,6 @@ button:disabled{background:#555;color:#888;cursor:default}
 <div class="btn-row">
   <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload Audio</button>
   <button id="record-btn" onclick="toggleRecord()">Record</button>
-  <button id="dictate-btn" onclick="toggleDictate()">Dictate</button>
 </div>
 <input type="file" id="file-input" class="hidden-input" accept="audio/*,.mp3,.m4a,.m4b,.wav,.ogg,.webm,.mp4,.flac,.aac">
 
@@ -64,12 +61,13 @@ button:disabled{background:#555;color:#888;cursor:default}
 
 <div id="status">Status: Ready</div>
 
-<div id="waveform-area"><canvas id="waveform-canvas"></canvas></div>
-
 <textarea id="output" placeholder="Transcribed text will appear here..." readonly></textarea>
 
-<div id="dl-row">
-  <a id="dl-link" onclick="downloadText()">Download Text File</a>
+<div id="waveform-area"><canvas id="waveform-canvas"></canvas></div>
+
+<div class="dl-row">
+  <a id="dl-text" onclick="downloadText()">Download Text File</a>
+  <a id="dl-audio" onclick="downloadAudio()">Download Audio File</a>
 </div>
 
 <button id="replay-btn" class="action-btn" onclick="replayAudio()">Replay Audio</button>
@@ -82,8 +80,8 @@ let replayEl = null;
 let mediaRecorder = null;
 let recordChunks = [];
 let isRecording = false;
-let isDictating = false;
-let dictRecognition = null;
+let liveRecognition = null;
+let liveFinalText = '';
 
 function fmtSize(bytes){
   const mb=bytes/1048576;
@@ -93,8 +91,7 @@ function fmtSize(bytes){
 }
 function sanitizeName(name, maxLen){
   name = name.replace(/\.[^.]+$/,'').toLowerCase();
-  name = name.replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
-  return name.substring(0, maxLen||20);
+  return name.replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'').substring(0, maxLen||20);
 }
 
 // === UPLOAD ===
@@ -108,23 +105,42 @@ document.getElementById('file-input').onchange = function(){
   document.getElementById('file-info').textContent = file.name+', '+fmtSize(file.size);
   document.getElementById('upload-btn').textContent = 'Replace Audio';
   document.getElementById('transcribe-btn').disabled = false;
-  document.getElementById('replay-btn').style.display = 'none';
-  document.getElementById('dl-link').style.display = 'none';
+  document.getElementById('replay-btn').style.display = 'block';
+  document.getElementById('dl-text').style.display = 'none';
+  document.getElementById('dl-audio').style.display = 'inline';
   document.getElementById('output').value = '';
   drawWaveform(file);
 };
 
-// === RECORD ===
+// === RECORD (records audio + live transcribes simultaneously) ===
 async function toggleRecord(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
   if(isRecording){
-    mediaRecorder.stop();
+    // Stop
     isRecording = false;
+    if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    if(liveRecognition) try { liveRecognition.stop(); } catch(e){}
     document.getElementById('record-btn').textContent = 'Record';
     document.getElementById('rec-indicator').style.display = 'none';
     return;
   }
+
+  // Start recording + live transcription
   try {
     const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    isRecording = true;
+    liveFinalText = '';
+    document.getElementById('output').value = '';
+    document.getElementById('record-btn').textContent = 'Stop';
+    document.getElementById('rec-indicator').style.display = 'block';
+    document.getElementById('status').textContent = 'Status: Recording and transcribing live';
+    document.getElementById('dl-text').style.display = 'none';
+    document.getElementById('dl-audio').style.display = 'none';
+    document.getElementById('replay-btn').style.display = 'none';
+    document.getElementById('waveform-area').style.display = 'none';
+
+    // Start MediaRecorder for audio capture
     recordChunks = [];
     mediaRecorder = new MediaRecorder(stream, {mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : ''});
     mediaRecorder.ondataavailable = (e) => { if(e.data.size>0) recordChunks.push(e.data); };
@@ -134,80 +150,55 @@ async function toggleRecord(){
       audioFileName = 'recording.webm';
       if(audioUrl) URL.revokeObjectURL(audioUrl);
       audioUrl = URL.createObjectURL(audioBlob);
+
       document.getElementById('file-info').textContent = 'Recording, '+fmtSize(audioBlob.size);
-      document.getElementById('transcribe-btn').disabled = false;
-      document.getElementById('replay-btn').style.display = 'none';
-      document.getElementById('dl-link').style.display = 'none';
-      document.getElementById('output').value = '';
+
+      // Finalize transcription
+      const wc = liveFinalText.trim().split(/\s+/).filter(Boolean).length;
+      document.getElementById('output').value = liveFinalText.trim();
+      document.getElementById('status').textContent = wc > 0 ? `Status: Done, ${wc} words` : 'Status: Done, no speech detected';
+
+      // Show all post-recording options
+      document.getElementById('replay-btn').style.display = 'block';
+      document.getElementById('dl-audio').style.display = 'inline';
+      if(wc > 0) document.getElementById('dl-text').style.display = 'inline';
+
       drawWaveform(audioBlob);
     };
     mediaRecorder.start();
-    isRecording = true;
-    document.getElementById('record-btn').textContent = 'Stop';
-    document.getElementById('rec-indicator').style.display = 'block';
-    document.getElementById('output').value = '';
+
+    // Start live SpeechRecognition simultaneously
+    if(SR){
+      liveRecognition = new SR();
+      liveRecognition.lang = 'en-US';
+      liveRecognition.continuous = true;
+      liveRecognition.interimResults = true;
+
+      liveRecognition.onresult = (e) => {
+        let interim = '';
+        for(let i=e.resultIndex; i<e.results.length; i++){
+          if(e.results[i].isFinal) liveFinalText += e.results[i][0].transcript + ' ';
+          else interim += e.results[i][0].transcript;
+        }
+        document.getElementById('output').value = liveFinalText + interim;
+        document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
+      };
+      liveRecognition.onend = () => {
+        if(isRecording) try { liveRecognition.start(); } catch(e){}
+      };
+      liveRecognition.onerror = (e) => {
+        if(e.error==='no-speech' && isRecording) return;
+        if(e.error==='aborted') return;
+      };
+      liveRecognition.start();
+    }
   } catch(e){
     document.getElementById('status').textContent = 'Status: Microphone access denied';
+    isRecording = false;
   }
 }
 
-// === LIVE DICTATION ===
-function toggleDictate(){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){
-    document.getElementById('status').textContent = 'Status: Speech recognition not supported, use Chrome';
-    return;
-  }
-
-  if(isDictating){
-    isDictating = false;
-    dictRecognition.stop();
-    document.getElementById('dictate-btn').textContent = 'Dictate';
-    document.getElementById('rec-indicator').style.display = 'none';
-    const wc = document.getElementById('output').value.trim().split(/\s+/).filter(Boolean).length;
-    document.getElementById('status').textContent = wc > 0 ? `Status: Done, ${wc} words` : 'Status: Ready';
-    if(wc > 0) document.getElementById('dl-link').style.display = 'inline';
-    return;
-  }
-
-  isDictating = true;
-  document.getElementById('dictate-btn').textContent = 'Stop';
-  document.getElementById('rec-indicator').textContent = 'Listening...';
-  document.getElementById('rec-indicator').style.display = 'block';
-  document.getElementById('status').textContent = 'Status: Dictating live';
-  document.getElementById('output').value = '';
-  document.getElementById('dl-link').style.display = 'none';
-  document.getElementById('replay-btn').style.display = 'none';
-
-  let finalText = '';
-  dictRecognition = new SR();
-  dictRecognition.lang = 'en-US';
-  dictRecognition.continuous = true;
-  dictRecognition.interimResults = true;
-
-  dictRecognition.onresult = (e) => {
-    let interim = '';
-    for(let i=e.resultIndex; i<e.results.length; i++){
-      if(e.results[i].isFinal) finalText += e.results[i][0].transcript + ' ';
-      else interim += e.results[i][0].transcript;
-    }
-    document.getElementById('output').value = finalText + interim;
-    document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
-  };
-
-  dictRecognition.onend = () => {
-    if(isDictating){ try { dictRecognition.start(); } catch(e){} }
-  };
-
-  dictRecognition.onerror = (e) => {
-    if(e.error==='no-speech' && isDictating) return;
-    if(e.error==='aborted') return;
-  };
-
-  dictRecognition.start();
-}
-
-// === TRANSCRIBE UPLOADED/RECORDED AUDIO ===
+// === TRANSCRIBE (for uploaded files — plays audio, mic captures) ===
 function transcribe(){
   if(!audioBlob){
     document.getElementById('status').textContent = 'Status: No audio to transcribe';
@@ -222,8 +213,7 @@ function transcribe(){
   document.getElementById('status').textContent = 'Status: Playing audio for transcription, keep volume up...';
   document.getElementById('transcribe-btn').disabled = true;
   document.getElementById('output').value = '';
-  document.getElementById('dl-link').style.display = 'none';
-  document.getElementById('replay-btn').style.display = 'none';
+  document.getElementById('dl-text').style.display = 'none';
 
   const playEl = new Audio(audioUrl);
   let finalTranscript = '';
@@ -257,8 +247,7 @@ function transcribe(){
       const wc = finalTranscript.trim().split(/\s+/).filter(Boolean).length;
       document.getElementById('status').textContent = `Status: Done, ${wc} words`;
       document.getElementById('transcribe-btn').disabled = false;
-      document.getElementById('dl-link').style.display = 'inline';
-      document.getElementById('replay-btn').style.display = 'block';
+      if(wc > 0) document.getElementById('dl-text').style.display = 'inline';
     }
   };
 
@@ -274,22 +263,36 @@ function transcribe(){
 // === REPLAY ===
 function replayAudio(){
   if(!audioUrl) return;
-  if(replayEl && !replayEl.paused){ replayEl.pause(); replayEl.currentTime=0; document.getElementById('replay-btn').textContent='Replay Audio'; return; }
+  if(replayEl && !replayEl.paused){
+    replayEl.pause(); replayEl.currentTime=0;
+    document.getElementById('replay-btn').textContent='Replay Audio';
+    return;
+  }
   replayEl = new Audio(audioUrl);
   replayEl.play();
   document.getElementById('replay-btn').textContent = 'Stop Replay';
   replayEl.onended = () => { document.getElementById('replay-btn').textContent = 'Replay Audio'; };
 }
 
-// === DOWNLOAD ===
+// === DOWNLOADS ===
 function downloadText(){
   const text = document.getElementById('output').value;
   if(!text) return;
-  const src = sanitizeName(audioFileName || 'dictation', 20);
+  const src = sanitizeName(audioFileName || 'recording', 20);
   const blob = new Blob([text], {type:'text/plain'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `stt_ejm_${src}.txt`;
+  a.click();
+}
+
+function downloadAudio(){
+  if(!audioUrl) return;
+  const src = sanitizeName(audioFileName || 'recording', 20);
+  const ext = audioFileName.split('.').pop() || 'webm';
+  const a = document.createElement('a');
+  a.href = audioUrl;
+  a.download = `stt_ejm_${src}.${ext}`;
   a.click();
 }
 
@@ -300,7 +303,6 @@ function drawWaveform(fileOrBlob){
   const ctx = canvas.getContext('2d');
   area.style.display = 'block';
 
-  // For large files (>5MB), use generated pattern
   if(fileOrBlob.size > 5*1024*1024){
     const W = area.clientWidth; canvas.width=W; canvas.height=60;
     ctx.fillStyle='#fff';
@@ -329,7 +331,6 @@ function drawWaveform(fileOrBlob){
       }
       actx.close();
     }, ()=>{
-      // Decode failed — show generated pattern
       const W=area.clientWidth; canvas.width=W; canvas.height=60;
       ctx.fillStyle='#fff';
       for(let x=0;x<W;x++){
