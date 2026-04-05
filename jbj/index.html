@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.7/jsmediatags.min.js"></script>
+<!-- No external dependencies — custom ID3 parser built in -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#2a2a2a;color:#fff;font:normal 16pt/1.2 'EB Garamond',serif;margin:0 auto;padding:12px 20px;max-width:700px}
@@ -183,7 +183,7 @@ async function loadSingleFile(file){
   fileKey = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').substring(0,16);
 
   resetUI();
-  try { parseMetadata(file); } catch(e) { /* metadata parsing is optional */ }
+  try { await parseMetadata(file); } catch(e) { /* metadata parsing is optional */ }
 
   const url = URL.createObjectURL(file);
 
@@ -234,7 +234,7 @@ document.getElementById('folder-input').onchange = async function(){
   document.getElementById('folder-link').textContent = 'or select different audiobook folder';
 
   // Parse metadata from first file (for cover art + title)
-  try { parseMetadata(audioFiles[0]); } catch(e) {}
+  try { await parseMetadata(audioFiles[0]); } catch(e) {}
 
   // Check for image files in folder
   const imgExts = ['.jpg','.jpeg','.png','.webp','.bmp'];
@@ -327,35 +327,117 @@ function finishLoad(){
 
 // === METADATA ===
 function parseMetadata(file){
-  if(typeof jsmediatags === 'undefined') return; // CDN failed, skip gracefully
-  jsmediatags.read(file, {
-    onSuccess: function(tag){
-      const tags = tag.tags;
-      if(tags.picture && !hasCover){
-        const blob = new Blob([new Uint8Array(tags.picture.data)], {type:tags.picture.format});
-        document.getElementById('cover-img').src = URL.createObjectURL(blob);
-        document.getElementById('cover-wrap').style.display = 'block';
-        document.getElementById('cover-upload-btn').style.display = 'none';
-        hasCover = true;
+  return new Promise((resolve) => {
+  // Custom ID3v2 parser — reads CHAP, TIT2, TALB, APIC directly from bytes
+  const reader = new FileReader();
+  // Read first 512KB (enough for all ID3 tags including cover art)
+  const slice = file.slice(0, 512*1024);
+  reader.onerror = () => resolve();
+  reader.onload = function(){
+    const buf = new Uint8Array(reader.result);
+    // Verify ID3v2 header
+    if(buf[0]!==0x49||buf[1]!==0x44||buf[2]!==0x33) return; // not "ID3"
+    const ver = buf[3]; // ID3 version (3 or 4)
+    const tagSize = ((buf[6]&0x7f)<<21)|((buf[7]&0x7f)<<14)|((buf[8]&0x7f)<<7)|(buf[9]&0x7f);
+    let pos = 10;
+    const end = Math.min(10+tagSize, buf.length);
+    let title='', album='';
+    const parsedChapters = [];
+
+    while(pos < end-10){
+      const fid = String.fromCharCode(buf[pos],buf[pos+1],buf[pos+2],buf[pos+3]);
+      if(fid==='\0\0\0\0') break; // padding
+      let fsize;
+      if(ver===4){ // ID3v2.4 syncsafe
+        fsize=((buf[pos+4]&0x7f)<<21)|((buf[pos+5]&0x7f)<<14)|((buf[pos+6]&0x7f)<<7)|(buf[pos+7]&0x7f);
+      } else { // ID3v2.3
+        fsize=(buf[pos+4]<<24)|(buf[pos+5]<<16)|(buf[pos+6]<<8)|buf[pos+7];
       }
-      const title = tags.album || tags.title || '';
-      if(title){
-        document.getElementById('book-title').textContent = title;
-        document.getElementById('book-title').style.display = 'block';
+      if(fsize<=0||fsize>tagSize) break;
+      const fdata = buf.slice(pos+10, pos+10+fsize);
+      pos += 10+fsize;
+
+      if(fid==='TIT2'){ title = decodeID3Text(fdata); }
+      if(fid==='TALB'){ album = decodeID3Text(fdata); }
+
+      if(fid==='APIC' && !hasCover){
+        // Parse APIC: encoding(1) + mime(null-term) + pictype(1) + desc(null-term) + imagedata
+        let i=1; // skip encoding byte
+        let mime='';
+        while(i<fdata.length && fdata[i]!==0) mime+=String.fromCharCode(fdata[i++]);
+        i++; // null terminator
+        i++; // picture type byte
+        while(i<fdata.length && fdata[i]!==0) i++; // skip description
+        i++; // null terminator
+        if(i<fdata.length){
+          const imgBytes = fdata.slice(i);
+          const blob = new Blob([imgBytes], {type:mime||'image/jpeg'});
+          document.getElementById('cover-img').src = URL.createObjectURL(blob);
+          document.getElementById('cover-wrap').style.display = 'block';
+          document.getElementById('cover-upload-btn').style.display = 'none';
+          hasCover = true;
+        }
       }
-      // Chapters from CHAP frames (single-file mode only)
-      if(!multiFileMode && tags.CHAP){
-        const ct = Array.isArray(tags.CHAP) ? tags.CHAP : [tags.CHAP];
-        ct.forEach(c=>{
-          const s=(c.data?.startTime||0)/1000, e=(c.data?.endTime||0)/1000;
-          let t=''; if(c.data?.subFrames?.TIT2?.data) t=c.data.subFrames.TIT2.data;
-          chapters.push({title:t||'Chapter '+(chapters.length+1), startTime:s, endTime:e, duration:e-s});
-        });
-        chapters.sort((a,b)=>a.startTime-b.startTime);
+
+      if(fid==='CHAP' && !multiFileMode){
+        // Parse CHAP: elementID(null-term) + startTime(4) + endTime(4) + startOffset(4) + endOffset(4) + subframes
+        let i=0;
+        while(i<fdata.length && fdata[i]!==0) i++; // skip element ID
+        i++; // null terminator
+        if(i+16<=fdata.length){
+          const startMs=(fdata[i]<<24)|(fdata[i+1]<<16)|(fdata[i+2]<<8)|fdata[i+3];
+          const endMs=(fdata[i+4]<<24)|(fdata[i+5]<<16)|(fdata[i+6]<<8)|fdata[i+7];
+          i+=16; // skip startTime+endTime+startOffset+endOffset
+          // Parse subframes for TIT2 (chapter title)
+          let chapTitle='';
+          while(i<fdata.length-10){
+            const sfid=String.fromCharCode(fdata[i],fdata[i+1],fdata[i+2],fdata[i+3]);
+            if(sfid==='\0\0\0\0') break;
+            let sfsize;
+            if(ver===4){ sfsize=((fdata[i+4]&0x7f)<<21)|((fdata[i+5]&0x7f)<<14)|((fdata[i+6]&0x7f)<<7)|(fdata[i+7]&0x7f); }
+            else { sfsize=(fdata[i+4]<<24)|(fdata[i+5]<<16)|(fdata[i+6]<<8)|fdata[i+7]; }
+            if(sfsize<=0||sfsize>fdata.length-i) break;
+            const sfdata=fdata.slice(i+10, i+10+sfsize);
+            if(sfid==='TIT2') chapTitle=decodeID3Text(sfdata);
+            i+=10+sfsize;
+          }
+          parsedChapters.push({
+            title: chapTitle||'Chapter '+(parsedChapters.length+1),
+            startTime: startMs/1000,
+            endTime: endMs/1000,
+            duration: (endMs-startMs)/1000
+          });
+        }
       }
-    },
-    onError: function(){}
+    }
+
+    // Apply results
+    const bookTitle = album || title || '';
+    if(bookTitle){
+      document.getElementById('book-title').textContent = bookTitle;
+      document.getElementById('book-title').style.display = 'block';
+    }
+    if(parsedChapters.length > 0 && !multiFileMode){
+      parsedChapters.sort((a,b)=>a.startTime-b.startTime);
+      chapters = parsedChapters;
+    }
+    resolve();
+  };
+  reader.readAsArrayBuffer(slice);
   });
+}
+
+function decodeID3Text(data){
+  if(!data||data.length<2) return '';
+  const enc=data[0];
+  const raw=data.slice(1);
+  if(enc===0||enc===3){ // ISO-8859-1 or UTF-8
+    return new TextDecoder(enc===3?'utf-8':'iso-8859-1').decode(raw).replace(/\0/g,'');
+  }
+  if(enc===1||enc===2){ // UTF-16 with/without BOM
+    return new TextDecoder('utf-16').decode(raw).replace(/\0/g,'');
+  }
+  return new TextDecoder('utf-8').decode(raw).replace(/\0/g,'');
 }
 
 // === COVER IMAGE UPLOAD ===
