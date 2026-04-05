@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Erik's Jibber-Jabberer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.7/jsmediatags.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2a2a2a;color:#fff;font:normal 16pt/1.2 'EB Garamond',serif;margin:0 auto;padding:12px 20px;max-width:700px}
+h1{font-size:32pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
+h2{font-size:24pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
+
+button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:8px 32px}
+button:hover{background:#ccc}
+button:disabled{background:#555;color:#888;cursor:default}
+
+#upload-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
+#file-info{text-align:center;font-size:14pt;color:#666;margin:0 0 8pt}
+
+/* Cover art — square, full width, center-crop */
+#cover-wrap{width:100%;max-width:700px;aspect-ratio:1;overflow:hidden;margin:0 0 8pt;display:none}
+#cover-img{width:100%;height:100%;object-fit:cover;object-position:center}
+
+#book-title{display:none}
+
+/* Chapter dropdown */
+#chapter-select{
+  width:100%;background:transparent;border:1px solid #fff;
+  color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;
+  appearance:auto;margin:0 0 8pt;
+}
+#chapter-select option{background:#2a2a2a;color:#fff}
+#chapter-select:focus{outline:none}
+
+/* Book progress bar text */
+#book-progress{text-align:center;font-size:16pt;color:#fff;margin:0 0 8pt}
+
+/* Player */
+#player{margin:0}
+#waveform-area{
+  width:100%;height:80px;position:relative;display:flex;
+  align-items:center;justify-content:center;overflow:hidden;
+}
+#waveform-area canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+#music-note{font-size:40pt;color:#666;position:absolute;user-select:none}
+#progress-bar{width:100%;height:4px;background:#555;cursor:pointer;margin:4px 0;position:relative}
+#progress-fill{height:100%;background:#fff;width:0%;pointer-events:none}
+#time-row{display:flex;justify-content:space-between;font-size:14pt;color:#fff;margin:0 0 4px}
+
+#btn-row{display:flex;align-items:center;justify-content:center;gap:6px}
+#btn-row button{
+  width:40px;height:40px;padding:0;display:flex;
+  align-items:center;justify-content:center;background:#fff;overflow:hidden;
+}
+#speed-btn,#pitch-btn{width:50px !important}
+#btn-row button svg{width:20px;height:20px;fill:#2a2a2a;stroke:#2a2a2a}
+#btn-row button:disabled svg{fill:#888;stroke:#888}
+#play-btn{width:120px !important}
+#play-btn svg{width:28px;height:28px}
+.btn-spacer{width:16px;flex-shrink:0}
+
+#file-input{display:none}
+</style>
+</head>
+<body>
+
+<h1>Erik's Jibber-Jabberer</h1>
+
+<button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
+<input type="file" id="file-input" accept=".mp3,.m4b,.m4a,.ogg,.wav,.mp4,.webm">
+
+<div id="file-info">No file selected</div>
+
+<!-- Cover art (hidden until image found) -->
+<div id="cover-wrap"><img id="cover-img" src="" alt="Cover"></div>
+
+<!-- Book title (hidden until metadata found) -->
+<h2 id="book-title"></h2>
+
+<!-- Chapter dropdown -->
+<select id="chapter-select" disabled><option>No audiobook loaded</option></select>
+
+<!-- Overall book progress -->
+<div id="book-progress">Read 0:00:00 of 0:00:00, 0%, 0:00:00 Remaining</div>
+
+<!-- Player -->
+<div id="player">
+  <div id="waveform-area">
+    <canvas id="waveform-canvas"></canvas>
+    <span id="music-note">&#9835;</span>
+  </div>
+  <div id="progress-bar" onclick="seekChapter(event)"><div id="progress-fill"></div></div>
+  <div id="time-row"><span id="cur-time">0:00</span><span id="tot-time">0:00</span></div>
+  <div id="btn-row">
+    <!-- Speed -->
+    <button id="speed-btn" title="Speed" disabled onclick="cycleSpeed()">
+      <span id="speed-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">1x</span>
+    </button>
+    <!-- Pitch -->
+    <button id="pitch-btn" title="Pitch" disabled onclick="cyclePitch()">
+      <span id="pitch-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">0</span>
+    </button>
+    <div class="btn-spacer"></div>
+    <!-- Prev track -->
+    <button id="prev-btn" title="Previous Chapter" disabled onclick="prevChapter()">
+      <svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16" fill="#2a2a2a"/><polygon points="20,4 9,12 20,20" fill="#2a2a2a"/></svg>
+    </button>
+    <!-- Skip back 10s -->
+    <button id="skipb-btn" title="Back 10s" disabled onclick="skip(-10)">
+      <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="#2a2a2a" stroke="none"/></svg>
+    </button>
+    <!-- Play/Pause -->
+    <button id="play-btn" title="Play" disabled onclick="togglePlay()">
+      <svg viewBox="0 0 24 24" id="play-icon"><polygon points="8,5 19,12 8,19" fill="#2a2a2a" stroke="none"/></svg>
+      <svg viewBox="0 0 24 24" id="pause-icon" style="display:none"><rect x="6" y="4" width="4" height="16" fill="#2a2a2a"/><rect x="14" y="4" width="4" height="16" fill="#2a2a2a"/></svg>
+    </button>
+    <!-- Skip forward 10s -->
+    <button id="skipf-btn" title="Forward 10s" disabled onclick="skip(10)">
+      <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z" fill="#2a2a2a" stroke="none"/></svg>
+    </button>
+    <!-- Next track -->
+    <button id="next-btn" title="Next Chapter" disabled onclick="nextChapter()">
+      <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20" fill="#2a2a2a"/><rect x="17" y="4" width="3" height="16" fill="#2a2a2a"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// === STATE ===
+let audio = new Audio();
+let chapters = []; // [{title, startTime, endTime, duration}]
+let currentChapter = 0;
+let totalBookDuration = 0;
+let fileKey = ''; // localStorage key
+let audioUrl = '';
+let speedIdx = 0;
+const speeds = [1, 1.2, 1.5, 2, 0.5, 0.8];
+let pitchIdx = 2; // index into pitchLevels, default "normal"
+const pitchLevels = [
+  {label: '--', rate: 0.85},  // much lower (15% down)
+  {label: '-',  rate: 0.92},  // lower (8% down)
+  {label: '0',  rate: 1.0},   // normal
+  {label: '+',  rate: 1.04},  // higher (4% up)
+  {label: '++', rate: 1.08},  // much higher (8% up)
+];
+let baseSpeed = 1;
+
+// === FORMAT HELPERS ===
+function fmtHMS(s){
+  if(!s||isNaN(s)||s<0) return '0:00:00';
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=Math.floor(s%60);
+  return h+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
+function fmtMS(s){
+  if(!s||isNaN(s)||s<0) return '0:00';
+  const m=Math.floor(s/60), sec=Math.floor(s%60);
+  return m+':'+String(sec).padStart(2,'0');
+}
+function truncate(s, n){
+  if(!s) return '';
+  return s.length > n ? s.substring(0, n) + '...' : s;
+}
+
+// === SAVE/RESTORE PROGRESS ===
+function saveProgress(){
+  if(!fileKey) return;
+  const data = {ch: currentChapter, time: audio.currentTime, ts: Date.now()};
+  localStorage.setItem('jbj_' + fileKey, JSON.stringify(data));
+}
+function restoreProgress(){
+  if(!fileKey) return null;
+  try { return JSON.parse(localStorage.getItem('jbj_' + fileKey)); } catch(e){ return null; }
+}
+// Auto-save every 3 seconds
+setInterval(saveProgress, 3000);
+
+// === FILE UPLOAD ===
+document.getElementById('file-input').onchange = async function(){
+  const file = this.files[0];
+  if(!file) return;
+  const sz = file.size;
+  const sizeStr = sz > 1048576 ? (sz/1048576).toFixed(1)+' MB' : (sz/1024).toFixed(1)+' KB';
+  document.getElementById('file-info').textContent = file.name + ', ' + sizeStr;
+  document.getElementById('upload-btn').textContent = 'Replace File';
+
+  // Create object URL for audio
+  if(audioUrl) URL.revokeObjectURL(audioUrl);
+  audioUrl = URL.createObjectURL(file);
+
+  // Generate file key for localStorage (hash of name + size)
+  const raw = file.name + '|' + file.size;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+  fileKey = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').substring(0,16);
+
+  // Parse metadata (ID3 tags)
+  parseMetadata(file);
+
+  // Load audio
+  audio.src = audioUrl;
+  audio.load();
+  audio.onloadedmetadata = () => {
+    totalBookDuration = audio.duration;
+    // If no chapters detected from ID3, treat as single chapter
+    if(chapters.length === 0){
+      chapters = [{title: file.name.replace(/\.[^.]+$/,''), startTime: 0, endTime: audio.duration, duration: audio.duration}];
+    }
+    populateChapterDropdown();
+    enablePlayer();
+
+    // Restore saved progress
+    const saved = restoreProgress();
+    if(saved && saved.ch < chapters.length){
+      currentChapter = saved.ch;
+      document.getElementById('chapter-select').value = currentChapter;
+      audio.currentTime = saved.time || chapters[saved.ch].startTime;
+    } else {
+      currentChapter = 0;
+      audio.currentTime = chapters[0].startTime;
+    }
+    updateBookProgress();
+  };
+};
+
+// === METADATA PARSING ===
+function parseMetadata(file){
+  chapters = [];
+  jsmediatags.read(file, {
+    onSuccess: function(tag){
+      const tags = tag.tags;
+
+      // Cover art
+      if(tags.picture){
+        const pic = tags.picture;
+        const bytes = new Uint8Array(pic.data);
+        const blob = new Blob([bytes], {type: pic.format});
+        const url = URL.createObjectURL(blob);
+        document.getElementById('cover-img').src = url;
+        document.getElementById('cover-wrap').style.display = 'block';
+      }
+
+      // Book title
+      const title = tags.album || tags.title || '';
+      if(title){
+        document.getElementById('book-title').textContent = title;
+        document.getElementById('book-title').style.display = 'block';
+      }
+
+      // Chapters from CHAP frames
+      if(tags.CHAP){
+        const chapTags = Array.isArray(tags.CHAP) ? tags.CHAP : [tags.CHAP];
+        chapTags.forEach(c => {
+          const startMs = c.data?.startTime || 0;
+          const endMs = c.data?.endTime || 0;
+          let chapTitle = '';
+          if(c.data?.subFrames?.TIT2?.data) chapTitle = c.data.subFrames.TIT2.data;
+          chapters.push({
+            title: chapTitle || 'Chapter ' + (chapters.length + 1),
+            startTime: startMs / 1000,
+            endTime: endMs / 1000,
+            duration: (endMs - startMs) / 1000
+          });
+        });
+        // Sort by start time
+        chapters.sort((a,b) => a.startTime - b.startTime);
+      }
+    },
+    onError: function(){ /* No metadata — will use single chapter fallback */ }
+  });
+}
+
+// === CHAPTER DROPDOWN ===
+function populateChapterDropdown(){
+  const sel = document.getElementById('chapter-select');
+  sel.innerHTML = '';
+  sel.disabled = false;
+  chapters.forEach((ch, i) => {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = truncate(ch.title, 20) + ', ' + fmtHMS(ch.duration);
+    sel.appendChild(o);
+  });
+  sel.onchange = () => {
+    currentChapter = parseInt(sel.value);
+    audio.currentTime = chapters[currentChapter].startTime;
+    updateBookProgress();
+    drawWaveform();
+  };
+}
+
+// === PLAYER CONTROLS ===
+function enablePlayer(){
+  ['speed-btn','pitch-btn','prev-btn','skipb-btn','play-btn','skipf-btn','next-btn'].forEach(id=>{
+    document.getElementById(id).disabled = false;
+  });
+}
+
+function togglePlay(){
+  if(audio.paused){
+    audio.play();
+    document.getElementById('play-icon').style.display = 'none';
+    document.getElementById('pause-icon').style.display = '';
+  } else {
+    audio.pause();
+    document.getElementById('play-icon').style.display = '';
+    document.getElementById('pause-icon').style.display = 'none';
+  }
+}
+
+function skip(s){
+  if(!audio.src) return;
+  audio.currentTime = Math.max(0, Math.min(audio.duration||0, audio.currentTime + s));
+}
+
+function prevChapter(){
+  if(currentChapter > 0){
+    currentChapter--;
+    audio.currentTime = chapters[currentChapter].startTime;
+    document.getElementById('chapter-select').value = currentChapter;
+    updateBookProgress();
+    drawWaveform();
+  }
+}
+
+function nextChapter(){
+  if(currentChapter < chapters.length - 1){
+    currentChapter++;
+    audio.currentTime = chapters[currentChapter].startTime;
+    document.getElementById('chapter-select').value = currentChapter;
+    updateBookProgress();
+    drawWaveform();
+  }
+}
+
+function cycleSpeed(){
+  speedIdx = (speedIdx + 1) % speeds.length;
+  baseSpeed = speeds[speedIdx];
+  applyPlaybackRate();
+  document.getElementById('speed-label').textContent = speeds[speedIdx] + 'x';
+}
+
+function cyclePitch(){
+  pitchIdx = (pitchIdx + 1) % pitchLevels.length;
+  applyPlaybackRate();
+  document.getElementById('pitch-label').textContent = pitchLevels[pitchIdx].label;
+}
+
+function applyPlaybackRate(){
+  // Combine speed and pitch: pitch changes playbackRate with preservesPitch=false
+  // Speed changes playbackRate with preservesPitch=true
+  // Since we can't have both simultaneously, we blend them
+  const pitchRate = pitchLevels[pitchIdx].rate;
+  audio.preservesPitch = false;
+  audio.playbackRate = baseSpeed * pitchRate;
+}
+
+function seekChapter(e){
+  if(!audio.duration || chapters.length === 0) return;
+  const ch = chapters[currentChapter];
+  const bar = document.getElementById('progress-bar');
+  const pct = (e.clientX - bar.getBoundingClientRect().left) / bar.clientWidth;
+  audio.currentTime = ch.startTime + pct * ch.duration;
+}
+
+// === TIME UPDATES ===
+audio.ontimeupdate = () => {
+  if(chapters.length === 0) return;
+  const ch = chapters[currentChapter];
+
+  // Auto-advance to next chapter
+  if(audio.currentTime >= ch.endTime - 0.1 && currentChapter < chapters.length - 1){
+    currentChapter++;
+    audio.currentTime = chapters[currentChapter].startTime;
+    document.getElementById('chapter-select').value = currentChapter;
+    drawWaveform();
+  }
+
+  // Chapter progress (bottom of waveform)
+  const chTime = Math.max(0, audio.currentTime - ch.startTime);
+  document.getElementById('cur-time').textContent = fmtMS(chTime);
+  document.getElementById('tot-time').textContent = fmtMS(ch.duration);
+  if(ch.duration > 0){
+    document.getElementById('progress-fill').style.width = (chTime / ch.duration * 100) + '%';
+  }
+
+  // Book progress
+  updateBookProgress();
+};
+
+audio.onended = () => {
+  document.getElementById('play-icon').style.display = '';
+  document.getElementById('pause-icon').style.display = 'none';
+  saveProgress();
+};
+
+function updateBookProgress(){
+  if(chapters.length === 0 || !totalBookDuration) return;
+
+  // Total time listened = sum of completed chapters + current chapter progress
+  let listened = 0;
+  for(let i = 0; i < currentChapter; i++) listened += chapters[i].duration;
+  const ch = chapters[currentChapter];
+  listened += Math.max(0, (audio.currentTime || 0) - ch.startTime);
+
+  const remaining = Math.max(0, totalBookDuration - listened);
+  let pct = totalBookDuration > 0 ? (listened / totalBookDuration) * 100 : 0;
+
+  // Cap at 99% until truly complete
+  if(pct >= 99.5 && pct < 100) pct = 99;
+  pct = Math.min(100, Math.round(pct));
+
+  document.getElementById('book-progress').textContent =
+    `Read ${fmtHMS(listened)} of ${fmtHMS(totalBookDuration)}, ${pct}%, ${fmtHMS(remaining)} Remaining`;
+}
+
+// === WAVEFORM ===
+function drawWaveform(){
+  document.getElementById('music-note').style.display = 'none';
+  const canvas = document.getElementById('waveform-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.parentElement.clientWidth;
+  const H = 80;
+  canvas.width = W; canvas.height = H;
+  canvas.style.display = 'block';
+
+  // Draw waveform for current chapter from audio buffer
+  // Use simpler approach: fetch the full audio and decode
+  if(!audioUrl) return;
+  fetch(audioUrl).then(r=>r.arrayBuffer()).then(buf=>{
+    const actx = new (window.AudioContext||window.webkitAudioContext)();
+    actx.decodeAudioData(buf.slice(0), decoded=>{
+      const ch = chapters[currentChapter];
+      const sr = decoded.sampleRate;
+      const startSample = Math.floor(ch.startTime * sr);
+      const endSample = Math.floor(ch.endTime * sr);
+      const data = decoded.getChannelData(0);
+      const len = endSample - startSample;
+      const step = Math.max(1, Math.ceil(len / W));
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle = '#fff';
+      for(let x=0; x<W; x++){
+        let min=1, max=-1;
+        for(let j=0;j<step;j++){
+          const idx = startSample + x*step + j;
+          if(idx < data.length){
+            const v = data[idx];
+            if(v<min) min=v; if(v>max) max=v;
+          }
+        }
+        const y1=(1+min)/2*H, y2=(1+max)/2*H;
+        ctx.fillRect(x, y1, 1, Math.max(1, y2-y1));
+      }
+      actx.close();
+    });
+  }).catch(()=>{});
+}
+
+window.onresize = () => { if(audioUrl) drawWaveform(); };
+
+// === KEYBOARD SHORTCUTS ===
+document.addEventListener('keydown', (e) => {
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  if(e.key===' '||e.key==='Enter'){e.preventDefault(); togglePlay();}
+  if(e.key==='ArrowLeft'){e.preventDefault(); skip(-10);}
+  if(e.key==='ArrowRight'){e.preventDefault(); skip(10);}
+});
+
+// === SAVE ON PAGE UNLOAD ===
+window.addEventListener('beforeunload', saveProgress);
+</script>
+</body>
+</html>
