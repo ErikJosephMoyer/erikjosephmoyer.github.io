@@ -670,29 +670,34 @@ audio.ontimeupdate = ()=>{
   const ch = chapters[currentChapter];
 
   // Auto-advance
-  if(multiFileMode){
-    // In multi-file mode, audio.onended handles chapter advance
-  } else {
-    if(audio.currentTime >= ch.endTime - 0.1 && currentChapter < chapters.length-1){
-      goToChapter(currentChapter + 1);
-      return;
-    }
+  if(!multiFileMode && audio.currentTime >= ch.endTime - 0.1 && currentChapter < chapters.length-1){
+    goToChapter(currentChapter + 1);
+    return;
   }
 
-  // Chapter progress
-  let chTime, chDur;
-  if(multiFileMode){
-    chTime = audio.currentTime;
-    chDur = audio.duration || ch.duration;
-  } else {
-    chTime = Math.max(0, audio.currentTime - ch.startTime);
-    chDur = ch.duration;
-  }
-  document.getElementById('cur-time').textContent = fmtMS(chTime);
-  document.getElementById('tot-time').textContent = fmtMS(chDur);
-  if(chDur > 0) document.getElementById('ch-fill').style.width = (chTime/chDur*100)+'%';
+  // Batch all visual updates into one animation frame so they paint simultaneously
+  requestAnimationFrame(() => {
+    // Chapter progress
+    let chTime, chDur;
+    if(multiFileMode){ chTime = audio.currentTime; chDur = audio.duration || ch.duration; }
+    else { chTime = Math.max(0, audio.currentTime - ch.startTime); chDur = ch.duration; }
+    document.getElementById('cur-time').textContent = fmtMS(chTime);
+    document.getElementById('tot-time').textContent = fmtMS(chDur);
+    if(chDur > 0) document.getElementById('ch-fill').style.width = (chTime/chDur*100)+'%';
 
-  updateBookProgress();
+    // Book progress — computed in same frame
+    if(!totalBookDuration) return;
+    let listened = 0;
+    for(let i=0;i<currentChapter;i++) listened+=chapters[i].duration;
+    if(multiFileMode) listened += audio.currentTime || 0;
+    else listened += Math.max(0,(audio.currentTime||0)-chapters[currentChapter].startTime);
+    const remaining = Math.max(0,totalBookDuration-listened);
+    let pct = (listened/totalBookDuration)*100;
+    if(pct>=99.5&&pct<100) pct=99;
+    pct = Math.min(100,Math.round(pct));
+    document.getElementById('book-progress').textContent =
+      `Read ${fmtHMS(listened)} of ${fmtHMS(totalBookDuration)} (${pct}%), ${fmtHMS(remaining)} Left`;
+  });
 };
 
 audio.onended = ()=>{
