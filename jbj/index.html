@@ -201,64 +201,7 @@ function restoreProgress(){
 setInterval(saveProgress, 3000);
 window.addEventListener('beforeunload', saveProgress);
 
-// === AUTO-RELOAD ON PAGE OPEN ===
 let pendingRestore = null;
-(async function autoReload(){
-  const lastKey = localStorage.getItem('jbj_last');
-  if(!lastKey) return;
-  try {
-    const stored = await loadFile(lastKey);
-    if(!stored || !stored.blob) return;
-    // Store for deferred loading (mobile won't load audio without user gesture)
-    pendingRestore = {key: lastKey, stored};
-    fileKey = lastKey;
-    multiFileMode = stored.meta.multiFile || false;
-    document.getElementById('file-info').textContent = stored.meta.displayName+' (tap Play to resume)';
-    document.getElementById('upload-btn').textContent = 'Replace File';
-
-    const file = new File([stored.blob], stored.meta.fileName, {type: stored.blob.type || 'audio/mpeg'});
-    resetUI();
-    try { await parseMetadata(file); } catch(e) {}
-
-    // Restore saved cover image
-    if(!hasCover){
-      const savedCover = await loadCover(lastKey);
-      if(savedCover && savedCover.blob){
-        document.getElementById('cover-img').src = URL.createObjectURL(savedCover.blob);
-        document.getElementById('cover-wrap').style.display = 'block';
-        document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
-        hasCover = true;
-      }
-    }
-
-    // Create blob URL but don't load yet — wait for user gesture on mobile
-    const url = URL.createObjectURL(stored.blob);
-    audio.preload = 'metadata';
-    audio.onloadedmetadata = () => {
-      totalBookDuration = audio.duration;
-      if(chapters.length === 0){
-        chapters = [{title:stored.meta.fileName.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}];
-      }
-      document.getElementById('file-info').textContent = stored.meta.displayName;
-      pendingRestore = null;
-      finishLoad();
-    };
-    audio.onerror = () => {
-      // On mobile, metadata load may fail until user gesture — keep pending
-      if(chapters.length > 0){
-        // Chapters from ID3 parsing already available, enable UI anyway
-        document.getElementById('file-info').textContent = stored.meta.displayName;
-        populateChapterDropdown();
-        enablePlayer();
-        const saved = restoreProgress();
-        if(saved) currentChapter = saved.ch || 0;
-        pendingRestore = {key:lastKey, stored, url, savedTime: saved?.time||0};
-      }
-    };
-    audio.src = url;
-    audio.load();
-  } catch(e) {}
-})();
 
 // === SINGLE FILE UPLOAD ===
 document.getElementById('file-input').onchange = async function(){
@@ -1018,6 +961,65 @@ document.addEventListener('keydown',(e)=>{
   if(e.key==='ArrowLeft'){e.preventDefault();skip(-10);}
   if(e.key==='ArrowRight'){e.preventDefault();skip(10);}
 });
+
+// === AUTO-RELOAD ON PAGE OPEN (runs AFTER all handlers are registered) ===
+(async function autoReload(){
+  const lastKey = localStorage.getItem('jbj_last');
+  if(!lastKey) return;
+  try {
+    const stored = await loadFile(lastKey);
+    if(!stored || !stored.blob) return;
+    pendingRestore = {key: lastKey, stored};
+    fileKey = lastKey;
+    multiFileMode = stored.meta.multiFile || false;
+    document.getElementById('file-info').textContent = stored.meta.displayName+' (tap Play to resume)';
+    document.getElementById('upload-btn').textContent = 'Replace File';
+
+    const file = new File([stored.blob], stored.meta.fileName, {type: stored.blob.type || 'audio/mpeg'});
+    resetUI();
+    try { await parseMetadata(file); } catch(e) {}
+
+    if(!hasCover){
+      const savedCover = await loadCover(lastKey);
+      if(savedCover && savedCover.blob){
+        document.getElementById('cover-img').src = URL.createObjectURL(savedCover.blob);
+        document.getElementById('cover-wrap').style.display = 'block';
+        document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
+        hasCover = true;
+      }
+    }
+
+    const url = URL.createObjectURL(stored.blob);
+    audio.preload = 'metadata';
+    audio.onloadedmetadata = () => {
+      totalBookDuration = audio.duration;
+      if(chapters.length === 0){
+        chapters = [{title:stored.meta.fileName.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}];
+      }
+      for(let i=0;i<chapters.length;i++){
+        if(chapters[i].endTime===0||chapters[i].duration===0){
+          const end=(i+1<chapters.length)?chapters[i+1].startTime:audio.duration;
+          chapters[i].endTime=end; chapters[i].duration=end-chapters[i].startTime;
+        }
+      }
+      document.getElementById('file-info').textContent = stored.meta.displayName;
+      pendingRestore = null;
+      finishLoad();
+    };
+    audio.onerror = () => {
+      if(chapters.length > 0){
+        document.getElementById('file-info').textContent = stored.meta.displayName;
+        populateChapterDropdown();
+        enablePlayer();
+        const saved = restoreProgress();
+        if(saved) currentChapter = saved.ch || 0;
+        pendingRestore = {key:lastKey, stored, url, savedTime: saved?.time||0};
+      }
+    };
+    audio.src = url;
+    audio.load();
+  } catch(e) { console.error('autoReload error:', e); }
+})();
 </script>
 <div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/stt/" style="color:#fff">Speech-to-Texter</a> | <a href="/tts/" style="color:#fff">Text-to-Speecher</a></div>
 </body>
