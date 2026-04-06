@@ -115,13 +115,6 @@ button:disabled{background:#555;color:#888;cursor:default}
 </div>
 
 <script>
-// === DEBUG: Clear any corrupted state from previous versions ===
-try {
-  const dbDel = indexedDB.deleteDatabase('jbj_audiobooks');
-  dbDel.onsuccess = () => console.log('IndexedDB cleared');
-} catch(e){}
-localStorage.removeItem('jbj_last');
-
 // === STATE ===
 let audio = new Audio();
 let chapters = [];
@@ -229,17 +222,15 @@ async function loadSingleFile(file){
   resetUI();
   try { await parseMetadata(file); } catch(e) {}
 
-  // Store in IndexedDB for reload persistence (skip for files >100MB to avoid hanging)
-  if(file.size < 100*1024*1024){
-    try {
-      const ext = file.name.split('.').pop().toLowerCase();
-      const mimeMap = {mp3:'audio/mpeg',m4b:'audio/mp4',m4a:'audio/mp4',ogg:'audio/ogg',wav:'audio/wav',mp4:'audio/mp4',webm:'audio/webm',aac:'audio/aac',flac:'audio/flac',opus:'audio/ogg'};
-      const blob = new Blob([file], {type: file.type || mimeMap[ext] || 'audio/mpeg'});
-      await storeFile(fileKey, blob, {fileName:file.name, displayName, multiFile:false});
-    } catch(e) {}
-  }
-
   const url = URL.createObjectURL(file);
+
+  // Store in IndexedDB for reload persistence (non-blocking, skip >100MB)
+  if(file.size < 100*1024*1024){
+    const ext = file.name.split('.').pop().toLowerCase();
+    const mimeMap = {mp3:'audio/mpeg',m4b:'audio/mp4',m4a:'audio/mp4',ogg:'audio/ogg',wav:'audio/wav',mp4:'audio/mp4',webm:'audio/webm',aac:'audio/aac',flac:'audio/flac',opus:'audio/ogg'};
+    const blob = new Blob([file], {type: file.type || mimeMap[ext] || 'audio/mpeg'});
+    storeFile(fileKey, blob, {fileName:file.name, displayName, multiFile:false}).catch(()=>{});
+  }
   let metadataLoaded = false;
   audio.onloadedmetadata = () => {
     if(metadataLoaded) return;
