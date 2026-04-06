@@ -264,8 +264,9 @@ let pendingRestore = null;
 document.getElementById('file-input').onchange = async function(){
   const file = this.files[0];
   if(!file) return;
+  pendingRestore = null; // Clear any pending auto-restore
   multiFileMode = false;
-  await loadSingleFile(file);
+  try { await loadSingleFile(file); } catch(e){ console.error('loadSingleFile error:', e); }
 };
 
 async function loadSingleFile(file){
@@ -278,13 +279,15 @@ async function loadSingleFile(file){
   resetUI();
   try { await parseMetadata(file); } catch(e) {}
 
-  // Store in IndexedDB for reload persistence
-  try {
-    const ext = file.name.split('.').pop().toLowerCase();
-    const mimeMap = {mp3:'audio/mpeg',m4b:'audio/mp4',m4a:'audio/mp4',ogg:'audio/ogg',wav:'audio/wav',mp4:'audio/mp4',webm:'audio/webm',aac:'audio/aac',flac:'audio/flac',opus:'audio/ogg'};
-    const blob = new Blob([file], {type: file.type || mimeMap[ext] || 'audio/mpeg'});
-    await storeFile(fileKey, blob, {fileName:file.name, displayName, multiFile:false});
-  } catch(e) {}
+  // Store in IndexedDB for reload persistence (skip for files >100MB to avoid hanging)
+  if(file.size < 100*1024*1024){
+    try {
+      const ext = file.name.split('.').pop().toLowerCase();
+      const mimeMap = {mp3:'audio/mpeg',m4b:'audio/mp4',m4a:'audio/mp4',ogg:'audio/ogg',wav:'audio/wav',mp4:'audio/mp4',webm:'audio/webm',aac:'audio/aac',flac:'audio/flac',opus:'audio/ogg'};
+      const blob = new Blob([file], {type: file.type || mimeMap[ext] || 'audio/mpeg'});
+      await storeFile(fileKey, blob, {fileName:file.name, displayName, multiFile:false});
+    } catch(e) {}
+  }
 
   const url = URL.createObjectURL(file);
   let metadataLoaded = false;
@@ -594,7 +597,7 @@ function parseM4BMetadata(file){
                 const mime=(img[0]===0xFF&&img[1]===0xD8)?'image/jpeg':'image/png';
                 document.getElementById('cover-img').src=URL.createObjectURL(new Blob([img],{type:mime}));
                 document.getElementById('cover-wrap').style.display='block';
-                document.getElementById('cover-upload-btn').style.display='none';
+                document.getElementById('cover-upload-btn').textContent='Replace Cover';
                 hasCover=true;
               }
               if(ds<8) break; di+=ds;
