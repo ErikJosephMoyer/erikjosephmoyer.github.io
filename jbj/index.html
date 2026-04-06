@@ -115,6 +115,13 @@ button:disabled{background:#555;color:#888;cursor:default}
 </div>
 
 <script>
+// === DEBUG: Clear any corrupted state from previous versions ===
+try {
+  const dbDel = indexedDB.deleteDatabase('jbj_audiobooks');
+  dbDel.onsuccess = () => console.log('IndexedDB cleared');
+} catch(e){}
+localStorage.removeItem('jbj_last');
+
 // === STATE ===
 let audio = new Audio();
 let chapters = [];
