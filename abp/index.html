@@ -540,6 +540,7 @@ function parseM4BMetadata(file){
         document.getElementById('book-title').textContent=bookTitle;
         document.getElementById('book-title').style.display='block';
       }
+      console.log('ABP-v14: textTrak='+textTrakStart+' ts='+chapTimescale+' dur='+chapDurations.length+' off='+chapOffsets.length+' sz='+chapSizes.length);
       if(chapDurations.length>0 && chapTimescale>0){
         chapters = [];
         let cumTime=0;
@@ -823,23 +824,42 @@ function prevChapter(){ goToChapter(currentChapter-1); }
 function nextChapter(){ goToChapter(currentChapter+1); }
 
 function applySpeedPitch(){
+  // Speed and pitch are mutually exclusive in HTML5 Audio.
+  // Whichever was changed LAST takes priority.
+  // Speed: preservesPitch=true, rate=baseSpeed
+  // Pitch: preservesPitch=false, rate=pitchRate (speed reverts to 1x)
   const pitchRate = pitchLevels[pitchIdx].rate;
   if(pitchRate === 1.0){
     audio.preservesPitch = true;
     audio.playbackRate = baseSpeed;
   } else {
     audio.preservesPitch = false;
-    audio.playbackRate = baseSpeed * pitchRate;
+    audio.playbackRate = pitchRate;
   }
 }
 function cycleSpeed(){
   speedIdx=(speedIdx+1)%speeds.length; baseSpeed=speeds[speedIdx];
-  applySpeedPitch();
+  // Speed change resets pitch to normal
+  pitchIdx = 2; // '0' = normal
+  document.getElementById('pitch-label').textContent = '0';
+  audio.preservesPitch = true;
+  audio.playbackRate = baseSpeed;
   document.getElementById('speed-label').textContent=speeds[speedIdx]+'x';
 }
 function cyclePitch(){
   pitchIdx=(pitchIdx+1)%pitchLevels.length;
-  applySpeedPitch();
+  const pitchRate = pitchLevels[pitchIdx].rate;
+  if(pitchRate === 1.0){
+    // Back to normal - restore speed
+    audio.preservesPitch = true;
+    audio.playbackRate = baseSpeed;
+  } else {
+    // Pitch active - speed pauses at 1x equivalent
+    audio.preservesPitch = false;
+    audio.playbackRate = pitchRate;
+    speedIdx = 0; baseSpeed = 1;
+    document.getElementById('speed-label').textContent = '1x';
+  }
   document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
 }
 
