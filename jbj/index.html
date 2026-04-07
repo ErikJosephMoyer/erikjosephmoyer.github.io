@@ -529,27 +529,23 @@ function parseM4BMetadata(file){
       }
       console.log('M4B parser: durations='+chapDurations.length+' offsets='+chapOffsets.length+' sizes='+chapSizes.length+' timescale='+chapTimescale);
       if(chapters.length===0 && chapDurations.length>0 && chapOffsets.length>0 && chapTimescale>0){
-        const minOff = Math.min(...chapOffsets.filter(o=>o>0));
-        const totalNameSize = chapSizes.reduce((a,b)=>a+b, 0) || chapOffsets.length*256;
-        let namesBuf = null;
-        try {
-          namesBuf = new Uint8Array(await readSlice(file, minOff, Math.min(totalNameSize+4096, 1024*1024)));
-        } catch(e){}
-
+        // Read each chapter name individually (batch read was producing garbled results)
         let cumTime=0;
         for(let i=0;i<chapDurations.length;i++){
           const startSec=cumTime/chapTimescale;
           const durSec=chapDurations[i]/chapTimescale;
           let chapTitle='Chapter '+(i+1);
 
-          if(namesBuf && i<chapOffsets.length && chapOffsets[i]>=minOff){
-            const localOff = chapOffsets[i] - minOff;
-            if(localOff>=0 && localOff+2<=namesBuf.length){
-              const strLen=(namesBuf[localOff]<<8)|namesBuf[localOff+1];
-              if(strLen>0 && localOff+2+strLen<=namesBuf.length){
-                chapTitle=new TextDecoder('utf-8').decode(namesBuf.slice(localOff+2, localOff+2+strLen));
+          if(i<chapOffsets.length && i<chapSizes.length && chapOffsets[i]>0 && chapSizes[i]>0){
+            try {
+              const nameBuf=new Uint8Array(await readSlice(file, chapOffsets[i], chapSizes[i]));
+              if(nameBuf.length>=2){
+                const strLen=(nameBuf[0]<<8)|nameBuf[1];
+                if(strLen>0 && strLen<=nameBuf.length-2){
+                  chapTitle=new TextDecoder('utf-8').decode(nameBuf.slice(2,2+strLen));
+                }
               }
-            }
+            }catch(e){}
           }
 
           chapters.push({
