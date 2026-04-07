@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/images/Favicon.png" type="image/png">
 <title>Erik's Textualizer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,7 +39,6 @@ button:disabled{background:#555;color:#888;cursor:default}
 #waveform-area{width:100%;height:60px;position:relative;overflow:hidden;margin:0 0 8pt;display:none}
 #waveform-canvas{width:100%;height:100%}
 
-
 .hidden-input{display:none}
 </style>
 </head>
@@ -68,7 +68,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 <div class="dl-row">
   <button id="dl-text" onclick="downloadText()">Download Text</button>
   <button id="replay-btn" onclick="replayAudio()">Replay Audio</button>
-  <button id="dl-audio" onclick="downloadAudio()">Download Audio</button><!-- hidden for uploads -->
+  <button id="dl-audio" onclick="downloadAudio()">Download Audio</button>
 </div>
 
 <script>
@@ -92,8 +92,6 @@ function sanitizeName(name, maxLen){
   name = name.replace(/\.[^.]+$/,'').toLowerCase();
   return name.replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'').substring(0, maxLen||20);
 }
-
-// === UPLOAD ===
 document.getElementById('file-input').onchange = function(){
   const file = this.files[0];
   if(!file) return;
@@ -110,13 +108,10 @@ document.getElementById('file-input').onchange = function(){
   document.getElementById('output').value = '';
   drawWaveform(file);
 };
-
-// === RECORD (records audio + live transcribes simultaneously) ===
 async function toggleRecord(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if(isRecording){
-    // Stop
     isRecording = false;
     if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
     if(liveRecognition) try { liveRecognition.stop(); } catch(e){}
@@ -124,8 +119,6 @@ async function toggleRecord(){
     document.getElementById('rec-indicator').style.display = 'none';
     return;
   }
-
-  // Start recording + live transcription
   try {
     const stream = await navigator.mediaDevices.getUserMedia({audio:true});
     isRecording = true;
@@ -138,9 +131,6 @@ async function toggleRecord(){
     document.getElementById('dl-audio').style.display = 'none';
     document.getElementById('replay-btn').style.display = 'none';
     document.getElementById('waveform-area').style.display = 'none';
-
-    // Start SpeechRecognition FIRST (before MediaRecorder on mobile)
-    // On Android Chrome, recognition must start before recorder claims the mic
     let recognitionActive = false;
     if(SR){
       liveRecognition = new SR();
@@ -158,10 +148,8 @@ async function toggleRecord(){
         document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
       };
       liveRecognition.onend = () => {
-        // Auto-restart on mobile (recognition stops after silence)
         if(isRecording){
           try { liveRecognition.start(); } catch(e){
-            // If restart fails, try again after brief delay
             setTimeout(() => {
               if(isRecording) try { liveRecognition.start(); } catch(e2){}
             }, 500);
@@ -171,7 +159,6 @@ async function toggleRecord(){
       liveRecognition.onerror = (e) => {
         if(e.error==='no-speech' && isRecording) return;
         if(e.error==='aborted' && isRecording){
-          // Mobile often aborts — restart
           setTimeout(() => {
             if(isRecording) try { liveRecognition.start(); } catch(e2){}
           }, 500);
@@ -185,11 +172,8 @@ async function toggleRecord(){
         liveRecognition.start();
         recognitionActive = true;
       } catch(e){
-        // Recognition failed to start — continue with recording only
       }
     }
-
-    // Start MediaRecorder AFTER recognition
     recordChunks = [];
     const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' :
                      MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
@@ -207,8 +191,6 @@ async function toggleRecord(){
       document.getElementById('replay-btn').style.display = 'inline-block';
       document.getElementById('dl-audio').style.display = 'inline-block';
       drawWaveform(audioBlob);
-
-      // Delay finalization to let SpeechRecognition finish processing
       setTimeout(() => {
         const text = document.getElementById('output').value.trim() || liveFinalText.trim();
         if(text) document.getElementById('output').value = text;
@@ -223,8 +205,6 @@ async function toggleRecord(){
     isRecording = false;
   }
 }
-
-// === TRANSCRIBE (for uploaded files — plays audio, mic captures) ===
 function transcribe(){
   if(!audioBlob){
     document.getElementById('status').textContent = 'Status: No audio to transcribe';
@@ -285,8 +265,6 @@ function transcribe(){
   playEl.volume = 1.0;
   playEl.play();
 }
-
-// === REPLAY ===
 function replayAudio(){
   if(!audioUrl) return;
   if(replayEl && !replayEl.paused){
@@ -299,10 +277,7 @@ function replayAudio(){
   document.getElementById('replay-btn').textContent = 'Stop Replay';
   replayEl.onended = () => { document.getElementById('replay-btn').textContent = 'Replay Audio'; };
 }
-
-// === DOWNLOADS ===
 function getOutputName(){
-  // For uploads: use uploaded filename. For recordings: use first 20 chars of transcribed text.
   if(audioFileName && audioFileName !== 'recording.mp3' && audioFileName !== 'recording.webm'){
     return sanitizeName(audioFileName, 20);
   }
@@ -327,8 +302,6 @@ function downloadAudio(){
   a.download = `stt_ejm_${getOutputName()}.mp3`;
   a.click();
 }
-
-// === WAVEFORM ===
 function drawWaveform(fileOrBlob){
   const area = document.getElementById('waveform-area');
   const canvas = document.getElementById('waveform-canvas');
@@ -373,8 +346,6 @@ function drawWaveform(fileOrBlob){
   };
   reader.readAsArrayBuffer(fileOrBlob);
 }
-
-// === KEYBOARD ===
 document.addEventListener('keydown',(e)=>{
   if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
   if(e.ctrlKey && e.key==='Enter' && audioBlob){ e.preventDefault(); transcribe(); }
