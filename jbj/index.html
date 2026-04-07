@@ -541,7 +541,6 @@ function parseM4BMetadata(file){
         document.getElementById('book-title').style.display='block';
       }
       if(chapters.length===0 && chapDurations.length>0 && chapTimescale>0){
-        // Build chapters with timing first (instant)
         let cumTime=0;
         for(let i=0;i<chapDurations.length;i++){
           const startSec=cumTime/chapTimescale;
@@ -549,26 +548,25 @@ function parseM4BMetadata(file){
           chapters.push({title:'Chapter '+(i+1), startTime:startSec, endTime:startSec+durSec, duration:durSec});
           cumTime+=chapDurations[i];
         }
-
-        // Read ALL chapter names in ONE read (contiguous block at end of file)
+        // Read chapter names AFTER resolve (non-blocking)
         if(chapOffsets.length>0 && chapSizes.length>0){
-          try {
-            const firstOff=chapOffsets[0];
-            const lastOff=chapOffsets[chapOffsets.length-1];
-            const lastSz=chapSizes[chapSizes.length-1]||256;
-            const totalLen=lastOff-firstOff+lastSz;
-            const allNames=new Uint8Array(await readSlice(file, firstOff, totalLen));
-            for(let i=0;i<chapters.length && i<chapOffsets.length;i++){
-              const loc=chapOffsets[i]-firstOff;
-              const sz=i<chapSizes.length?chapSizes[i]:0;
-              if(loc>=0 && loc+2<=allNames.length && sz>2){
-                const slen=(allNames[loc]<<8)|allNames[loc+1];
-                if(slen>0 && loc+2+slen<=allNames.length){
-                  chapters[i].title=new TextDecoder('utf-8').decode(allNames.slice(loc+2,loc+2+slen));
+          const _co=chapOffsets.slice(), _cs=chapSizes.slice();
+          setTimeout(async()=>{
+            try{
+              const firstOff=_co[0], lastOff=_co[_co.length-1], lastSz=_cs[_cs.length-1]||256;
+              const allNames=new Uint8Array(await readSlice(file, firstOff, lastOff-firstOff+lastSz));
+              for(let i=0;i<chapters.length&&i<_co.length;i++){
+                const loc=_co[i]-firstOff, sz=i<_cs.length?_cs[i]:0;
+                if(loc>=0&&loc+2<=allNames.length&&sz>2){
+                  const slen=(allNames[loc]<<8)|allNames[loc+1];
+                  if(slen>0&&loc+2+slen<=allNames.length){
+                    chapters[i].title=new TextDecoder('utf-8').decode(allNames.slice(loc+2,loc+2+slen));
+                  }
                 }
               }
-            }
-          }catch(e){}
+              populateChapterDropdown();
+            }catch(e){}
+          },100);
         }
       }
       if(chapters.length>0 && chapters[chapters.length-1].endTime===0){
