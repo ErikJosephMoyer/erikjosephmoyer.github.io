@@ -185,7 +185,7 @@ async function loadFile(key){
 function saveProgress(){
   if(!fileKey) return;
   const time = multiFileMode ? audio.currentTime : audio.currentTime;
-  localStorage.setItem('jbj_'+fileKey, JSON.stringify({ch:currentChapter, time, ts:Date.now()}));
+  localStorage.setItem('jbj_'+fileKey, JSON.stringify({ch:currentChapter, time, ts:Date.now(), spd:speedIdx, pit:pitchIdx}));
   localStorage.setItem('jbj_last', fileKey);
 }
 function restoreProgress(){
@@ -348,6 +348,10 @@ function finishLoad(){
   if(saved && saved.ch < chapters.length){
     currentChapter = saved.ch;
     document.getElementById('chapter-select').value = currentChapter;
+    if(typeof saved.spd==='number'){ speedIdx=saved.spd; baseSpeed=speeds[speedIdx]||1; document.getElementById('speed-label').textContent=baseSpeed+'x'; }
+    if(typeof saved.pit==='number'){ pitchIdx=saved.pit; document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label; }
+    audio.preservesPitch=(pitchLevels[pitchIdx].rate===1.0);
+    audio.playbackRate=baseSpeed*pitchLevels[pitchIdx].rate;
     if(multiFileMode && chapters[currentChapter].fileUrl){
       audio.onloadedmetadata = () => { audio.currentTime = saved.time || 0; };
       audio.src = chapters[currentChapter].fileUrl;
@@ -749,7 +753,8 @@ function goToChapter(idx){
   if(multiFileMode && chapters[idx].fileUrl){
     audio.onloadedmetadata = () => {
       audio.currentTime = 0;
-      applyRate();
+      audio.preservesPitch=(pitchLevels[pitchIdx].rate===1.0);
+      audio.playbackRate=baseSpeed*(pitchLevels[pitchIdx].rate);
       if(wasPlaying) audio.play();
     };
     audio.src = chapters[idx].fileUrl;
@@ -819,17 +824,26 @@ function prevChapter(){ goToChapter(currentChapter-1); }
 function nextChapter(){ goToChapter(currentChapter+1); }
 
 function cycleSpeed(){
-  speedIdx=(speedIdx+1)%speeds.length; baseSpeed=speeds[speedIdx]; applyRate();
+  speedIdx=(speedIdx+1)%speeds.length; baseSpeed=speeds[speedIdx];
+  audio.preservesPitch = true;
+  audio.playbackRate = baseSpeed;
   document.getElementById('speed-label').textContent=speeds[speedIdx]+'x';
+  if(pitchLevels[pitchIdx].rate !== 1.0){
+    audio.preservesPitch = false;
+    audio.playbackRate = baseSpeed * pitchLevels[pitchIdx].rate;
+  }
 }
 function cyclePitch(){
-  pitchIdx=(pitchIdx+1)%pitchLevels.length; applyRate();
-  document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
-}
-function applyRate(){
+  pitchIdx=(pitchIdx+1)%pitchLevels.length;
   const pitchRate = pitchLevels[pitchIdx].rate;
-  audio.preservesPitch = (pitchRate === 1.0); // preserve pitch when pitch is normal, disable when shifted
-  audio.playbackRate = baseSpeed * pitchRate;
+  if(pitchRate === 1.0){
+    audio.preservesPitch = true;
+    audio.playbackRate = baseSpeed;
+  } else {
+    audio.preservesPitch = false;
+    audio.playbackRate = baseSpeed * pitchRate;
+  }
+  document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
 }
 
 function seekChapter(e){
