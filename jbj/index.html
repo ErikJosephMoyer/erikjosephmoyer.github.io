@@ -65,6 +65,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 <img src="/images/Logophile.png" alt="EM" style="width:75px;height:75px;display:block;margin:0 auto 8pt;border-radius:8px">
 <h1>Erik's Jibberjabberer</h1>
 <h2>An Audiobook Player</h2>
+<div id="dbg" style="text-align:center;font-size:10pt;color:#555">v13</div>
 
 <div class="btn-row">
   <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
@@ -752,8 +753,8 @@ function goToChapter(idx){
   if(multiFileMode && chapters[idx].fileUrl){
     audio.onloadedmetadata = () => {
       audio.currentTime = 0;
-      audio.preservesPitch=true;
-      audio.playbackRate=baseSpeed*pitchLevels[pitchIdx].rate;
+      if(typeof applySpeedPitch==='function') applySpeedPitch();
+      else { audio.preservesPitch=true; audio.playbackRate=baseSpeed; }
       if(wasPlaying) audio.play();
     };
     audio.src = chapters[idx].fileUrl;
@@ -822,18 +823,24 @@ function skip(s){ if(audio.src) audio.currentTime=Math.max(0,Math.min(audio.dura
 function prevChapter(){ goToChapter(currentChapter-1); }
 function nextChapter(){ goToChapter(currentChapter+1); }
 
+function applySpeedPitch(){
+  const pitchRate = pitchLevels[pitchIdx].rate;
+  if(pitchRate === 1.0){
+    audio.preservesPitch = true;
+    audio.playbackRate = baseSpeed;
+  } else {
+    audio.preservesPitch = false;
+    audio.playbackRate = baseSpeed * pitchRate;
+  }
+}
 function cycleSpeed(){
   speedIdx=(speedIdx+1)%speeds.length; baseSpeed=speeds[speedIdx];
-  const pitchRate = pitchLevels[pitchIdx].rate;
-  audio.preservesPitch = true;
-  audio.playbackRate = baseSpeed * pitchRate;
+  applySpeedPitch();
   document.getElementById('speed-label').textContent=speeds[speedIdx]+'x';
 }
 function cyclePitch(){
   pitchIdx=(pitchIdx+1)%pitchLevels.length;
-  const pitchRate = pitchLevels[pitchIdx].rate;
-  audio.preservesPitch = true;
-  audio.playbackRate = baseSpeed * pitchRate;
+  applySpeedPitch();
   document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
 }
 
