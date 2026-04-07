@@ -13,7 +13,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#2a2a2a;color:#fff;font:normal 16pt/1.2 'EB Garamond',serif;margin:0 auto;padding:12px 20px;max-width:700px}
 h1{font-size:32pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
-h2{font-size:24pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
+h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
 
 button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 14px;white-space:nowrap}
 button:hover{background:#ccc}
@@ -527,34 +527,36 @@ function parseM4BMetadata(file){
         document.getElementById('book-title').textContent=bookTitle;
         document.getElementById('book-title').style.display='block';
       }
-      console.log('M4B parser v7: durations='+chapDurations.length+' offsets='+chapOffsets.length+' sizes='+chapSizes.length+' timescale='+chapTimescale);
-      if(chapters.length===0 && chapDurations.length>0 && chapOffsets.length>0 && chapTimescale>0){
-        // Read each chapter name individually (batch read was producing garbled results)
+      if(chapters.length===0 && chapDurations.length>0 && chapTimescale>0){
+        // Build chapters with timing first (instant)
         let cumTime=0;
         for(let i=0;i<chapDurations.length;i++){
           const startSec=cumTime/chapTimescale;
           const durSec=chapDurations[i]/chapTimescale;
-          let chapTitle='Chapter '+(i+1);
-
-          if(i<chapOffsets.length && i<chapSizes.length && chapOffsets[i]>0 && chapSizes[i]>0){
-            try {
-              const nameBuf=new Uint8Array(await readSlice(file, chapOffsets[i], chapSizes[i]));
-              if(nameBuf.length>=2){
-                const strLen=(nameBuf[0]<<8)|nameBuf[1];
-                if(strLen>0 && strLen<=nameBuf.length-2){
-                  chapTitle=new TextDecoder('utf-8').decode(nameBuf.slice(2,2+strLen));
-                }
-              }
-            }catch(e){}
-          }
-
-          chapters.push({
-            title:chapTitle, startTime:startSec,
-            endTime:startSec+durSec, duration:durSec
-          });
+          chapters.push({title:'Chapter '+(i+1), startTime:startSec, endTime:startSec+durSec, duration:durSec});
           cumTime+=chapDurations[i];
         }
-        console.log('M4B chapters built: '+chapters.length+' first3: '+chapters.slice(0,3).map(c=>c.title).join(' | '));
+
+        // Read ALL chapter names in ONE read (contiguous block at end of file)
+        if(chapOffsets.length>0 && chapSizes.length>0){
+          try {
+            const firstOff=chapOffsets[0];
+            const lastOff=chapOffsets[chapOffsets.length-1];
+            const lastSz=chapSizes[chapSizes.length-1]||256;
+            const totalLen=lastOff-firstOff+lastSz;
+            const allNames=new Uint8Array(await readSlice(file, firstOff, totalLen));
+            for(let i=0;i<chapters.length && i<chapOffsets.length;i++){
+              const loc=chapOffsets[i]-firstOff;
+              const sz=i<chapSizes.length?chapSizes[i]:0;
+              if(loc>=0 && loc+2<=allNames.length && sz>2){
+                const slen=(allNames[loc]<<8)|allNames[loc+1];
+                if(slen>0 && loc+2+slen<=allNames.length){
+                  chapters[i].title=new TextDecoder('utf-8').decode(allNames.slice(loc+2,loc+2+slen));
+                }
+              }
+            }
+          }catch(e){}
+        }
       }
       if(chapters.length>0 && chapters[chapters.length-1].endTime===0){
         for(let i=0;i<chapters.length-1;i++){
