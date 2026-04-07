@@ -12,7 +12,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#2a2a2a;color:#fff;font:normal 16pt/1.2 'EB Garamond',serif;margin:0 auto;padding:12px 20px;max-width:700px}
-h1{font-size:32pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
+h1{font-size:30pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
 h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
 
 button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 14px;white-space:nowrap}
@@ -390,75 +390,82 @@ function parseM4BMetadata(file){
       let title='', album='';
       let chapTimescale=0, chapDurations=[], chapOffsets=[], chapSizes=[];
 
-      function getType(p){ return String.fromCharCode(moovBuf[p+4],moovBuf[p+5],moovBuf[p+6],moovBuf[p+7]); }
+      // BRUTE FORCE: byte-scan for "hdlrtext" to find text track boundary,
+      // then byte-scan within that range for mdhd/stts/stsz/stco
+      try {
+        // Find "hdlr" followed by "text" at offset +12
+        let textTrakStart=-1, textTrakEnd=-1;
+        // First find all trak boundaries
+        let traks=[];
+        let p=8;
+        while(p<moovBuf.length-8){
+          const sz=mv.getUint32(p);
+          if(sz<8||p+sz>moovBuf.length) break;
+          if(moovBuf[p+4]===0x74&&moovBuf[p+5]===0x72&&moovBuf[p+6]===0x61&&moovBuf[p+7]===0x6B){
+            traks.push([p,p+sz]);
+          }
+          p+=sz;
+        }
+        // For each trak, check if it contains "hdlr" + "text"
+        for(const [ts,te] of traks){
+          for(let q=ts;q<te-20;q++){
+            if(moovBuf[q]===0x68&&moovBuf[q+1]===0x64&&moovBuf[q+2]===0x6C&&moovBuf[q+3]===0x72){
+              if(moovBuf[q+12]===0x74&&moovBuf[q+13]===0x65&&moovBuf[q+14]===0x78&&moovBuf[q+15]===0x74){
+                textTrakStart=ts; textTrakEnd=te; break;
+              }
+            }
+          }
+          if(textTrakStart>=0) break;
+        }
 
-      // Non-recursive: find text track's stbl directly, then parse its children
-      // Step A: Find each trak, check hdlr, if text -> get mdhd timescale + stbl range
-      let textStblStart=-1, textStblEnd=-1;
-      function findTextTrack(start, end, depth){
-        let p=start;
-        while(p<end-8){
-          const sz=mv.getUint32(p), tp=getType(p);
-          if(sz<8||p+sz>end) break;
-          if(tp==='trak'){
-            // Check if this trak has hdlr=text
-            let hasText=false, mdhdPos=-1, stblPos=-1, stblSz=0;
-            function scanInner(s,e){
-              let q=s;
-              while(q<e-8){
-                const isz=mv.getUint32(q), itp=getType(q);
-                if(isz<8||q+isz>e) break;
-                if(itp==='hdlr'&&q+20<=q+isz){
-                  const h=String.fromCharCode(moovBuf[q+16],moovBuf[q+17],moovBuf[q+18],moovBuf[q+19]);
-                  if(h==='text') hasText=true;
+        if(textTrakStart>=0){
+          // Byte-scan for mdhd, stts, stsz, stco within text trak range
+          for(let q=textTrakStart;q<textTrakEnd-12;q++){
+            const a=moovBuf[q],b=moovBuf[q+1],c=moovBuf[q+2],d=moovBuf[q+3];
+            // mdhd
+            if(a===0x6D&&b===0x64&&c===0x68&&d===0x64&&chapTimescale===0){
+              const ver=moovBuf[q+4];
+              chapTimescale=ver===0?mv.getUint32(q+16):mv.getUint32(q+24);
+            }
+            // stts
+            if(a===0x73&&b===0x74&&c===0x74&&d===0x73&&chapDurations.length===0){
+              const asz=mv.getUint32(q-4);
+              if(asz>16&&asz<200000){
+                const cnt=mv.getUint32(q+8);
+                if(cnt>0&&cnt<50000){
+                  for(let i=0;i<cnt;i++){
+                    const sc=mv.getUint32(q+12+i*8),sd=mv.getUint32(q+16+i*8);
+                    for(let j=0;j<sc;j++) chapDurations.push(sd);
+                  }
                 }
-                if(itp==='mdhd') mdhdPos=q;
-                if(itp==='stbl'){ stblPos=q+8; stblSz=isz-8; }
-                if(['mdia','minf','stbl'].includes(itp)) scanInner(q+8, q+isz);
-                q+=isz;
               }
             }
-            scanInner(p+8, p+sz);
-            if(hasText && stblPos>=0){
-              textStblStart=stblPos; textStblEnd=stblPos+stblSz;
-              if(mdhdPos>=0){
-                const ver=moovBuf[mdhdPos+8];
-                chapTimescale = ver===0 ? mv.getUint32(mdhdPos+20) : mv.getUint32(mdhdPos+28);
+            // stsz
+            if(a===0x73&&b===0x74&&c===0x73&&d===0x7A&&chapSizes.length===0){
+              const asz=mv.getUint32(q-4);
+              if(asz>16&&asz<200000){
+                const def=mv.getUint32(q+8),cnt=mv.getUint32(q+12);
+                if(cnt>0&&cnt<50000){
+                  for(let i=0;i<cnt;i++) chapSizes.push(def||mv.getUint32(q+16+i*4));
+                }
+              }
+            }
+            // stco
+            if(a===0x73&&b===0x74&&c===0x63&&d===0x6F&&chapOffsets.length===0){
+              const asz=mv.getUint32(q-4);
+              if(asz>16&&asz<200000){
+                const cnt=mv.getUint32(q+8);
+                if(cnt>0&&cnt<50000){
+                  for(let i=0;i<cnt;i++) chapOffsets.push(mv.getUint32(q+12+i*4));
+                }
               }
             }
           }
-          p+=sz;
         }
-      }
-      findTextTrack(8, moovBuf.length, 0);
+      }catch(e){ console.error('M4B scan error:',e); }
+      console.log('M4B: ts='+chapTimescale+' dur='+chapDurations.length+' off='+chapOffsets.length+' sz='+chapSizes.length);
 
-      // Step B: Parse stts/stsz/stco from the text track's stbl ONLY
-      console.log('M4B parser: textStblStart='+textStblStart+' chapTimescale='+chapTimescale);
-      if(textStblStart>=0){
-        let p=textStblStart;
-        while(p<textStblEnd-8){
-          const sz=mv.getUint32(p), tp=getType(p);
-          if(sz<8||p+sz>textStblEnd) break;
-          if(tp==='stts'){
-            const cnt=mv.getUint32(p+12);
-            for(let i=0;i<cnt;i++){
-              const sc=mv.getUint32(p+16+i*8), sd=mv.getUint32(p+20+i*8);
-              for(let j=0;j<sc;j++) chapDurations.push(sd);
-            }
-          }
-          if(tp==='stsz'){
-            const defSz=mv.getUint32(p+12), cnt=mv.getUint32(p+16);
-            for(let i=0;i<cnt;i++) chapSizes.push(defSz||mv.getUint32(p+20+i*4));
-          }
-          if(tp==='stco'){
-            const cnt=mv.getUint32(p+12);
-            for(let i=0;i<cnt;i++) chapOffsets.push(mv.getUint32(p+16+i*4));
-          }
-          p+=sz;
-        }
-      }
-
-      // Step C: Scan moov for metadata + Nero chapters (separate from chapter track)
+      // Metadata scan (title, album, cover, Nero chapters)
       function scan(start, end){
         let p = start;
         while(p < end-8){
