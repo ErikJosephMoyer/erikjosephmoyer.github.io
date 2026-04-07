@@ -433,6 +433,7 @@ function parseM4BMetadata(file){
       findTextTrack(8, moovBuf.length, 0);
 
       // Step B: Parse stts/stsz/stco from the text track's stbl ONLY
+      console.log('M4B parser: textStblStart='+textStblStart+' chapTimescale='+chapTimescale);
       if(textStblStart>=0){
         let p=textStblStart;
         while(p<textStblEnd-8){
@@ -526,6 +527,7 @@ function parseM4BMetadata(file){
         document.getElementById('book-title').textContent=bookTitle;
         document.getElementById('book-title').style.display='block';
       }
+      console.log('M4B parser: durations='+chapDurations.length+' offsets='+chapOffsets.length+' sizes='+chapSizes.length+' timescale='+chapTimescale);
       if(chapters.length===0 && chapDurations.length>0 && chapOffsets.length>0 && chapTimescale>0){
         const minOff = Math.min(...chapOffsets.filter(o=>o>0));
         const totalNameSize = chapSizes.reduce((a,b)=>a+b, 0) || chapOffsets.length*256;
