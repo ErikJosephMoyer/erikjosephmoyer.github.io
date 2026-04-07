@@ -350,7 +350,7 @@ function finishLoad(){
     document.getElementById('chapter-select').value = currentChapter;
     if(typeof saved.spd==='number'){ speedIdx=saved.spd; baseSpeed=speeds[speedIdx]||1; document.getElementById('speed-label').textContent=baseSpeed+'x'; }
     if(typeof saved.pit==='number'){ pitchIdx=saved.pit; document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label; }
-    audio.preservesPitch=(pitchLevels[pitchIdx].rate===1.0);
+    audio.preservesPitch=true;
     audio.playbackRate=baseSpeed*pitchLevels[pitchIdx].rate;
     if(multiFileMode && chapters[currentChapter].fileUrl){
       audio.onloadedmetadata = () => { audio.currentTime = saved.time || 0; };
@@ -540,7 +540,8 @@ function parseM4BMetadata(file){
         document.getElementById('book-title').textContent=bookTitle;
         document.getElementById('book-title').style.display='block';
       }
-      if(chapters.length===0 && chapDurations.length>0 && chapTimescale>0){
+      if(chapDurations.length>0 && chapTimescale>0){
+        chapters = [];
         let cumTime=0;
         for(let i=0;i<chapDurations.length;i++){
           const startSec=cumTime/chapTimescale;
@@ -751,7 +752,7 @@ function goToChapter(idx){
   if(multiFileMode && chapters[idx].fileUrl){
     audio.onloadedmetadata = () => {
       audio.currentTime = 0;
-      audio.preservesPitch=(pitchLevels[pitchIdx].rate===1.0);
+      audio.preservesPitch=true;
       audio.playbackRate=baseSpeed*pitchLevels[pitchIdx].rate;
       if(wasPlaying) audio.play();
     };
@@ -824,14 +825,14 @@ function nextChapter(){ goToChapter(currentChapter+1); }
 function cycleSpeed(){
   speedIdx=(speedIdx+1)%speeds.length; baseSpeed=speeds[speedIdx];
   const pitchRate = pitchLevels[pitchIdx].rate;
-  audio.preservesPitch = (pitchRate === 1.0);
+  audio.preservesPitch = true;
   audio.playbackRate = baseSpeed * pitchRate;
   document.getElementById('speed-label').textContent=speeds[speedIdx]+'x';
 }
 function cyclePitch(){
   pitchIdx=(pitchIdx+1)%pitchLevels.length;
   const pitchRate = pitchLevels[pitchIdx].rate;
-  audio.preservesPitch = (pitchRate === 1.0);
+  audio.preservesPitch = true;
   audio.playbackRate = baseSpeed * pitchRate;
   document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
 }
@@ -904,7 +905,7 @@ function updateBookProgress(){
 }
 document.addEventListener('keydown',(e)=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
-  if(e.key===' '||e.key==='Enter'){e.preventDefault();togglePlay();}
+  if(e.key===' '){e.preventDefault();togglePlay();}
   if(e.key==='ArrowLeft'){e.preventDefault();skip(-10);}
   if(e.key==='ArrowRight'){e.preventDefault();skip(10);}
 });
