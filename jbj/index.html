@@ -389,14 +389,89 @@ function parseM4BMetadata(file){
 
       let title='', album='';
       let chapTimescale=0, chapDurations=[], chapOffsets=[], chapSizes=[];
+
+      // Step 1: Find all trak atoms at moov level
+      let trakRanges = [];
+      let p = 8;
+      while(p < moovBuf.length-8){
+        const sz=mv.getUint32(p);
+        const tp=String.fromCharCode(moovBuf[p+4],moovBuf[p+5],moovBuf[p+6],moovBuf[p+7]);
+        if(sz<8||p+sz>moovBuf.length) break;
+        if(tp==='trak') trakRanges.push({start:p+8, end:p+sz});
+        p+=sz;
+      }
+
+      // Step 2: For each trak, check if it's a text track and extract chapter data
+      for(const trak of trakRanges){
+        let isTextTrack = false;
+        let trakTimescale = 0;
+
+        // Scan atoms inside this trak to find hdlr
+        function scanTrak(start, end){
+          let p=start;
+          while(p<end-8){
+            const sz=mv.getUint32(p);
+            const tp=String.fromCharCode(moovBuf[p+4],moovBuf[p+5],moovBuf[p+6],moovBuf[p+7]);
+            if(sz<8||p+sz>end) break;
+            if(['mdia','minf','stbl'].includes(tp)) scanTrak(p+8, p+sz);
+            if(tp==='hdlr' && p+20<=p+sz){
+              const h=String.fromCharCode(moovBuf[p+16],moovBuf[p+17],moovBuf[p+18],moovBuf[p+19]);
+              if(h==='text') isTextTrack=true;
+            }
+            if(tp==='mdhd'){
+              const ver=moovBuf[p+8];
+              trakTimescale = ver===0 ? mv.getUint32(p+20) : mv.getUint32(p+28);
+            }
+            // Only collect stts/stsz/stco AFTER we know it's a text track
+            // (We do two passes - first find hdlr, then collect data)
+            p+=sz;
+          }
+        }
+        scanTrak(trak.start, trak.end);
+
+        if(!isTextTrack) continue;
+        chapTimescale = trakTimescale;
+
+        // Second pass: collect stts, stsz, stco from the text track only
+        function collectChapterData(start, end){
+          let p=start;
+          while(p<end-8){
+            const sz=mv.getUint32(p);
+            const tp=String.fromCharCode(moovBuf[p+4],moovBuf[p+5],moovBuf[p+6],moovBuf[p+7]);
+            if(sz<8||p+sz>end) break;
+            if(['mdia','minf','stbl'].includes(tp)) collectChapterData(p+8, p+sz);
+            if(tp==='stts'){
+              const cnt=mv.getUint32(p+12);
+              for(let i=0;i<cnt;i++){
+                const sc=mv.getUint32(p+16+i*8);
+                const sd=mv.getUint32(p+20+i*8);
+                for(let j=0;j<sc;j++) chapDurations.push(sd);
+              }
+            }
+            if(tp==='stsz'){
+              const defSz=mv.getUint32(p+12);
+              const cnt=mv.getUint32(p+16);
+              for(let i=0;i<cnt;i++) chapSizes.push(defSz||mv.getUint32(p+20+i*4));
+            }
+            if(tp==='stco'){
+              const cnt=mv.getUint32(p+12);
+              for(let i=0;i<cnt;i++) chapOffsets.push(mv.getUint32(p+16+i*4));
+            }
+            p+=sz;
+          }
+        }
+        collectChapterData(trak.start, trak.end);
+        break; // found text track, done
+      }
+
+      // Step 3: Scan moov for metadata (title, album, cover, Nero chapters)
       function scan(start, end){
         let p = start;
         while(p < end-8){
           const sz = mv.getUint32(p);
           const tp = String.fromCharCode(moovBuf[p+4],moovBuf[p+5],moovBuf[p+6],moovBuf[p+7]);
           if(sz<8||p+sz>end) break;
-          if(['moov','trak','mdia','minf','stbl','udta','meta','ilst',
-              '\u00A9nam','\u00A9alb','covr'].includes(tp)){
+          if(['moov','udta','meta','ilst','\u00A9nam','\u00A9alb','covr'].includes(tp)){
             scan(tp==='meta'?p+12:p+8, p+sz);
           }
           if(tp==='chpl'){
@@ -415,47 +490,6 @@ function parseM4BMetadata(file){
                 chapters[c].endTime=chapters[c+1].startTime;
                 chapters[c].duration=chapters[c].endTime-chapters[c].startTime;
               }
-            }
-          }
-          if(tp==='hdlr' && p+20<p+sz){
-            const handler=String.fromCharCode(moovBuf[p+16],moovBuf[p+17],moovBuf[p+18],moovBuf[p+19]);
-            if(handler==='text'){
-            }
-          }
-          if(tp==='mdhd'){
-            const ver=moovBuf[p+8];
-            const ts = ver===0 ? mv.getUint32(p+20) : mv.getUint32(p+28);
-            if(ts>0 && ts<100000) chapTimescale=ts; // reasonable timescale
-          }
-          if(tp==='stts' && chapTimescale===0){
-          }
-          if(tp==='stts' && sz<500000){ // chapter stts is small
-            const cnt=mv.getUint32(p+12);
-            if(cnt>0 && cnt<10000){
-              const durs=[];
-              for(let i=0;i<cnt;i++){
-                const sc=mv.getUint32(p+16+i*8);
-                const sd=mv.getUint32(p+20+i*8);
-                for(let j=0;j<sc;j++) durs.push(sd);
-              }
-              if(durs.length>chapDurations.length) chapDurations=durs;
-            }
-          }
-          if(tp==='stsz' && sz<500000){
-            const defSz=mv.getUint32(p+12);
-            const cnt=mv.getUint32(p+16);
-            if(cnt>0 && cnt<10000){
-              const sizes=[];
-              for(let i=0;i<cnt;i++) sizes.push(defSz||mv.getUint32(p+20+i*4));
-              if(sizes.length>chapSizes.length) chapSizes=sizes;
-            }
-          }
-          if(tp==='stco' && sz<500000){
-            const cnt=mv.getUint32(p+12);
-            if(cnt>0 && cnt<10000){
-              const offs=[];
-              for(let i=0;i<cnt;i++) offs.push(mv.getUint32(p+16+i*4));
-              if(offs.length>chapOffsets.length) chapOffsets=offs;
             }
           }
           if(tp==='\u00A9nam'||tp==='\u00A9alb'){
