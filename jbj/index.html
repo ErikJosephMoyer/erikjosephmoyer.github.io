@@ -392,50 +392,80 @@ function parseM4BMetadata(file){
 
       function getType(p){ return String.fromCharCode(moovBuf[p+4],moovBuf[p+5],moovBuf[p+6],moovBuf[p+7]); }
 
-      // Single recursive scan that tracks context
-      function scan(start, end, inTextTrack){
-        let p = start;
-        while(p < end-8){
-          const sz = mv.getUint32(p);
-          const tp = getType(p);
+      // Non-recursive: find text track's stbl directly, then parse its children
+      // Step A: Find each trak, check hdlr, if text -> get mdhd timescale + stbl range
+      let textStblStart=-1, textStblEnd=-1;
+      function findTextTrack(start, end, depth){
+        let p=start;
+        while(p<end-8){
+          const sz=mv.getUint32(p), tp=getType(p);
           if(sz<8||p+sz>end) break;
-
-          // Container atoms — recurse
-          if(tp==='trak'||tp==='mdia'||tp==='minf'||tp==='stbl'){
-            scan(p+8, p+sz, inTextTrack);
+          if(tp==='trak'){
+            // Check if this trak has hdlr=text
+            let hasText=false, mdhdPos=-1, stblPos=-1, stblSz=0;
+            function scanInner(s,e){
+              let q=s;
+              while(q<e-8){
+                const isz=mv.getUint32(q), itp=getType(q);
+                if(isz<8||q+isz>e) break;
+                if(itp==='hdlr'&&q+20<=q+isz){
+                  const h=String.fromCharCode(moovBuf[q+16],moovBuf[q+17],moovBuf[q+18],moovBuf[q+19]);
+                  if(h==='text') hasText=true;
+                }
+                if(itp==='mdhd') mdhdPos=q;
+                if(itp==='stbl'){ stblPos=q+8; stblSz=isz-8; }
+                if(['mdia','minf','stbl'].includes(itp)) scanInner(q+8, q+isz);
+                q+=isz;
+              }
+            }
+            scanInner(p+8, p+sz);
+            if(hasText && stblPos>=0){
+              textStblStart=stblPos; textStblEnd=stblPos+stblSz;
+              if(mdhdPos>=0){
+                const ver=moovBuf[mdhdPos+8];
+                chapTimescale = ver===0 ? mv.getUint32(mdhdPos+20) : mv.getUint32(mdhdPos+28);
+              }
+            }
           }
-          if(tp==='udta'||tp==='ilst'||tp==='\u00A9nam'||tp==='\u00A9alb'||tp==='covr'){
-            scan(tp==='meta'?p+12:p+8, p+sz, false);
-          }
-          if(tp==='meta') scan(p+12, p+sz, false);
+          p+=sz;
+        }
+      }
+      findTextTrack(8, moovBuf.length, 0);
 
-          // Detect text handler -> mark this trak branch as text track
-          if(tp==='hdlr' && p+20<=p+sz){
-            const h = String.fromCharCode(moovBuf[p+16],moovBuf[p+17],moovBuf[p+18],moovBuf[p+19]);
-            if(h==='text') inTextTrack = true;
-          }
-
-          // Get timescale from text track's mdhd
-          if(tp==='mdhd' && inTextTrack){
-            const ver=moovBuf[p+8];
-            chapTimescale = ver===0 ? mv.getUint32(p+20) : mv.getUint32(p+28);
-          }
-
-          // Collect stts/stsz/stco ONLY from text track
-          if(inTextTrack && tp==='stts'){
+      // Step B: Parse stts/stsz/stco from the text track's stbl ONLY
+      if(textStblStart>=0){
+        let p=textStblStart;
+        while(p<textStblEnd-8){
+          const sz=mv.getUint32(p), tp=getType(p);
+          if(sz<8||p+sz>textStblEnd) break;
+          if(tp==='stts'){
             const cnt=mv.getUint32(p+12);
             for(let i=0;i<cnt;i++){
               const sc=mv.getUint32(p+16+i*8), sd=mv.getUint32(p+20+i*8);
               for(let j=0;j<sc;j++) chapDurations.push(sd);
             }
           }
-          if(inTextTrack && tp==='stsz'){
+          if(tp==='stsz'){
             const defSz=mv.getUint32(p+12), cnt=mv.getUint32(p+16);
             for(let i=0;i<cnt;i++) chapSizes.push(defSz||mv.getUint32(p+20+i*4));
           }
-          if(inTextTrack && tp==='stco'){
+          if(tp==='stco'){
             const cnt=mv.getUint32(p+12);
             for(let i=0;i<cnt;i++) chapOffsets.push(mv.getUint32(p+16+i*4));
+          }
+          p+=sz;
+        }
+      }
+
+      // Step C: Scan moov for metadata + Nero chapters (separate from chapter track)
+      function scan(start, end){
+        let p = start;
+        while(p < end-8){
+          const sz = mv.getUint32(p);
+          const tp = getType(p);
+          if(sz<8||p+sz>end) break;
+          if(['udta','meta','ilst','\u00A9nam','\u00A9alb','covr'].includes(tp)){
+            scan(tp==='meta'?p+12:p+8, p+sz);
           }
 
           // Nero chapters
@@ -490,7 +520,7 @@ function parseM4BMetadata(file){
           p+=sz;
         }
       }
-      scan(8, moovBuf.length, false);
+      scan(8, moovBuf.length);
       const bookTitle=album||title||'';
       if(bookTitle){
         document.getElementById('book-title').textContent=bookTitle;
