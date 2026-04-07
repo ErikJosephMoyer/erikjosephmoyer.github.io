@@ -527,7 +527,7 @@ function parseM4BMetadata(file){
         document.getElementById('book-title').textContent=bookTitle;
         document.getElementById('book-title').style.display='block';
       }
-      console.log('M4B parser: durations='+chapDurations.length+' offsets='+chapOffsets.length+' sizes='+chapSizes.length+' timescale='+chapTimescale);
+      console.log('M4B parser v7: durations='+chapDurations.length+' offsets='+chapOffsets.length+' sizes='+chapSizes.length+' timescale='+chapTimescale);
       if(chapters.length===0 && chapDurations.length>0 && chapOffsets.length>0 && chapTimescale>0){
         // Read each chapter name individually (batch read was producing garbled results)
         let cumTime=0;
@@ -554,6 +554,7 @@ function parseM4BMetadata(file){
           });
           cumTime+=chapDurations[i];
         }
+        console.log('M4B chapters built: '+chapters.length+' first3: '+chapters.slice(0,3).map(c=>c.title).join(' | '));
       }
       if(chapters.length>0 && chapters[chapters.length-1].endTime===0){
         for(let i=0;i<chapters.length-1;i++){
