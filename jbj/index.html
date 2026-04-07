@@ -196,10 +196,12 @@ setInterval(saveProgress, 3000);
 window.addEventListener('beforeunload', saveProgress);
 
 let pendingRestore = null;
+let manualUpload = false;
 document.getElementById('file-input').onchange = async function(){
   const file = this.files[0];
   if(!file) return;
-  pendingRestore = null; // Clear any pending auto-restore
+  pendingRestore = null;
+  manualUpload = true;
   multiFileMode = false;
   try { await loadSingleFile(file); } catch(e){ console.error('loadSingleFile error:', e); }
 };
@@ -908,14 +910,17 @@ document.addEventListener('keydown',(e)=>{
   try {
     const stored = await loadFile(lastKey);
     if(!stored || !stored.blob) return;
+    if(manualUpload) return;
     pendingRestore = {key: lastKey, stored};
     fileKey = lastKey;
     multiFileMode = stored.meta.multiFile || false;
     document.getElementById('file-info').textContent = stored.meta.displayName+' (tap Play to resume)';
     document.getElementById('upload-btn').textContent = 'Replace File';
 
+    if(manualUpload) return;
     const file = new File([stored.blob], stored.meta.fileName, {type: stored.blob.type || 'audio/mpeg'});
     resetUI();
+    if(manualUpload) return;
     try { await parseMetadata(file); } catch(e) {}
 
     if(!hasCover){
