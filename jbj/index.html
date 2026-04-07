@@ -126,8 +126,8 @@ let speedIdx = 0;
 const speeds = [1, 1.2, 1.5, 2, 0.5, 0.8];
 let pitchIdx = 2;
 const pitchLevels = [
-  {label:'--', rate:0.85}, {label:'-', rate:0.92}, {label:'0', rate:1.0},
-  {label:'+', rate:1.04}, {label:'++', rate:1.08},
+  {label:'--', rate:0.94}, {label:'-', rate:0.97}, {label:'0', rate:1.0},
+  {label:'+', rate:1.015}, {label:'++', rate:1.03},
 ];
 let baseSpeed = 1;
 let hasCover = false;
@@ -754,7 +754,7 @@ function goToChapter(idx){
     audio.onloadedmetadata = () => {
       audio.currentTime = 0;
       audio.preservesPitch=(pitchLevels[pitchIdx].rate===1.0);
-      audio.playbackRate=baseSpeed*(pitchLevels[pitchIdx].rate);
+      audio.playbackRate=baseSpeed*pitchLevels[pitchIdx].rate;
       if(wasPlaying) audio.play();
     };
     audio.src = chapters[idx].fileUrl;
@@ -825,24 +825,16 @@ function nextChapter(){ goToChapter(currentChapter+1); }
 
 function cycleSpeed(){
   speedIdx=(speedIdx+1)%speeds.length; baseSpeed=speeds[speedIdx];
-  audio.preservesPitch = true;
-  audio.playbackRate = baseSpeed;
+  const pitchRate = pitchLevels[pitchIdx].rate;
+  audio.preservesPitch = (pitchRate === 1.0);
+  audio.playbackRate = baseSpeed * pitchRate;
   document.getElementById('speed-label').textContent=speeds[speedIdx]+'x';
-  if(pitchLevels[pitchIdx].rate !== 1.0){
-    audio.preservesPitch = false;
-    audio.playbackRate = baseSpeed * pitchLevels[pitchIdx].rate;
-  }
 }
 function cyclePitch(){
   pitchIdx=(pitchIdx+1)%pitchLevels.length;
   const pitchRate = pitchLevels[pitchIdx].rate;
-  if(pitchRate === 1.0){
-    audio.preservesPitch = true;
-    audio.playbackRate = baseSpeed;
-  } else {
-    audio.preservesPitch = false;
-    audio.playbackRate = baseSpeed * pitchRate;
-  }
+  audio.preservesPitch = (pitchRate === 1.0);
+  audio.playbackRate = baseSpeed * pitchRate;
   document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
 }
 
