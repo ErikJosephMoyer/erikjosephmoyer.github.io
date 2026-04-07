@@ -339,7 +339,7 @@ function finishLoad(){
   localStorage.setItem('jbj_last', fileKey);
 
   setTimeout(()=>{
-    if(!hasCover) // cover button always visible
+    if(!hasCover) document.getElementById('cover-upload-btn').style.display = '';
   }, 1500);
 
   const saved = restoreProgress();
