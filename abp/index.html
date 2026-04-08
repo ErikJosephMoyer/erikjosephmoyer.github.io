@@ -118,6 +118,9 @@ button:disabled{background:#555;color:#888;cursor:default}
 
 <script>
 let audio = new Audio();
+let audioCtx = null;
+let sourceNode = null;
+let biquadFilter = null;
 let chapters = [];
 let currentChapter = 0;
 let totalBookDuration = 0;
@@ -125,12 +128,39 @@ let fileKey = '';
 let multiFileMode = false;
 let speedIdx = 0;
 const speeds = [1, 1.2, 1.5, 2, 0.5, 0.8];
-let pitchIdx = 2;
-const pitchLevels = [
-  {label:'--', rate:0.94}, {label:'-', rate:0.97}, {label:'0', rate:1.0},
-  {label:'+', rate:1.015}, {label:'++', rate:1.03},
+let toneIdx = 2;
+const toneLevels = [
+  {label:'--', freq:200}, {label:'-', freq:400}, {label:'0', freq:0},
+  {label:'+', freq:2000}, {label:'++', freq:4000},
 ];
 let baseSpeed = 1;
+
+function ensureAudioCtx(){
+  if(audioCtx) return;
+  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  sourceNode = audioCtx.createMediaElementSource(audio);
+  biquadFilter = audioCtx.createBiquadFilter();
+  biquadFilter.type = 'peaking';
+  biquadFilter.gain.value = 0;
+  biquadFilter.Q.value = 1;
+  sourceNode.connect(biquadFilter);
+  biquadFilter.connect(audioCtx.destination);
+}
+function applyTone(){
+  if(!biquadFilter) return;
+  const t = toneLevels[toneIdx];
+  if(t.freq === 0){
+    biquadFilter.gain.value = 0;
+  } else if(t.freq < 1000){
+    biquadFilter.type = 'lowshelf';
+    biquadFilter.frequency.value = t.freq;
+    biquadFilter.gain.value = t.freq < 300 ? 12 : 6;
+  } else {
+    biquadFilter.type = 'highshelf';
+    biquadFilter.frequency.value = t.freq;
+    biquadFilter.gain.value = t.freq > 3000 ? 12 : 6;
+  }
+}
 let hasCover = false;
 let wasPlaying = false;
 function fmtHMS(s){
@@ -186,7 +216,7 @@ async function loadFile(key){
 function saveProgress(){
   if(!fileKey) return;
   const time = multiFileMode ? audio.currentTime : audio.currentTime;
-  localStorage.setItem('jbj_'+fileKey, JSON.stringify({ch:currentChapter, time, ts:Date.now(), spd:speedIdx, pit:pitchIdx}));
+  localStorage.setItem('jbj_'+fileKey, JSON.stringify({ch:currentChapter, time, ts:Date.now(), spd:speedIdx, pit:toneIdx}));
   localStorage.setItem('jbj_last', fileKey);
 }
 function restoreProgress(){
@@ -350,7 +380,7 @@ function finishLoad(){
     currentChapter = saved.ch;
     document.getElementById('chapter-select').value = currentChapter;
     if(typeof saved.spd==='number'){ speedIdx=saved.spd; baseSpeed=speeds[speedIdx]||1; document.getElementById('speed-label').textContent=baseSpeed+'x'; }
-    if(typeof saved.pit==='number'){ pitchIdx=saved.pit; document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label; }
+    if(typeof saved.pit==='number'){ toneIdx=saved.pit; document.getElementById('pitch-label').textContent=toneLevels[toneIdx].label; }
     audio.preservesPitch=true;
     audio.playbackRate=baseSpeed*pitchLevels[pitchIdx].rate;
     if(multiFileMode && chapters[currentChapter].fileUrl){
@@ -754,7 +784,7 @@ function goToChapter(idx){
   if(multiFileMode && chapters[idx].fileUrl){
     audio.onloadedmetadata = () => {
       audio.currentTime = 0;
-      applySpeedPitch();
+      audio.preservesPitch=true; audio.playbackRate=baseSpeed;
       if(wasPlaying) audio.play();
     };
     audio.src = chapters[idx].fileUrl;
@@ -809,38 +839,50 @@ function togglePlay(){
     audio.load();
     return;
   }
+  ensureAudioCtx();
+  if(audioCtx.state==='suspended') audioCtx.resume();
   if(audio.paused){
     audio.play();
     document.getElementById('play-icon').style.display='none';
     document.getElementById('pause-icon').style.display='';
+    updateMediaSession();
   } else {
     audio.pause();
     document.getElementById('play-icon').style.display='';
     document.getElementById('pause-icon').style.display='none';
   }
 }
+function updateMediaSession(){
+  if(!('mediaSession' in navigator)) return;
+  const ch = chapters[currentChapter];
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: ch ? ch.title : 'Audiobook',
+    artist: document.getElementById('book-title').textContent || 'Audiobook',
+    album: document.getElementById('book-title').textContent || '',
+  });
+  navigator.mediaSession.setActionHandler('play', ()=>togglePlay());
+  navigator.mediaSession.setActionHandler('pause', ()=>togglePlay());
+  navigator.mediaSession.setActionHandler('seekbackward', ()=>skip(-10));
+  navigator.mediaSession.setActionHandler('seekforward', ()=>skip(10));
+  navigator.mediaSession.setActionHandler('previoustrack', ()=>prevChapter());
+  navigator.mediaSession.setActionHandler('nexttrack', ()=>nextChapter());
+}
 function skip(s){ if(audio.src) audio.currentTime=Math.max(0,Math.min(audio.duration||0,audio.currentTime+s)); }
 function prevChapter(){ goToChapter(currentChapter-1); }
 function nextChapter(){ goToChapter(currentChapter+1); }
 
-function applySpeedPitch(){
-  // Speed and pitch combined. preservesPitch=false always when pitch is shifted.
-  // playbackRate = baseSpeed * pitchRate
-  // At normal pitch (1.0): preservesPitch=true, rate=baseSpeed (perfect speed, no pitch change)
-  // At shifted pitch: preservesPitch=false, rate=baseSpeed*pitchRate (pitch shifts, speed is approximate)
-  const pr = pitchLevels[pitchIdx].rate;
-  audio.preservesPitch = (pr === 1.0);
-  audio.playbackRate = baseSpeed * pr;
-}
 function cycleSpeed(){
   speedIdx=(speedIdx+1)%speeds.length; baseSpeed=speeds[speedIdx];
-  applySpeedPitch();
+  audio.preservesPitch = true;
+  audio.playbackRate = baseSpeed;
   document.getElementById('speed-label').textContent=speeds[speedIdx]+'x';
 }
 function cyclePitch(){
-  pitchIdx=(pitchIdx+1)%pitchLevels.length;
-  applySpeedPitch();
-  document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
+  ensureAudioCtx();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  toneIdx=(toneIdx+1)%toneLevels.length;
+  applyTone();
+  document.getElementById('pitch-label').textContent=toneLevels[toneIdx].label;
 }
 
 function seekChapter(e){
