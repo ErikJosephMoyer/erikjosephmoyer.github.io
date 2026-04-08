@@ -110,8 +110,8 @@ button:disabled{background:#555;color:#888;cursor:default}
       <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20" fill="#2a2a2a"/><rect x="17" y="4" width="3" height="16" fill="#2a2a2a"/></svg>
     </button>
   </div>
-  <button id="sleep-btn" title="Sleep Timer" disabled onclick="cycleSleep()">
-    <span id="sleep-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">&#9790;</span>
+  <button id="pitch-btn" title="Pitch" disabled onclick="cyclePitch()">
+    <span id="pitch-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">0</span>
   </button>
 </div>
 
@@ -715,7 +715,7 @@ function goToChapter(idx){
   updateBookProgress();
 }
 function enablePlayer(){
-  ['speed-btn','sleep-btn','prev-btn','skipb-btn','play-btn','skipf-btn','next-btn'].forEach(id=>{
+  ['speed-btn','pitch-btn','prev-btn','skipb-btn','play-btn','skipf-btn','next-btn'].forEach(id=>{
     document.getElementById(id).disabled=false;
   });
 }
@@ -810,23 +810,30 @@ function nextChapter(){ goToChapter(currentChapter+1); }
 
 function cycleSpeed(){
   speedIdx=(speedIdx+1)%speeds.length; baseSpeed=speeds[speedIdx];
-  audio.preservesPitch = true;
-  audio.playbackRate = baseSpeed;
+  pitchIdx=2;
+  document.getElementById('pitch-label').textContent='0';
+  audio.preservesPitch=true;
+  audio.playbackRate=baseSpeed;
   document.getElementById('speed-label').textContent=speeds[speedIdx]+'x';
 }
-var sleepTimerId=null;
-var sleepOptions=[0,5,10,15,30,45,60];
-var sleepIdx=0;
-function cycleSleep(){
-  sleepIdx=(sleepIdx+1)%sleepOptions.length;
-  var mins=sleepOptions[sleepIdx];
-  if(sleepTimerId){clearTimeout(sleepTimerId);sleepTimerId=null;}
-  if(mins>0){
-    sleepTimerId=setTimeout(function(){audio.pause();document.getElementById('play-icon').style.display='';document.getElementById('pause-icon').style.display='none';document.getElementById('sleep-label').textContent='\u263E';sleepIdx=0;sleepTimerId=null;},mins*60000);
-    document.getElementById('sleep-label').textContent=mins+'m';
+var pitchIdx=2;
+var pitchLevels=[
+  {label:'--',rate:0.85},{label:'-',rate:0.92},{label:'0',rate:1.0},
+  {label:'+',rate:1.04},{label:'++',rate:1.08}
+];
+function cyclePitch(){
+  pitchIdx=(pitchIdx+1)%pitchLevels.length;
+  var pr=pitchLevels[pitchIdx].rate;
+  if(pr===1.0){
+    audio.preservesPitch=true;
+    audio.playbackRate=baseSpeed;
   } else {
-    document.getElementById('sleep-label').textContent='\u263E';
+    speedIdx=0; baseSpeed=1;
+    document.getElementById('speed-label').textContent='1x';
+    audio.preservesPitch=false;
+    audio.playbackRate=pr;
   }
+  document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
 }
 
 function seekChapter(e){
