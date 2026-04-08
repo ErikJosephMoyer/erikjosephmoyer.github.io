@@ -431,9 +431,8 @@ function parseM4BMetadata(file){
       let title='', album='';
       let chapTimescale=0, chapDurations=[], chapOffsets=[], chapSizes=[];
 
-      // BRUTE FORCE: byte-scan for "hdlrtext" to find text track boundary,
-      // then byte-scan within that range for mdhd/stts/stsz/stco
       try {
+        document.title='v16: scanning traks';
         // Find "hdlr" followed by "text" at offset +12
         let textTrakStart=-1, textTrakEnd=-1;
         // First find all trak boundaries
@@ -447,8 +446,10 @@ function parseM4BMetadata(file){
           }
           p+=sz;
         }
-        // For each trak, check if it contains "hdlr" + "text"
+        document.title='v16: found '+traks.length+' traks, scanning for text hdlr';
         for(const [ts,te] of traks){
+          // Skip large traks (audio track is millions of bytes, text track is <100KB)
+          if(te-ts > 100000) continue;
           for(let q=ts;q<te-20;q++){
             if(moovBuf[q]===0x68&&moovBuf[q+1]===0x64&&moovBuf[q+2]===0x6C&&moovBuf[q+3]===0x72){
               if(moovBuf[q+12]===0x74&&moovBuf[q+13]===0x65&&moovBuf[q+14]===0x78&&moovBuf[q+15]===0x74){
@@ -458,6 +459,7 @@ function parseM4BMetadata(file){
           }
           if(textTrakStart>=0) break;
         }
+        document.title='v16: textTrak='+(textTrakStart>=0?'found':'none');
 
         if(textTrakStart>=0){
           // Byte-scan for mdhd, stts, stsz, stco within text trak range
