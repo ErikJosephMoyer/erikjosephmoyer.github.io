@@ -500,7 +500,9 @@ function parseM4BMetadata(file){
           }
         }
       }catch(e){ console.error('M4B scan error:',e); }
-      console.log('ABPv15: moovBuf='+moovBuf.length+' traks='+traks.length+' textTrak='+textTrakStart+'-'+textTrakEnd+' ts='+chapTimescale+' dur='+chapDurations.length+' off='+chapOffsets.length);
+      var dbg='v16: moov='+moovBuf.length+' traks='+traks.length+' txt='+textTrakStart+'-'+textTrakEnd+' ts='+chapTimescale+' dur='+chapDurations.length+' off='+chapOffsets.length;
+      console.log(dbg);
+      document.title=dbg;
 
       // Metadata scan (title, album, cover, Nero chapters)
       function scan(start, end){
@@ -864,8 +866,8 @@ function updateMediaSession(){
   navigator.mediaSession.setActionHandler('pause', ()=>togglePlay());
   navigator.mediaSession.setActionHandler('seekbackward', ()=>skip(-10));
   navigator.mediaSession.setActionHandler('seekforward', ()=>skip(10));
-  navigator.mediaSession.setActionHandler('previoustrack', ()=>prevChapter());
-  navigator.mediaSession.setActionHandler('nexttrack', ()=>nextChapter());
+  navigator.mediaSession.setActionHandler('previoustrack', null);
+  navigator.mediaSession.setActionHandler('nexttrack', null);
 }
 function skip(s){ if(audio.src) audio.currentTime=Math.max(0,Math.min(audio.duration||0,audio.currentTime+s)); }
 function prevChapter(){ goToChapter(currentChapter-1); }
