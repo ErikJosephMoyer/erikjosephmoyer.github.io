@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/images/Favicon.png" type="image/png">
+<title>Erik's Transmogrifier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs" type="module"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
+h1{font-size:28pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
+h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
+button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 14px;white-space:nowrap}
+button:hover{background:#ccc}
+button:disabled{background:#555;color:#888;cursor:default}
+#upload-btn,#convert-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
+#file-info{text-align:center;font-size:14pt;color:white;margin:0 0 8pt}
+#detected{text-align:center;font-size:16pt;color:white;margin:0 0 8pt}
+select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 8pt}
+select option{background:#2a2a2a;color:#fff}
+select:focus{outline:none}
+#status{text-align:center;font-size:16pt;color:white;margin:0 0 8pt}
+#preview{width:100%;max-height:200px;overflow-y:auto;background:transparent;border:1px solid #555;color:#fff;font:14pt 'EB Garamond',serif;padding:10px;margin:0 0 8pt;display:none}
+#preview img{max-width:100%;max-height:180px;display:block;margin:0 auto}
+#file-input{display:none}
+</style>
+</head>
+<body>
+<img src="/images/Favicon.png" alt="FCV" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+<h1>Erik's Transmogrifier</h1>
+<h2>A File Conversion Tool</h2>
+
+<button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
+<input type="file" id="file-input">
+
+<div id="file-info">No file selected</div>
+<div id="detected"></div>
+
+<select id="output-select" disabled>
+<option>Select output format</option>
+</select>
+
+<button id="convert-btn" onclick="convert()" disabled>Convert</button>
+
+<div id="status">Status: Ready</div>
+<div id="preview"></div>
+
+<script>
+var inputFile=null, inputExt='', inputType='', inputText='', inputData=null, inputImgUrl='';
+
+var conversions = {
+  text: {
+    inputs: ['txt','doc','docx','pdf','epub'],
+    outputs: ['txt','pdf','docx']
+  },
+  image: {
+    inputs: ['jpg','jpeg','png','gif','webp','svg','bmp'],
+    outputs: ['jpg','png','gif']
+  },
+  data: {
+    inputs: ['csv','json','xlsx','xls','xml','tsv','md','txt'],
+    outputs: ['csv','json','xlsx','xml','tsv','md']
+  }
+};
+
+function detectType(ext){
+  ext = ext.toLowerCase();
+  if(ext==='jpeg') ext='jpg';
+  for(var type in conversions){
+    if(conversions[type].inputs.indexOf(ext)>=0) return type;
+  }
+  return null;
+}
+
+function fmtSize(bytes){
+  var mb=bytes/1048576;
+  if(mb<0.05) return '0.1MB';
+  if(mb<0.5) return mb.toFixed(1)+'MB';
+  return Math.round(mb)+'MB';
+}
+
+document.getElementById('file-input').onchange = async function(){
+  inputFile = this.files[0];
+  if(!inputFile) return;
+  inputExt = inputFile.name.split('.').pop().toLowerCase();
+  if(inputExt==='jpeg') inputExt='jpg';
+  inputType = detectType(inputExt);
+
+  document.getElementById('file-info').textContent = inputFile.name+', '+fmtSize(inputFile.size);
+  document.getElementById('upload-btn').textContent = 'Replace File';
+
+  if(!inputType){
+    document.getElementById('detected').textContent = 'Unsupported file type: .'+inputExt;
+    document.getElementById('output-select').disabled = true;
+    document.getElementById('convert-btn').disabled = true;
+    return;
+  }
+
+  document.getElementById('detected').textContent = 'Detected: '+inputType+' (.'+inputExt+')';
+
+  var sel = document.getElementById('output-select');
+  sel.innerHTML = '';
+  var outputs = conversions[inputType].outputs.filter(function(o){return o!==inputExt;});
+  outputs.forEach(function(o){
+    var opt = document.createElement('option');
+    opt.value = o;
+    opt.textContent = '.'+o.toUpperCase();
+    sel.appendChild(opt);
+  });
+  sel.disabled = false;
+  document.getElementById('convert-btn').disabled = false;
+  document.getElementById('status').textContent = 'Status: Ready';
+  document.getElementById('preview').style.display = 'none';
+};
+
+async function convert(){
+  if(!inputFile||!inputType) return;
+  var outFmt = document.getElementById('output-select').value;
+  document.getElementById('status').textContent = 'Status: Converting...';
+  document.getElementById('convert-btn').disabled = true;
+
+  try {
+    var result = null;
+
+    if(inputType==='text'){
+      result = await convertText(inputFile, inputExt, outFmt);
+    } else if(inputType==='image'){
+      result = await convertImage(inputFile, inputExt, outFmt);
+    } else if(inputType==='data'){
+      result = await convertData(inputFile, inputExt, outFmt);
+    }
+
+    if(result){
+      var name = inputFile.name.replace(/\.[^.]+$/,'')+'.'+outFmt;
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(result.blob);
+      a.download = name;
+      a.click();
+      var mb = result.blob.size/1048576;
+      var mbStr = mb<0.05?'0.1MB':mb<0.5?mb.toFixed(1)+'MB':Math.round(mb)+'MB';
+      document.getElementById('status').textContent = 'Status: Done, '+mbStr;
+    }
+  } catch(e){
+    document.getElementById('status').textContent = 'Status: Error — '+e.message;
+  }
+  document.getElementById('convert-btn').disabled = false;
+}
+
+// === TEXT CONVERSIONS ===
+async function convertText(file, fromExt, toExt){
+  var text = '';
+
+  if(fromExt==='txt'){
+    text = await file.text();
+  } else if(fromExt==='docx'||fromExt==='doc'){
+    var buf = await file.arrayBuffer();
+    var result = await mammoth.extractRawText({arrayBuffer:buf});
+    text = result.value;
+  } else if(fromExt==='pdf'){
+    var pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
+    var buf = await file.arrayBuffer();
+    var pdf = await pdfjsLib.getDocument({data:buf}).promise;
+    var pages = [];
+    for(var i=1;i<=pdf.numPages;i++){
+      var page = await pdf.getPage(i);
+      var content = await page.getTextContent();
+      pages.push(content.items.map(function(it){return it.str;}).join(' '));
+    }
+    text = pages.join('\n');
+  } else if(fromExt==='epub'){
+    text = '[EPUB extraction requires server-side processing. Please use the TTS tool to extract text from EPUB files.]';
+  }
+
+  if(toExt==='txt'){
+    return {blob: new Blob([text],{type:'text/plain'})};
+  } else if(toExt==='pdf'){
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF();
+    var lines = doc.splitTextToSize(text, 180);
+    var y = 20;
+    for(var i=0;i<lines.length;i++){
+      if(y>270){doc.addPage();y=20;}
+      doc.text(lines[i],15,y);
+      y+=7;
+    }
+    return {blob: doc.output('blob')};
+  } else if(toExt==='docx'){
+    var docxLib = window.docx;
+    var paragraphs = text.split('\n').map(function(line){
+      return new docxLib.Paragraph({children:[new docxLib.TextRun(line)]});
+    });
+    var doc = new docxLib.Document({sections:[{children:paragraphs}]});
+    var buf = await docxLib.Packer.toBlob(doc);
+    return {blob: buf};
+  }
+}
+
+// === IMAGE CONVERSIONS ===
+async function convertImage(file, fromExt, toExt){
+  return new Promise(function(resolve, reject){
+    var img = new Image();
+    img.onload = function(){
+      var canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+
+      var mimeMap = {jpg:'image/jpeg',png:'image/png',gif:'image/gif'};
+      var mime = mimeMap[toExt] || 'image/png';
+      var quality = toExt==='jpg' ? 0.92 : undefined;
+
+      canvas.toBlob(function(blob){
+        if(blob) resolve({blob:blob});
+        else reject(new Error('Conversion failed'));
+      }, mime, quality);
+    };
+    img.onerror = function(){reject(new Error('Could not load image'));};
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// === DATA CONVERSIONS ===
+async function convertData(file, fromExt, toExt){
+  var data = null; // array of arrays (rows)
+  var headers = null;
+
+  // Parse input
+  if(fromExt==='csv'||fromExt==='tsv'||fromExt==='txt'){
+    var text = await file.text();
+    var delim = fromExt==='tsv'||fromExt==='txt' ? '\t' : ',';
+    var lines = text.trim().split('\n');
+    data = lines.map(function(l){return l.split(delim);});
+    if(data.length>0) headers = data[0];
+  } else if(fromExt==='json'){
+    var text = await file.text();
+    var parsed = JSON.parse(text);
+    if(Array.isArray(parsed)&&parsed.length>0&&typeof parsed[0]==='object'){
+      headers = Object.keys(parsed[0]);
+      data = [headers].concat(parsed.map(function(row){return headers.map(function(h){return row[h]||'';});}));
+    } else {
+      data = [['key','value']];
+      for(var k in parsed) data.push([k, JSON.stringify(parsed[k])]);
+      headers = data[0];
+    }
+  } else if(fromExt==='xlsx'||fromExt==='xls'){
+    var buf = await file.arrayBuffer();
+    var wb = XLSX.read(buf);
+    var ws = wb.Sheets[wb.SheetNames[0]];
+    data = XLSX.utils.sheet_to_json(ws, {header:1});
+    if(data.length>0) headers = data[0];
+  } else if(fromExt==='xml'){
+    var text = await file.text();
+    var parser = new DOMParser();
+    var xml = parser.parseFromString(text,'text/xml');
+    var rows = xml.querySelectorAll('*');
+    data = [['tag','text']];
+    rows.forEach(function(r){if(r.children.length===0&&r.textContent.trim()) data.push([r.tagName,r.textContent.trim()]);});
+    headers = data[0];
+  } else if(fromExt==='md'){
+    var text = await file.text();
+    data = [['content']];
+    text.split('\n').forEach(function(l){data.push([l]);});
+    headers = data[0];
+  }
+
+  if(!data||data.length===0) throw new Error('No data found in file');
+
+  // Convert output
+  if(toExt==='csv'){
+    var csv = data.map(function(row){return row.map(function(c){
+      var s=String(c||''); return s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0 ? '"'+s.replace(/"/g,'""')+'"' : s;
+    }).join(',');}).join('\n');
+    return {blob: new Blob([csv],{type:'text/csv'})};
+  } else if(toExt==='tsv'){
+    var tsv = data.map(function(row){return row.map(function(c){return String(c||'');}).join('\t');}).join('\n');
+    return {blob: new Blob([tsv],{type:'text/tab-separated-values'})};
+  } else if(toExt==='json'){
+    if(headers){
+      var jsonArr = [];
+      for(var i=1;i<data.length;i++){
+        var obj={};
+        for(var j=0;j<headers.length;j++) obj[headers[j]]=data[i][j]||'';
+        jsonArr.push(obj);
+      }
+      return {blob: new Blob([JSON.stringify(jsonArr,null,2)],{type:'application/json'})};
+    }
+    return {blob: new Blob([JSON.stringify(data,null,2)],{type:'application/json'})};
+  } else if(toExt==='xlsx'){
+    var ws = XLSX.utils.aoa_to_sheet(data);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    var buf = XLSX.write(wb, {type:'array',bookType:'xlsx'});
+    return {blob: new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})};
+  } else if(toExt==='xml'){
+    var xml = '<?xml version="1.0" encoding="UTF-8"?>\n<data>\n';
+    for(var i=1;i<data.length;i++){
+      xml += '  <row>\n';
+      for(var j=0;j<(headers||data[0]).length;j++){
+        var tag = (headers||data[0])[j].replace(/[^a-zA-Z0-9]/g,'_');
+        xml += '    <'+tag+'>'+(data[i][j]||'')+'</'+tag+'>\n';
+      }
+      xml += '  </row>\n';
+    }
+    xml += '</data>';
+    return {blob: new Blob([xml],{type:'application/xml'})};
+  } else if(toExt==='md'){
+    if(!headers||data.length<2) return {blob: new Blob([data.map(function(r){return r.join(' | ');}).join('\n')],{type:'text/markdown'})};
+    var md = '| '+headers.join(' | ')+' |\n';
+    md += '| '+headers.map(function(){return '---';}).join(' | ')+' |\n';
+    for(var i=1;i<data.length;i++){
+      md += '| '+data[i].map(function(c){return String(c||'');}).join(' | ')+' |\n';
+    }
+    return {blob: new Blob([md],{type:'text/markdown'})};
+  }
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();convert();}
+});
+</script>
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/abp/" style="color:#fff">Audiobooker</a> | <a href="/stt/" style="color:#fff">Speech-to-Texter</a> | <a href="/tts/" style="color:#fff">Text-to-Speecher</a></div>
+<br>
+<img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+</body>
+</html>
