@@ -245,7 +245,7 @@ async function loadSingleFile(file){
 
   fileKey = await makeFileKey(file.name+'|'+file.size);
   resetUI();
-  try { await parseMetadata(file); } catch(e) {}
+  try { await parseMetadata(file); } catch(e) { document.title='PARSE ERR: '+e.message; }
 
   const url = URL.createObjectURL(file);
   if(file.size < 100*1024*1024){
@@ -406,8 +406,10 @@ function parseMetadata(file){
 function parseM4BMetadata(file){
   return new Promise(async (resolve) => {
     try {
+      document.title='M4B: starting parse for '+file.name;
       let moovStart=-1, moovSize=0;
       const headerBuf = new Uint8Array(await readSlice(file, 0, Math.min(64, file.size)));
+      document.title='M4B: read header ok';
       let scanPos = 0;
       const topBuf = new Uint8Array(await readSlice(file, 0, Math.min(128, file.size)));
       scanPos = 0;
