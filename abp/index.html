@@ -110,8 +110,8 @@ button:disabled{background:#555;color:#888;cursor:default}
       <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20" fill="#2a2a2a"/><rect x="17" y="4" width="3" height="16" fill="#2a2a2a"/></svg>
     </button>
   </div>
-  <button id="pitch-btn" title="Pitch" disabled onclick="cyclePitch()">
-    <span id="pitch-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">0</span>
+  <button id="sleep-btn" title="Sleep Timer" disabled onclick="cycleSleep()">
+    <span id="sleep-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">&#9790;</span>
   </button>
 </div>
 
@@ -247,7 +247,7 @@ async function loadSingleFile(file){
   try { await parseMetadata(file); } catch(e) {  }
 
   const url = URL.createObjectURL(file);
-  if(file.size < 100*1024*1024){
+  if(file.size < 2000*1024*1024){
     const ext = file.name.split('.').pop().toLowerCase();
     const mimeMap = {mp3:'audio/mpeg',m4b:'audio/mp4',m4a:'audio/mp4',ogg:'audio/ogg',wav:'audio/wav',mp4:'audio/mp4',webm:'audio/webm',aac:'audio/aac',flac:'audio/flac',opus:'audio/ogg'};
     const blob = new Blob([file], {type: file.type || mimeMap[ext] || 'audio/mpeg'});
@@ -381,13 +381,18 @@ function finishLoad(){
     if(typeof saved.spd==='number'){ speedIdx=saved.spd; baseSpeed=speeds[speedIdx]||1; document.getElementById('speed-label').textContent=baseSpeed+'x'; }
     if(typeof saved.pit==='number'){ toneIdx=saved.pit; document.getElementById('pitch-label').textContent=toneLevels[toneIdx].label; }
     audio.preservesPitch=true;
-    audio.playbackRate=baseSpeed*pitchLevels[pitchIdx].rate;
+    audio.playbackRate=baseSpeed;
     if(multiFileMode && chapters[currentChapter].fileUrl){
       audio.onloadedmetadata = () => { audio.currentTime = saved.time || 0; };
       audio.src = chapters[currentChapter].fileUrl;
       audio.load();
     } else {
-      audio.currentTime = saved.time || chapters[saved.ch].startTime;
+      var seekTo = saved.time || chapters[saved.ch].startTime;
+      if(audio.readyState >= 1){
+        audio.currentTime = seekTo;
+      } else {
+        audio.addEventListener('loadedmetadata', function seekOnce(){ audio.currentTime=seekTo; audio.removeEventListener('loadedmetadata',seekOnce); });
+      }
     }
   } else {
     currentChapter = 0;
@@ -710,7 +715,7 @@ function goToChapter(idx){
   updateBookProgress();
 }
 function enablePlayer(){
-  ['speed-btn','pitch-btn','prev-btn','skipb-btn','play-btn','skipf-btn','next-btn'].forEach(id=>{
+  ['speed-btn','sleep-btn','prev-btn','skipb-btn','play-btn','skipf-btn','next-btn'].forEach(id=>{
     document.getElementById(id).disabled=false;
   });
 }
@@ -809,12 +814,19 @@ function cycleSpeed(){
   audio.playbackRate = baseSpeed;
   document.getElementById('speed-label').textContent=speeds[speedIdx]+'x';
 }
-function cyclePitch(){
-  ensureAudioCtx();
-  if(audioCtx.state==='suspended') audioCtx.resume();
-  toneIdx=(toneIdx+1)%toneLevels.length;
-  applyTone();
-  document.getElementById('pitch-label').textContent=toneLevels[toneIdx].label;
+var sleepTimerId=null;
+var sleepOptions=[0,5,10,15,30,45,60];
+var sleepIdx=0;
+function cycleSleep(){
+  sleepIdx=(sleepIdx+1)%sleepOptions.length;
+  var mins=sleepOptions[sleepIdx];
+  if(sleepTimerId){clearTimeout(sleepTimerId);sleepTimerId=null;}
+  if(mins>0){
+    sleepTimerId=setTimeout(function(){audio.pause();document.getElementById('play-icon').style.display='';document.getElementById('pause-icon').style.display='none';document.getElementById('sleep-label').textContent='\u263E';sleepIdx=0;sleepTimerId=null;},mins*60000);
+    document.getElementById('sleep-label').textContent=mins+'m';
+  } else {
+    document.getElementById('sleep-label').textContent='\u263E';
+  }
 }
 
 function seekChapter(e){
