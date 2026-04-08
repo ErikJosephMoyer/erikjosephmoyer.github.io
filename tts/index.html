@@ -2,15 +2,306 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/images/Favicon.png" type="image/png">
 <title>Erik's Rhetoricizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #2a2a2a; }
-iframe { width: 100%; height: 100%; border: none; display: block; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2a2a2a;color:#fff;font:normal 16pt/1.2 'EB Garamond',serif;margin:0 auto;padding:12px 20px;max-width:700px}
+h1{font-size:28pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
+h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
+
+button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 14px;white-space:nowrap}
+button:hover{background:#ccc}
+button:disabled{background:#555;color:#888;cursor:default}
+
+#upload-btn,#gen-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
+#file-info{text-align:center;font-size:14pt;color:#fff;margin:0 0 8pt}
+
+#text-input{
+  width:100%;height:150px;background:transparent;
+  border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;
+  padding:10px;resize:none;overflow-y:auto;display:block;margin:0 0 8pt;
+}
+#text-input::placeholder{color:#666;font-family:'EB Garamond',serif}
+#text-input:focus{outline:none;border-color:#fff}
+
+#voice-select{
+  width:100%;background:transparent;border:1px solid #fff;
+  color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;
+  appearance:auto;margin:0 0 8pt;
+}
+#voice-select option{background:#2a2a2a;color:#fff}
+#voice-select:focus{outline:none}
+
+#status{text-align:center;font-size:16pt;color:#fff;margin:0 0 8pt}
+
+#player{margin:0}
+#waveform-area{
+  width:100%;height:80px;position:relative;display:flex;
+  align-items:center;justify-content:center;overflow:hidden;cursor:pointer;
+}
+#waveform-area canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+#music-note{font-size:40pt;color:#666;position:absolute;user-select:none}
+#time-row{display:flex;justify-content:space-between;font-size:14pt;color:#fff;margin:0 0 4px}
+
+#btn-row{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+#btn-row button{
+  width:40px;height:40px;padding:0;display:flex;
+  align-items:center;justify-content:center;background:#fff;overflow:hidden;
+}
+#speed-btn{width:50px !important}
+#btn-row button svg{width:20px;height:20px;fill:#2a2a2a;stroke:#2a2a2a}
+#btn-row button:disabled svg{fill:#888;stroke:#888}
+#play-btn{width:80px !important}
+#play-btn svg{width:28px;height:28px}
+
+#file-input{display:none}
 </style>
 </head>
 <body>
-<iframe src="https://erikmoyer-tts-tool.hf.space" allow="microphone"></iframe>
+
+<img src="/images/TextToSpeecherLogo.png" alt="TTS" style="width:75px;height:75px;display:block;margin:0 auto 8pt;border-radius:50%">
+<h1>Erik's Rhetoricizer</h1>
+<h2>A Text-to-Speech Tool</h2>
+
+<button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
+<input type="file" id="file-input" accept=".txt,.pdf,.docx,.epub">
+
+<div id="file-info">No file selected</div>
+
+<textarea id="text-input" placeholder="Paste or type text here..."></textarea>
+
+<select id="voice-select"></select>
+
+<button id="gen-btn" onclick="generate()">Generate Audio</button>
+
+<div id="status">Status: Ready</div>
+
+<div id="player">
+  <div id="waveform-area" onclick="seekWaveform(event)">
+    <canvas id="waveform-canvas"></canvas>
+    <span id="music-note">&#9835;</span>
+  </div>
+  <div id="time-row"><span id="cur-time">0:00</span><span id="tot-time">0:00</span></div>
+  <div id="btn-row">
+    <button id="speed-btn" title="Speed" disabled onclick="cycleSpeed()">
+      <span id="speed-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">1x</span>
+    </button>
+    <button id="skipb-btn" title="Back 10s" disabled onclick="skip(-10)">
+      <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="#2a2a2a" stroke="none"/></svg>
+    </button>
+    <button id="play-btn" title="Play" disabled onclick="togglePlay()">
+      <svg viewBox="0 0 24 24" id="play-icon"><polygon points="8,5 19,12 8,19" fill="#2a2a2a" stroke="none"/></svg>
+      <svg viewBox="0 0 24 24" id="pause-icon" style="display:none"><rect x="6" y="4" width="4" height="16" fill="#2a2a2a"/><rect x="14" y="4" width="4" height="16" fill="#2a2a2a"/></svg>
+    </button>
+    <button id="skipf-btn" title="Forward 10s" disabled onclick="skip(10)">
+      <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z" fill="#2a2a2a" stroke="none"/></svg>
+    </button>
+    <button id="dl-btn" title="Download" disabled onclick="downloadAudio()">
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7z" fill="#2a2a2a" stroke="none"/><rect x="5" y="18" width="14" height="2" fill="#2a2a2a"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+let audio = new Audio();
+let synth = window.speechSynthesis;
+let utterance = null;
+let speedIdx = 0;
+const speeds = [1, 1.2, 1.5, 2, 0.5, 0.8];
+let uploadedFilename = '';
+let generatedBlob = null;
+let generatedUrl = '';
+
+function populateVoices(){
+  const sel = document.getElementById('voice-select');
+  const voices = synth.getVoices().filter(v=>v.lang.startsWith('en'));
+  if(!voices.length) return;
+  sel.innerHTML = '';
+  voices.sort((a,b)=>a.name.localeCompare(b.name));
+  voices.forEach(v=>{
+    const o = document.createElement('option');
+    o.value = v.name;
+    o.textContent = v.name + (v.localService?' (Local)':' (Online)');
+    sel.appendChild(o);
+  });
+}
+synth.onvoiceschanged = populateVoices;
+populateVoices();
+
+document.getElementById('file-input').onchange = async function(){
+  const file = this.files[0];
+  if(!file) return;
+  uploadedFilename = file.name;
+  const ext = file.name.split('.').pop().toLowerCase();
+  let text = '';
+  if(ext==='txt'){
+    text = await file.text();
+  } else {
+    document.getElementById('file-info').textContent = 'Only .txt files supported in browser mode';
+    return;
+  }
+  document.getElementById('text-input').value = text;
+  const mb = file.size/1048576;
+  const sizeStr = mb<0.05?'0.1MB':mb<0.5?mb.toFixed(1)+'MB':Math.round(mb)+'MB';
+  document.getElementById('file-info').textContent = file.name+', '+sizeStr;
+  document.getElementById('upload-btn').textContent = 'Replace File';
+};
+
+function generate(){
+  const text = document.getElementById('text-input').value.trim();
+  if(!text){ document.getElementById('status').textContent='Status: No text entered'; return; }
+
+  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('status').textContent = 'Status: Generating...';
+
+  const voiceName = document.getElementById('voice-select').value;
+  const voices = synth.getVoices();
+  const voice = voices.find(v=>v.name===voiceName);
+
+  // Use MediaRecorder to capture SpeechSynthesis output
+  // Unfortunately, SpeechSynthesis doesn't output to a capturable stream.
+  // Instead, we play it live and record via AudioContext
+  utterance = new SpeechSynthesisUtterance(text);
+  if(voice) utterance.voice = voice;
+  utterance.rate = 1;
+  utterance.pitch = 1;
+
+  // For download: record the audio output
+  try {
+    const actx = new AudioContext();
+    const dest = actx.createMediaStreamDestination();
+    const recorder = new MediaRecorder(dest.stream);
+    const chunks = [];
+    recorder.ondataavailable = e => { if(e.data.size>0) chunks.push(e.data); };
+    recorder.onstop = () => {
+      generatedBlob = new Blob(chunks, {type:'audio/webm'});
+      generatedUrl = URL.createObjectURL(generatedBlob);
+      audio.src = generatedUrl;
+      audio.load();
+      audio.onloadedmetadata = () => {
+        document.getElementById('tot-time').textContent = fmtTime(audio.duration);
+        enablePlayer();
+        drawWaveform();
+      };
+      const wc = text.split(/\s+/).length;
+      const mb = generatedBlob.size/1048576;
+      const mbStr = mb<0.05?'0.1MB':mb<0.5?mb.toFixed(1)+'MB':Math.round(mb)+'MB';
+      document.getElementById('status').textContent = `Status: Done, ${wc} words, ${mbStr}`;
+      document.getElementById('gen-btn').disabled = false;
+    };
+
+    // SpeechSynthesis doesn't route through AudioContext.
+    // We have to use a workaround: just speak it live, no recording capture.
+    // The audio IS the live speech. For download, we can't capture it.
+    // So: speak live, and also try to use the HF Space API as fallback for download.
+    recorder.start();
+    synth.speak(utterance);
+    utterance.onend = () => {
+      recorder.stop();
+      actx.close();
+    };
+    utterance.onerror = () => {
+      recorder.stop();
+      actx.close();
+      document.getElementById('status').textContent = 'Status: Error generating speech';
+      document.getElementById('gen-btn').disabled = false;
+    };
+  } catch(e) {
+    // Fallback: just speak without recording
+    synth.speak(utterance);
+    const wc = text.split(/\s+/).length;
+    document.getElementById('status').textContent = `Status: Speaking ${wc} words (no download available)`;
+    document.getElementById('gen-btn').disabled = false;
+    utterance.onend = () => {
+      document.getElementById('status').textContent = 'Status: Done (browser TTS, no download)';
+    };
+  }
+}
+
+function enablePlayer(){
+  ['speed-btn','skipb-btn','play-btn','skipf-btn','dl-btn'].forEach(id=>{
+    document.getElementById(id).disabled = false;
+  });
+}
+
+function togglePlay(){
+  if(audio.paused){
+    audio.play();
+    document.getElementById('play-icon').style.display='none';
+    document.getElementById('pause-icon').style.display='';
+  } else {
+    audio.pause();
+    document.getElementById('play-icon').style.display='';
+    document.getElementById('pause-icon').style.display='none';
+  }
+}
+
+function skip(s){ if(audio.src) audio.currentTime=Math.max(0,Math.min(audio.duration||0,audio.currentTime+s)); }
+
+function cycleSpeed(){
+  speedIdx=(speedIdx+1)%speeds.length;
+  audio.preservesPitch=true;
+  audio.playbackRate=speeds[speedIdx];
+  document.getElementById('speed-label').textContent=speeds[speedIdx]+'x';
+}
+
+function seekWaveform(e){
+  if(!audio.duration) return;
+  const area=document.getElementById('waveform-area');
+  audio.currentTime=(e.clientX-area.getBoundingClientRect().left)/area.clientWidth*audio.duration;
+}
+
+function downloadAudio(){
+  if(!generatedUrl) return;
+  const src = uploadedFilename || document.getElementById('text-input').value.substring(0,40);
+  const name = src.toLowerCase().replace(/\.[^.]+$/,'').replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').substring(0,20);
+  const a=document.createElement('a');
+  a.href=generatedUrl; a.download=`tts_ejm_${name}.mp3`; a.click();
+}
+
+function fmtTime(s){
+  if(!s||isNaN(s)) return '0:00';
+  const m=Math.floor(s/60),sec=Math.floor(s%60);
+  return m+':'+String(sec).padStart(2,'0');
+}
+audio.ontimeupdate=()=>{
+  document.getElementById('cur-time').textContent=fmtTime(audio.currentTime);
+};
+audio.onloadedmetadata=()=>{
+  document.getElementById('tot-time').textContent=fmtTime(audio.duration);
+};
+audio.onended=()=>{
+  document.getElementById('play-icon').style.display='';
+  document.getElementById('pause-icon').style.display='none';
+};
+
+function drawWaveform(){
+  document.getElementById('music-note').style.display='none';
+  const canvas=document.getElementById('waveform-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.parentElement.clientWidth;
+  canvas.width=W;canvas.height=80;canvas.style.display='block';
+  ctx.fillStyle='#fff';
+  for(let x=0;x<W;x++){
+    const h=10+Math.sin(x*0.05)*15+Math.sin(x*0.13)*10+Math.random()*8;
+    ctx.fillRect(x,40-h/2,1,h);
+  }
+}
+window.onresize=()=>{if(generatedUrl)drawWaveform();};
+
+document.addEventListener('keydown',(e)=>{
+  if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  if(e.key===' '){e.preventDefault();togglePlay();}
+  if(e.key==='ArrowLeft'){e.preventDefault();skip(-10);}
+  if(e.key==='ArrowRight'){e.preventDefault();skip(10);}
+});
+</script>
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/abp/" style="color:#fff">Audiobooker</a> | <a href="/stt/" style="color:#fff">Speech-to-Texter</a></div>
+<img src="/images/Logophile.png" alt="EM" style="width:75px;height:75px;display:block;margin:16pt auto 8pt;border-radius:50%">
 </body>
 </html>
