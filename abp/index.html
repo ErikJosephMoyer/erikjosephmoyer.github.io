@@ -53,9 +53,10 @@ button:disabled{background:#555;color:#888;cursor:default}
 #speed-btn,#pitch-btn{width:50px !important}
 #btn-row button svg{width:20px;height:20px;fill:#2a2a2a;stroke:#2a2a2a}
 #btn-row button:disabled svg{fill:#888;stroke:#888}
-#play-btn{width:120px !important}
+#play-btn{width:80px !important}
 #play-btn svg{width:28px;height:28px}
-#transport{display:flex;align-items:center;gap:6px}
+#transport{display:flex;align-items:center;gap:4px}
+#btn-row{flex-wrap:wrap;gap:4px}
 
 .hidden-input{display:none}
 </style>
@@ -469,7 +470,7 @@ function parseM4BMetadata(file){
           }
         }
       }catch(e){ console.error('M4B scan error:',e); }
-      console.log('M4B: ts='+chapTimescale+' dur='+chapDurations.length+' off='+chapOffsets.length+' sz='+chapSizes.length);
+      console.log('ABPv15: moovBuf='+moovBuf.length+' traks='+traks.length+' textTrak='+textTrakStart+'-'+textTrakEnd+' ts='+chapTimescale+' dur='+chapDurations.length+' off='+chapOffsets.length);
 
       // Metadata scan (title, album, cover, Nero chapters)
       function scan(start, end){
@@ -753,8 +754,7 @@ function goToChapter(idx){
   if(multiFileMode && chapters[idx].fileUrl){
     audio.onloadedmetadata = () => {
       audio.currentTime = 0;
-      if(typeof applySpeedPitch==='function') applySpeedPitch();
-      else { audio.preservesPitch=true; audio.playbackRate=baseSpeed; }
+      applySpeedPitch();
       if(wasPlaying) audio.play();
     };
     audio.src = chapters[idx].fileUrl;
@@ -824,42 +824,22 @@ function prevChapter(){ goToChapter(currentChapter-1); }
 function nextChapter(){ goToChapter(currentChapter+1); }
 
 function applySpeedPitch(){
-  // Speed and pitch are mutually exclusive in HTML5 Audio.
-  // Whichever was changed LAST takes priority.
-  // Speed: preservesPitch=true, rate=baseSpeed
-  // Pitch: preservesPitch=false, rate=pitchRate (speed reverts to 1x)
-  const pitchRate = pitchLevels[pitchIdx].rate;
-  if(pitchRate === 1.0){
-    audio.preservesPitch = true;
-    audio.playbackRate = baseSpeed;
-  } else {
-    audio.preservesPitch = false;
-    audio.playbackRate = pitchRate;
-  }
+  // Speed and pitch combined. preservesPitch=false always when pitch is shifted.
+  // playbackRate = baseSpeed * pitchRate
+  // At normal pitch (1.0): preservesPitch=true, rate=baseSpeed (perfect speed, no pitch change)
+  // At shifted pitch: preservesPitch=false, rate=baseSpeed*pitchRate (pitch shifts, speed is approximate)
+  const pr = pitchLevels[pitchIdx].rate;
+  audio.preservesPitch = (pr === 1.0);
+  audio.playbackRate = baseSpeed * pr;
 }
 function cycleSpeed(){
   speedIdx=(speedIdx+1)%speeds.length; baseSpeed=speeds[speedIdx];
-  // Speed change resets pitch to normal
-  pitchIdx = 2; // '0' = normal
-  document.getElementById('pitch-label').textContent = '0';
-  audio.preservesPitch = true;
-  audio.playbackRate = baseSpeed;
+  applySpeedPitch();
   document.getElementById('speed-label').textContent=speeds[speedIdx]+'x';
 }
 function cyclePitch(){
   pitchIdx=(pitchIdx+1)%pitchLevels.length;
-  const pitchRate = pitchLevels[pitchIdx].rate;
-  if(pitchRate === 1.0){
-    // Back to normal - restore speed
-    audio.preservesPitch = true;
-    audio.playbackRate = baseSpeed;
-  } else {
-    // Pitch active - speed pauses at 1x equivalent
-    audio.preservesPitch = false;
-    audio.playbackRate = pitchRate;
-    speedIdx = 0; baseSpeed = 1;
-    document.getElementById('speed-label').textContent = '1x';
-  }
+  applySpeedPitch();
   document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
 }
 
@@ -997,7 +977,7 @@ document.addEventListener('keydown',(e)=>{
 })();
 </script>
 <div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/stt/" style="color:#fff">Speech-to-Texter</a> | <a href="/tts/" style="color:#fff">Text-to-Speecher</a></div>
-<img src="/images/Logophile.png" alt="EM" style="width:50px;height:50px;display:block;margin:16pt auto 8pt;border-radius:8px">
+<img src="/images/Logophile.png" alt="EM" style="width:75px;height:75px;display:block;margin:16pt auto 8pt;border-radius:50%">
 </body>
 </html>
 <!-- v -->
