@@ -13,6 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
@@ -34,7 +35,7 @@ select:focus{outline:none}
 </style>
 </head>
 <body>
-<img src="/images/Favicon.png" alt="FCV" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+<img src="/images/FileConverter.png" alt="FCV" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Transmogrifier</h1>
 <h2>A File Conversion Tool</h2>
 
@@ -59,10 +60,10 @@ var inputFile=null, inputExt='', inputType='', inputText='', inputData=null, inp
 var conversions = {
   text: {
     inputs: ['txt','doc','docx','pdf','epub'],
-    outputs: ['txt','pdf','docx']
+    outputs: ['txt','pdf','docx','jpg']
   },
   image: {
-    inputs: ['jpg','jpeg','png','gif','webp','svg','bmp'],
+    inputs: ['jpg','jpeg','png','gif','webp','svg','bmp','heic','heif'],
     outputs: ['jpg','png','gif']
   },
   data: {
@@ -180,6 +181,21 @@ async function convertText(file, fromExt, toExt){
     text = '[EPUB extraction requires server-side processing. Please use the TTS tool to extract text from EPUB files.]';
   }
 
+  if(toExt==='jpg'&&fromExt==='pdf'){
+    var pdfjsLib2 = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
+    pdfjsLib2.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
+    var buf2 = await file.arrayBuffer();
+    var pdf2 = await pdfjsLib2.getDocument({data:buf2}).promise;
+    var page2 = await pdf2.getPage(1);
+    var vp = page2.getViewport({scale:2});
+    var canvas = document.createElement('canvas');
+    canvas.width=vp.width; canvas.height=vp.height;
+    await page2.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    return new Promise(function(resolve){
+      canvas.toBlob(function(b){resolve({blob:b});},'image/jpeg',0.92);
+    });
+  }
+
   if(toExt==='txt'){
     return {blob: new Blob([text],{type:'text/plain'})};
   } else if(toExt==='pdf'){
@@ -206,6 +222,12 @@ async function convertText(file, fromExt, toExt){
 
 // === IMAGE CONVERSIONS ===
 async function convertImage(file, fromExt, toExt){
+  var imgFile = file;
+  if(fromExt==='heic'||fromExt==='heif'){
+    if(typeof heic2any==='undefined') throw new Error('HEIC decoder not loaded');
+    var converted = await heic2any({blob:file, toType:'image/jpeg', quality:0.92});
+    imgFile = converted;
+  }
   return new Promise(function(resolve, reject){
     var img = new Image();
     img.onload = function(){
@@ -225,7 +247,7 @@ async function convertImage(file, fromExt, toExt){
       }, mime, quality);
     };
     img.onerror = function(){reject(new Error('Could not load image'));};
-    img.src = URL.createObjectURL(file);
+    img.src = URL.createObjectURL(imgFile);
   });
 }
 
