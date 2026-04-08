@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/images/Favicon.png" type="image/png">
+<title>Erik's Prettifier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Lora&family=Merriweather&family=Source+Serif+4&family=Roboto&family=Open+Sans&family=Literata&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
+h1{font-size:28pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
+h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
+button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 14px;white-space:nowrap}
+button:hover{background:#ccc}
+button:disabled{background:#555;color:#888;cursor:default}
+#upload-btn,#gen-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
+#file-info{text-align:center;font-size:14pt;color:white;margin:0 0 8pt}
+select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 8pt}
+select option{background:#2a2a2a;color:#fff}
+select:focus{outline:none}
+.row{display:flex;gap:8px;margin:0 0 8pt}
+.row select{flex:1;margin:0}
+#status{text-align:center;font-size:16pt;color:white;margin:0 0 8pt}
+#file-input{display:none}
+label{font-size:14pt;color:#aaa;display:block;text-align:center;margin:0 0 4pt}
+</style>
+</head>
+<body>
+<img src="/images/Favicon.png" alt="TPS" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+<h1>Erik's Prettifier</h1>
+<h2>A Typesetting Tool</h2>
+
+<button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
+<input type="file" id="file-input" accept=".txt,.doc,.docx,.pdf,.epub">
+<div id="file-info">No file selected</div>
+
+<label>Font</label>
+<select id="font-select">
+<option value="Georgia" style="font-family:Georgia">Georgia</option>
+<option value="Garamond" style="font-family:Garamond">Garamond</option>
+<option value="EB Garamond" style="font-family:'EB Garamond'">EB Garamond</option>
+<option value="Times New Roman" style="font-family:'Times New Roman'">Times New Roman</option>
+<option value="Baskerville" style="font-family:Baskerville">Baskerville</option>
+<option value="Palatino" style="font-family:Palatino">Palatino</option>
+<option value="Lora" style="font-family:Lora">Lora</option>
+<option value="Merriweather" style="font-family:Merriweather">Merriweather</option>
+<option value="Literata" style="font-family:Literata">Literata</option>
+<option value="Source Serif 4" style="font-family:'Source Serif 4'">Source Serif Pro</option>
+<option value="Helvetica" style="font-family:Helvetica">Helvetica</option>
+<option value="Helvetica Neue" style="font-family:'Helvetica Neue'">Helvetica Neue</option>
+<option value="Arial" style="font-family:Arial">Arial</option>
+<option value="Arial Narrow" style="font-family:'Arial Narrow'">Arial Narrow</option>
+<option value="Calibri" style="font-family:Calibri">Calibri</option>
+<option value="Aptos" style="font-family:Aptos">Aptos</option>
+<option value="Roboto" style="font-family:Roboto">Roboto</option>
+<option value="Open Sans" style="font-family:'Open Sans'">Open Sans</option>
+<option value="Futura" style="font-family:Futura">Futura</option>
+</select>
+
+<div class="row">
+<select id="size-select">
+<option value="5">Size 5</option>
+<option value="10">Size 10</option>
+<option value="12">Size 12</option>
+<option value="15">Size 15</option>
+<option value="20">Size 20</option>
+<option value="25" selected>Size 25</option>
+<option value="30">Size 30</option>
+</select>
+<select id="color-select">
+<option value="black" selected>Black bg, White text</option>
+<option value="white">White bg, Black text</option>
+<option value="gray">Gray bg (#2a2a2a), White text</option>
+</select>
+</div>
+
+<div class="row">
+<select id="margin-select">
+<option value="0">Margins: 0"</option>
+<option value="7.2">Margins: 0.1"</option>
+<option value="18" selected>Margins: 0.25"</option>
+<option value="36">Margins: 0.5"</option>
+<option value="72">Margins: 1"</option>
+</select>
+<select id="align-select">
+<option value="justify" selected>Justified</option>
+<option value="left">Left-aligned</option>
+</select>
+</div>
+
+<div class="row">
+<select id="matter-select">
+<option value="cut" selected>Cut front/back matter</option>
+<option value="keep">Keep all matter</option>
+</select>
+</div>
+
+<button id="gen-btn" onclick="generate()" disabled>Generate PDF</button>
+<div id="status">Status: Ready</div>
+
+<script>
+var inputFile=null, rawText='';
+
+document.getElementById('file-input').onchange = async function(){
+  inputFile=this.files[0];
+  if(!inputFile) return;
+  var mb=inputFile.size/1048576;
+  var sz=mb<0.05?'0.1MB':mb<0.5?mb.toFixed(1)+'MB':Math.round(mb)+'MB';
+  document.getElementById('file-info').textContent=inputFile.name+', '+sz;
+  document.getElementById('upload-btn').textContent='Replace File';
+  document.getElementById('status').textContent='Status: Extracting text...';
+
+  var ext=inputFile.name.split('.').pop().toLowerCase();
+  try{
+    if(ext==='txt'){
+      rawText=await inputFile.text();
+    } else if(ext==='docx'||ext==='doc'){
+      var buf=await inputFile.arrayBuffer();
+      rawText=(await mammoth.extractRawText({arrayBuffer:buf})).value;
+    } else if(ext==='pdf'){
+      var pdfjsLib=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
+      var pdf=await pdfjsLib.getDocument({data:await inputFile.arrayBuffer()}).promise;
+      var pages=[];
+      for(var i=1;i<=pdf.numPages;i++){var pg=await pdf.getPage(i);var ct=await pg.getTextContent();pages.push(ct.items.map(function(it){return it.str;}).join(' '));}
+      rawText=pages.join('\n');
+    } else if(ext==='epub'){
+      rawText='[EPUB: paste text manually or convert to TXT first]';
+    }
+    document.getElementById('status').textContent='Status: Ready ('+rawText.split(/\s+/).length+' words)';
+    document.getElementById('gen-btn').disabled=false;
+  }catch(e){
+    document.getElementById('status').textContent='Status: Error reading file';
+  }
+};
+
+function fixQuotes(t){
+  t=t.replace(/(\s|^)"/g,'$1\u201C');
+  t=t.replace(/"/g,'\u201D');
+  t=t.replace(/(\s|^)'/g,'$1\u2018');
+  t=t.replace(/'/g,'\u2019');
+  return t;
+}
+
+function cleanText(t){
+  t=t.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  t=t.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'');
+  t=t.replace(/\u00A0/g,' ');
+  t=t.replace(/\u2013/g,'\u2014');
+  t=t.replace(/\ufffd/g,'');
+  t=fixQuotes(t);
+  return t;
+}
+
+function detectMeta(text){
+  var title='',author='',year='',translator='';
+  var lines=text.substring(0,5000).split('\n');
+  // Look for "Title © Year Author" or "Title by Author"
+  for(var i=0;i<lines.length;i++){
+    var l=lines[i].trim();
+    var ym=l.match(/[©\u00A9]\s*(\d{4})\s+(.+)/);
+    if(ym){year=ym[1];author=ym[2].trim();}
+    if(/first published in (\d{4})/i.test(l)){var m=l.match(/(\d{4})/);if(m)year=m[1];}
+    if(/translated by\s+(.+)/i.test(l)){translator=l.match(/translated by\s+(.+)/i)[1].trim();}
+  }
+  // Try to get title from first substantial line
+  for(var i=0;i<Math.min(20,lines.length);i++){
+    var l=lines[i].trim();
+    if(l.length>5&&l.length<200&&!/summary|bio|copyright|isbn|©/i.test(l)){
+      // Check if it looks like a title
+      if(!title&&l.length>5) title=l;
+      break;
+    }
+  }
+  // Fallback: use filename
+  if(!title&&inputFile){
+    var fn=inputFile.name.replace(/\.[^.]+$/,'');
+    var parts=fn.split(' - ');
+    if(parts.length>=2){author=parts[0].trim();title=parts.slice(1).join(' - ').trim();}
+    else title=fn.substring(0,30);
+  }
+  return {title:title,author:author,year:year,translator:translator};
+}
+
+function detectChapters(text){
+  var patterns=[
+    /^(chapter\s+\d+[^\n]*)/im,
+    /^(chapter\s+[ivxlcdm]+[^\n]*)/im,
+    /^(part\s+\d+[^\n]*)/im,
+    /^(part\s+[ivxlcdm]+[^\n]*)/im,
+    /^(\d+\.\s+[A-Z][^\n]*)/m,
+    /^(section\s+\d+[^\n]*)/im
+  ];
+  var chapters=[];
+  var lines=text.split('\n');
+  for(var i=0;i<lines.length;i++){
+    var l=lines[i].trim();
+    for(var p=0;p<patterns.length;p++){
+      if(patterns[p].test(l)){
+        chapters.push({line:i,title:l,pos:text.indexOf(l)});
+        break;
+      }
+    }
+  }
+  return chapters;
+}
+
+function stripMatter(text,chapters){
+  if(chapters.length===0) return text;
+  var firstChap=chapters[0].pos;
+  var backKeywords=/^(notes|acknowledgments?|acknowledgements?|bibliography|references|appendix|index|about the author|credits|permissions|sources|glossary|further reading)\s*$/im;
+  var lines=text.split('\n');
+  var lastContent=lines.length;
+  for(var i=lines.length-1;i>0;i--){
+    if(backKeywords.test(lines[i].trim())){lastContent=i;break;}
+  }
+  var body=lines.slice(0,lastContent).join('\n');
+  return body.substring(firstChap);
+}
+
+function buildTOC(chapters){
+  var toc='Contents\n';
+  for(var i=0;i<chapters.length;i++){
+    toc+='\t'+chapters[i].title+'\n';
+  }
+  return toc;
+}
+
+async function generate(){
+  if(!rawText) return;
+  document.getElementById('status').textContent='Status: Generating PDF...';
+  document.getElementById('gen-btn').disabled=true;
+
+  var fontName=document.getElementById('font-select').value;
+  var fontSize=parseInt(document.getElementById('size-select').value);
+  var colorScheme=document.getElementById('color-select').value;
+  var margin=parseFloat(document.getElementById('margin-select').value);
+  var align=document.getElementById('align-select').value;
+  var cutMatter=document.getElementById('matter-select').value==='cut';
+
+  var text=cleanText(rawText);
+  var meta=detectMeta(text);
+  var chapters=detectChapters(text);
+
+  if(cutMatter&&chapters.length>0){
+    text=stripMatter(text,chapters);
+    chapters=detectChapters(text);
+  }
+
+  // Collapse multiple blank lines to single
+  text=text.replace(/\n{3,}/g,'\n\n');
+  // Replace double newlines with single (no para spacing)
+  text=text.replace(/\n\n/g,'\n');
+  // Add indent to each paragraph
+  var lines=text.split('\n');
+  var indentedLines=[];
+  for(var i=0;i<lines.length;i++){
+    var l=lines[i];
+    var isChapter=false;
+    for(var c=0;c<chapters.length;c++){
+      if(l.trim()===chapters[c].title){isChapter=true;break;}
+    }
+    if(isChapter){
+      indentedLines.push({text:l.trim(),chapter:true});
+    } else if(l.trim()){
+      indentedLines.push({text:'\t\t'+l.trim(),chapter:false});
+    }
+  }
+
+  // Build PDF
+  var jsPDF=window.jspdf.jsPDF;
+  var bgColor=colorScheme==='black'?'#000000':colorScheme==='gray'?'#2a2a2a':'#FFFFFF';
+  var txtColor=colorScheme==='white'?'#000000':'#FFFFFF';
+
+  var doc=new jsPDF({unit:'pt',format:'letter'});
+  var pw=612,ph=792;
+  var cw=pw-margin*2;
+  var lineH=fontSize*1.3;
+
+  // jsPDF only supports helvetica/courier/times built-in
+  // Map font names to jsPDF built-ins
+  var jsPDFFont='helvetica';
+  if(/times|georgia|garamond|baskerville|palatino|lora|merriweather|literata|source serif/i.test(fontName)) jsPDFFont='times';
+  else if(/courier/i.test(fontName)) jsPDFFont='courier';
+  doc.setFont(jsPDFFont,'normal');
+  doc.setFontSize(fontSize);
+
+  function newPage(){
+    doc.addPage();
+    doc.setFillColor(bgColor);
+    doc.rect(0,0,pw,ph,'F');
+  }
+
+  // First page background
+  doc.setFillColor(bgColor);
+  doc.rect(0,0,pw,ph,'F');
+  doc.setTextColor(txtColor);
+
+  // Title page
+  var y=margin+fontSize*3;
+  doc.setFontSize(fontSize*1.2);
+  if(meta.title){doc.text(meta.title,margin,y);y+=lineH*1.5;}
+  doc.setFontSize(fontSize);
+  if(meta.author){doc.text(meta.author,margin,y);y+=lineH;}
+  if(meta.translator){doc.text('Translated by '+meta.translator,margin,y);y+=lineH;}
+  if(meta.year){doc.text(meta.year,margin,y);y+=lineH;}
+  y+=lineH;
+
+  // TOC
+  if(chapters.length>0){
+    doc.text('Contents',margin,y);y+=lineH;
+    for(var i=0;i<chapters.length;i++){
+      if(y>ph-margin){newPage();y=margin+lineH;}
+      doc.text('    '+chapters[i].title,margin,y);
+      y+=lineH;
+    }
+  }
+
+  // Content
+  newPage();
+  y=margin+lineH;
+
+  for(var i=0;i<indentedLines.length;i++){
+    var item=indentedLines[i];
+
+    if(item.chapter){
+      newPage();
+      y=margin+lineH;
+      doc.setFontSize(fontSize*1.1);
+      doc.text(item.text,margin,y);
+      doc.setFontSize(fontSize);
+      y+=lineH*1.5;
+      continue;
+    }
+
+    var wrapped=doc.splitTextToSize(item.text,cw);
+    for(var j=0;j<wrapped.length;j++){
+      if(y>ph-margin){newPage();y=margin+lineH;}
+      doc.text(wrapped[j],margin,y,{align:align==='justify'?'justify':'left',maxWidth:cw});
+      y+=lineH;
+    }
+  }
+
+  // Generate filename
+  var fname=(meta.author?meta.author.split(' ').pop()+' - ':'')+
+    (meta.title||inputFile.name.replace(/\.[^.]+$/,'').substring(0,30));
+  fname=fname.substring(0,50).replace(/[^a-zA-Z0-9 \-]/g,'').trim();
+
+  doc.save(fname+'.pdf');
+  document.getElementById('status').textContent='Status: Done';
+  document.getElementById('gen-btn').disabled=false;
+}
+</script>
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/abp/" style="color:#fff">Audiobooker</a> | <a href="/fcv/" style="color:#fff">File Converter</a> | <a href="/stt/" style="color:#fff">Speech-to-Texter</a> | <a href="/tts/" style="color:#fff">Text-to-Speecher</a></div>
+<br>
+<img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+</body>
+</html>
