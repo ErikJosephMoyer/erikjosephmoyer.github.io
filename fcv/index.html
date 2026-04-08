@@ -25,9 +25,11 @@ button:disabled{background:#555;color:#888;cursor:default}
 #upload-btn,#convert-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
 #file-info{text-align:center;font-size:14pt;color:white;margin:0 0 8pt}
 #detected{text-align:center;font-size:16pt;color:white;margin:0 0 8pt}
-select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 8pt}
+select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 4pt}
 select option{background:#2a2a2a;color:#fff}
 select:focus{outline:none}
+#input-select{margin:0 0 4pt}
+#output-select{margin:0 0 8pt}
 #status{text-align:center;font-size:16pt;color:white;margin:0 0 8pt}
 #preview{width:100%;max-height:200px;overflow-y:auto;background:transparent;border:1px solid #555;color:#fff;font:14pt 'EB Garamond',serif;padding:10px;margin:0 0 8pt;display:none}
 #preview img{max-width:100%;max-height:180px;display:block;margin:0 auto}
@@ -35,7 +37,7 @@ select:focus{outline:none}
 </style>
 </head>
 <body>
-<img src="/images/FileConverter.png" alt="FCV" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+<img src="/images/FileConverterLogo.png" alt="FCV" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Transmogrifier</h1>
 <h2>A File Conversion Tool</h2>
 
@@ -43,10 +45,13 @@ select:focus{outline:none}
 <input type="file" id="file-input">
 
 <div id="file-info">No file selected</div>
-<div id="detected"></div>
+
+<select id="input-select" onchange="onInputFormatChange()">
+<option value="">Select input format</option>
+</select>
 
 <select id="output-select" disabled>
-<option>Select output format</option>
+<option value="">Select output format</option>
 </select>
 
 <button id="convert-btn" onclick="convert()" disabled>Convert</button>
@@ -55,30 +60,27 @@ select:focus{outline:none}
 <div id="preview"></div>
 
 <script>
-var inputFile=null, inputExt='', inputType='', inputText='', inputData=null, inputImgUrl='';
+var inputFile=null, inputExt='', inputType='';
 
-var conversions = {
-  text: {
-    inputs: ['txt','doc','docx','pdf','epub'],
-    outputs: ['txt','pdf','docx','jpg']
-  },
-  image: {
-    inputs: ['jpg','jpeg','png','gif','webp','svg','bmp','heic','heif'],
-    outputs: ['jpg','png','gif']
-  },
-  data: {
-    inputs: ['csv','json','xlsx','xls','xml','tsv','md','txt'],
-    outputs: ['csv','json','xlsx','xml','tsv','md']
-  }
+var allFormats = [
+  {ext:'bmp',type:'Image'},{ext:'csv',type:'Data'},{ext:'doc',type:'Text'},{ext:'docx',type:'Text'},
+  {ext:'epub',type:'Text'},{ext:'gif',type:'Image'},{ext:'heic',type:'Image'},{ext:'heif',type:'Image'},
+  {ext:'jpg',type:'Image'},{ext:'json',type:'Data'},{ext:'md',type:'Data'},{ext:'pdf',type:'Text'},
+  {ext:'png',type:'Image'},{ext:'svg',type:'Image'},{ext:'tsv',type:'Data'},{ext:'txt',type:'Text/Data'},
+  {ext:'webp',type:'Image'},{ext:'xls',type:'Data'},{ext:'xlsx',type:'Data'},{ext:'xml',type:'Data'}
+];
+
+var outputMap = {
+  Text: ['txt','pdf','docx','jpg'],
+  Image: ['jpg','png','gif'],
+  Data: ['csv','json','xlsx','xml','tsv','md'],
+  'Text/Data': ['txt','pdf','docx','jpg','csv','json','xlsx','xml','tsv','md']
 };
 
-function detectType(ext){
-  ext = ext.toLowerCase();
-  if(ext==='jpeg') ext='jpg';
-  for(var type in conversions){
-    if(conversions[type].inputs.indexOf(ext)>=0) return type;
-  }
-  return null;
+function getType(ext){
+  ext=ext.toLowerCase(); if(ext==='jpeg')ext='jpg';
+  var f=allFormats.find(function(x){return x.ext===ext;});
+  return f?f.type:null;
 }
 
 function fmtSize(bytes){
@@ -88,55 +90,89 @@ function fmtSize(bytes){
   return Math.round(mb)+'MB';
 }
 
+// Populate input dropdown
+(function(){
+  var sel=document.getElementById('input-select');
+  allFormats.forEach(function(f){
+    var o=document.createElement('option');
+    o.value=f.ext;
+    o.textContent='.'+f.ext+' ('+f.type+')';
+    sel.appendChild(o);
+  });
+})();
+
+function onInputFormatChange(){
+  var ext=document.getElementById('input-select').value;
+  if(!ext){
+    document.getElementById('output-select').innerHTML='<option value="">Select output format</option>';
+    document.getElementById('output-select').disabled=true;
+    document.getElementById('convert-btn').disabled=true;
+    return;
+  }
+  updateOutputDropdown(ext);
+}
+
+function updateOutputDropdown(ext){
+  var type=getType(ext);
+  if(!type){document.getElementById('output-select').disabled=true;return;}
+  var outputs=outputMap[type]||[];
+  var sel=document.getElementById('output-select');
+  sel.innerHTML='<option value="">Select output format</option>';
+  outputs.filter(function(o){return o!==ext;}).forEach(function(o){
+    var opt=document.createElement('option');
+    opt.value=o;
+    var oType=getType(o)||'';
+    opt.textContent='.'+o+' ('+oType+')';
+    sel.appendChild(opt);
+  });
+  sel.disabled=false;
+  sel.onchange=function(){
+    document.getElementById('convert-btn').disabled=!sel.value;
+  };
+}
+
 document.getElementById('file-input').onchange = async function(){
   inputFile = this.files[0];
   if(!inputFile) return;
   inputExt = inputFile.name.split('.').pop().toLowerCase();
   if(inputExt==='jpeg') inputExt='jpg';
-  inputType = detectType(inputExt);
+  inputType = getType(inputExt);
 
   document.getElementById('file-info').textContent = inputFile.name+', '+fmtSize(inputFile.size);
   document.getElementById('upload-btn').textContent = 'Replace File';
 
-  if(!inputType){
-    document.getElementById('detected').textContent = 'Unsupported file type: .'+inputExt;
-    document.getElementById('output-select').disabled = true;
-    document.getElementById('convert-btn').disabled = true;
-    return;
+  // Auto-select input format dropdown
+  document.getElementById('input-select').value=inputExt;
+  if(inputType) updateOutputDropdown(inputExt);
+  else {
+    document.getElementById('output-select').innerHTML='<option value="">Unsupported format</option>';
+    document.getElementById('output-select').disabled=true;
   }
-
-  document.getElementById('detected').textContent = 'Detected: '+inputType+' (.'+inputExt+')';
-
-  var sel = document.getElementById('output-select');
-  sel.innerHTML = '';
-  var outputs = conversions[inputType].outputs.filter(function(o){return o!==inputExt;});
-  outputs.forEach(function(o){
-    var opt = document.createElement('option');
-    opt.value = o;
-    opt.textContent = '.'+o.toUpperCase();
-    sel.appendChild(opt);
-  });
-  sel.disabled = false;
-  document.getElementById('convert-btn').disabled = false;
   document.getElementById('status').textContent = 'Status: Ready';
   document.getElementById('preview').style.display = 'none';
 };
 
 async function convert(){
-  if(!inputFile||!inputType) return;
+  var selExt = document.getElementById('input-select').value || inputExt;
+  var type = getType(selExt);
+  if(!inputFile||!type) return;
   var outFmt = document.getElementById('output-select').value;
+  if(!outFmt) return;
   document.getElementById('status').textContent = 'Status: Converting...';
   document.getElementById('convert-btn').disabled = true;
 
   try {
     var result = null;
+    var textTypes=['Text','Text/Data'];
+    var imgTypes=['Image'];
+    var dataTypes=['Data'];
 
-    if(inputType==='text'){
-      result = await convertText(inputFile, inputExt, outFmt);
-    } else if(inputType==='image'){
-      result = await convertImage(inputFile, inputExt, outFmt);
-    } else if(inputType==='data'){
-      result = await convertData(inputFile, inputExt, outFmt);
+    if(textTypes.indexOf(type)>=0 && ['txt','pdf','docx','jpg'].indexOf(outFmt)>=0){
+      result = await convertText(inputFile, selExt, outFmt);
+    } else if(imgTypes.indexOf(type)>=0){
+      result = await convertImage(inputFile, selExt, outFmt);
+    } else if(dataTypes.indexOf(type)>=0 || (type==='Text/Data' && ['csv','json','xlsx','xml','tsv','md'].indexOf(outFmt)>=0)){
+      result = await convertData(inputFile, selExt, outFmt);
     }
 
     if(result){
