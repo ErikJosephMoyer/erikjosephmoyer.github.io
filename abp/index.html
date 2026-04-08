@@ -420,8 +420,10 @@ function parseM4BMetadata(file){
         scanPos += sz;
         if(scanPos > file.size) break;
       }
-      if(moovStart < 0){ resolve(); return; }
+      if(moovStart < 0){ document.title='v16: no moov'; resolve(); return; }
+      document.title='v16: reading moov at '+moovStart+' size '+moovSize;
       const moovBuf = new Uint8Array(await readSlice(file, moovStart, Math.min(moovSize, 16*1024*1024)));
+      document.title='v16: moov read ok, '+moovBuf.length+' bytes';
       const mv = new DataView(moovBuf.buffer);
 
       let title='', album='';
