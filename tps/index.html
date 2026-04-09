@@ -54,6 +54,7 @@ select:focus{outline:none}
 <option value="Garamond" style="font-family:Garamond">Garamond</option>
 <option value="Georgia" selected style="font-family:Georgia">Georgia</option>
 <option value="Helvetica" style="font-family:Helvetica">Helvetica</option>
+<option value="Roboto" style="font-family:Roboto">Roboto</option>
 <option value="Times New Roman" style="font-family:'Times New Roman'">Times New Roman</option>
 <option value="Verdana" style="font-family:Verdana">Verdana</option>
 </select></div>
@@ -289,7 +290,7 @@ async function generate(){
   var fontFileMap={
     'Arial':'Arial','Arial Narrow':'Arial_Narrow','Calibri':'Calibri',
     'EB Garamond':'EB_Garamond','Garamond':'Garamond','Georgia':'Georgia',
-    'Times New Roman':'Times_New_Roman','Verdana':'Verdana'
+    'Roboto':'Roboto','Times New Roman':'Times_New_Roman','Verdana':'Verdana'
   };
   var fontFile=fontFileMap[fontName];
   if(fontFile){
