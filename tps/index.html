@@ -23,11 +23,11 @@ button:disabled{background:#555;color:#888;cursor:default}
 select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 8pt}
 select option{background:#2a2a2a;color:#fff}
 select:focus{outline:none}
-.row{display:flex;gap:8px;margin:0 0 8pt}
-.row select{flex:1;margin:0}
+.setting{display:flex;align-items:center;gap:8px;margin:0 0 6pt}
+.setting-label{white-space:nowrap;min-width:140px;text-align:right;font-size:16pt}
+.setting select{flex:1}
 #status{text-align:center;font-size:16pt;color:white;margin:0 0 8pt}
 #file-input{display:none}
-label{font-size:14pt;color:#aaa;display:block;text-align:center;margin:0 0 4pt}
 </style>
 </head>
 <body>
@@ -39,8 +39,11 @@ label{font-size:14pt;color:#aaa;display:block;text-align:center;margin:0 0 4pt}
 <input type="file" id="file-input" accept=".txt,.doc,.docx,.pdf,.epub">
 <div id="file-info">No file selected</div>
 
-<label>Font</label>
-<select id="font-select">
+<textarea id="text-input" placeholder="Paste or type text here..." style="width:100%;height:150px;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:10px;resize:none;overflow-y:auto;display:block;margin:0 0 8pt"></textarea>
+
+<h2>Settings</h2>
+
+<div class="setting"><span class="setting-label">Font:</span><select id="font-select">
 <option value="Aptos" style="font-family:Aptos">Aptos</option>
 <option value="Arial" style="font-family:Arial">Arial</option>
 <option value="Arial Narrow" style="font-family:'Arial Narrow'">Arial Narrow</option>
@@ -60,44 +63,41 @@ label{font-size:14pt;color:#aaa;display:block;text-align:center;margin:0 0 4pt}
 <option value="Roboto" style="font-family:Roboto">Roboto</option>
 <option value="Source Serif 4" style="font-family:'Source Serif 4'">Source Serif Pro</option>
 <option value="Times New Roman" style="font-family:'Times New Roman'">Times New Roman</option>
-</select>
+</select></div>
 
-<div class="row">
-<select id="size-select">
-<option value="5">Size 5</option>
-<option value="10">Size 10</option>
-<option value="12">Size 12</option>
-<option value="15">Size 15</option>
-<option value="20">Size 20</option>
-<option value="25" selected>Size 25</option>
-<option value="30">Size 30</option>
-</select>
-<select id="color-select">
-<option value="black" selected>Black bg, White text</option>
-<option value="white">White bg, Black text</option>
-<option value="gray">Gray bg (#2a2a2a), White text</option>
-</select>
-</div>
+<div class="setting"><span class="setting-label">Font Size:</span><select id="size-select">
+<option value="5">5</option>
+<option value="10">10</option>
+<option value="12">12</option>
+<option value="15">15</option>
+<option value="20">20</option>
+<option value="25" selected>25</option>
+<option value="30">30</option>
+</select></div>
 
-<div class="row">
-<select id="margin-select">
-<option value="0">Margins: 0"</option>
-<option value="7.2">Margins: 0.1"</option>
-<option value="18" selected>Margins: 0.25"</option>
-<option value="36">Margins: 0.5"</option>
-<option value="72">Margins: 1"</option>
-</select>
-<select id="align-select">
+<div class="setting"><span class="setting-label">Color Theme:</span><select id="color-select">
+<option value="black" selected>Black Fill, White Text</option>
+<option value="gray">Gray Fill, White Text</option>
+<option value="white">White Fill, Black Text</option>
+</select></div>
+
+<div class="setting"><span class="setting-label">Margins:</span><select id="margin-select">
+<option value="0">0"</option>
+<option value="7.2">0.1"</option>
+<option value="18" selected>0.25"</option>
+<option value="36">0.5"</option>
+<option value="72">1"</option>
+</select></div>
+
+<div class="setting"><span class="setting-label">Alignment:</span><select id="align-select">
 <option value="justify" selected>Justified</option>
-<option value="left">Left-aligned</option>
-</select>
-</div>
+<option value="left">Left-Aligned</option>
+</select></div>
 
-<div class="row">
-<select id="matter-select">
-<option value="cut" selected>Cut front/back matter</option>
-<option value="keep">Keep all matter</option>
-</select>
+<div class="setting"><span class="setting-label">Front/Back Matter:</span><select id="matter-select">
+<option value="cut" selected>Exclude</option>
+<option value="keep">Include</option>
+</select></div>
 </div>
 
 <button id="gen-btn" onclick="generate()" disabled>Generate PDF</button>
@@ -136,6 +136,14 @@ document.getElementById('file-input').onchange = async function(){
     document.getElementById('gen-btn').disabled=false;
   }catch(e){
     document.getElementById('status').textContent='Status: Error reading file';
+  }
+};
+
+document.getElementById('text-input').oninput=function(){
+  if(this.value.trim().length>0){
+    rawText=this.value;
+    document.getElementById('gen-btn').disabled=false;
+    document.getElementById('status').textContent='Status: Ready ('+rawText.split(/\s+/).length+' words)';
   }
 };
 
