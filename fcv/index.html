@@ -245,40 +245,34 @@ async function convertText(file, fromExt, toExt){
   } else if(fromExt==='epub'){
     var buf = await file.arrayBuffer();
     var zip = await JSZip.loadAsync(buf);
-    // Read container.xml to find OPF path
-    var containerXml = await zip.file('META-INF/container.xml').async('string');
-    var cParser = new DOMParser();
-    var cDoc = cParser.parseFromString(containerXml, 'text/xml');
-    var rootfile = cDoc.querySelector('rootfile');
-    var opfPath = rootfile.getAttribute('full-path');
+    var dp = new DOMParser();
+    var containerStr = await zip.file('META-INF/container.xml').async('string');
+    var cDoc = dp.parseFromString(containerStr, 'text/xml');
+    var rootfiles = cDoc.getElementsByTagName('rootfile');
+    if(!rootfiles.length) throw new Error('No rootfile in container.xml');
+    var opfPath = rootfiles[0].getAttribute('full-path');
     var opfDir = opfPath.substring(0, opfPath.lastIndexOf('/') + 1);
-    // Read OPF to get manifest and spine order
-    var opfXml = await zip.file(opfPath).async('string');
-    var opfDoc = cParser.parseFromString(opfXml, 'text/xml');
+    var opfStr = await zip.file(opfPath).async('string');
+    var opfDoc = dp.parseFromString(opfStr, 'text/xml');
     var manifest = {};
-    opfDoc.querySelectorAll('manifest item').forEach(function(item){
-      manifest[item.getAttribute('id')] = item.getAttribute('href');
-    });
-    var spineIds = [];
-    opfDoc.querySelectorAll('spine itemref').forEach(function(ref){
-      spineIds.push(ref.getAttribute('idref'));
-    });
-    // Read each spine item in order, extract text from XHTML
+    var items = opfDoc.getElementsByTagName('item');
+    for(var mi = 0; mi < items.length; mi++){
+      manifest[items[mi].getAttribute('id')] = items[mi].getAttribute('href');
+    }
+    var spineRefs = opfDoc.getElementsByTagName('itemref');
     var allText = [];
-    for(var i = 0; i < spineIds.length; i++){
-      var href = manifest[spineIds[i]];
+    for(var si = 0; si < spineRefs.length; si++){
+      var href = manifest[spineRefs[si].getAttribute('idref')];
       if(!href) continue;
-      var filePath = opfDir + href;
-      var entry = zip.file(filePath);
-      if(!entry){
-        // try without opfDir prefix
-        entry = zip.file(href);
-      }
+      var entry = zip.file(opfDir + href) || zip.file(href);
       if(!entry) continue;
       var xhtml = await entry.async('string');
-      var xDoc = cParser.parseFromString(xhtml, 'text/html');
+      var xDoc = dp.parseFromString(xhtml, 'text/html');
       var body = xDoc.querySelector('body');
-      if(body) allText.push(body.textContent.trim());
+      if(body){
+        var t = body.textContent.trim();
+        if(t.length > 0) allText.push(t);
+      }
     }
     text = allText.join('\n\n');
   }

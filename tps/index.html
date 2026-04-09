@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
@@ -142,39 +143,43 @@ document.getElementById('file-input').onchange = async function () {
 
 /* ───────── EPUB EXTRACTION ───────── */
 async function extractEpub(file) {
-  // EPUBs are ZIP files containing XHTML. We attempt basic extraction.
-  try {
-    var buf = await file.arrayBuffer();
-    var bytes = new Uint8Array(buf);
-    var texts = [];
-    // Walk ZIP local file headers
-    var i = 0;
-    while (i < bytes.length - 4) {
-      if (bytes[i] === 0x50 && bytes[i + 1] === 0x4B && bytes[i + 2] === 0x03 && bytes[i + 3] === 0x04) {
-        var fnLen = bytes[i + 26] | (bytes[i + 27] << 8);
-        var exLen = bytes[i + 28] | (bytes[i + 29] << 8);
-        var cSize = bytes[i + 18] | (bytes[i + 19] << 8) | (bytes[i + 20] << 16) | (bytes[i + 21] << 24);
-        var uSize = bytes[i + 22] | (bytes[i + 23] << 8) | (bytes[i + 24] << 16) | (bytes[i + 25] << 24);
-        var method = bytes[i + 8] | (bytes[i + 9] << 8);
-        var fnBytes = bytes.slice(i + 30, i + 30 + fnLen);
-        var fn = new TextDecoder().decode(fnBytes);
-        var dataStart = i + 30 + fnLen + exLen;
-        if (method === 0 && /\.(xhtml|html|htm)$/i.test(fn) && uSize > 0) {
-          var raw = new TextDecoder().decode(bytes.slice(dataStart, dataStart + uSize));
-          var stripped = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-          if (stripped.length > 20) texts.push(stripped);
-        }
-        i = dataStart + (cSize > 0 ? cSize : uSize);
-        if (cSize === 0 && uSize === 0) i += 1;
-      } else {
-        i++;
-      }
-    }
-    if (texts.length > 0) return texts.join('\n\n');
-    return '[EPUB extraction failed: paste text manually or convert to TXT first]';
-  } catch (e) {
-    return '[EPUB extraction failed: paste text manually or convert to TXT first]';
+  var buf = await file.arrayBuffer();
+  var zip = await JSZip.loadAsync(buf);
+  var dp = new DOMParser();
+  // Find OPF path from container.xml
+  var containerStr = await zip.file('META-INF/container.xml').async('string');
+  var containerDoc = dp.parseFromString(containerStr, 'text/xml');
+  // Use getElementsByTagName to avoid namespace issues
+  var rootfiles = containerDoc.getElementsByTagName('rootfile');
+  if (!rootfiles.length) throw new Error('No rootfile in container.xml');
+  var opfPath = rootfiles[0].getAttribute('full-path');
+  var opfDir = opfPath.substring(0, opfPath.lastIndexOf('/') + 1);
+  // Parse OPF for manifest + spine
+  var opfStr = await zip.file(opfPath).async('string');
+  var opfDoc = dp.parseFromString(opfStr, 'text/xml');
+  var manifest = {};
+  var items = opfDoc.getElementsByTagName('item');
+  for (var i = 0; i < items.length; i++) {
+    manifest[items[i].getAttribute('id')] = items[i].getAttribute('href');
   }
+  var spineRefs = opfDoc.getElementsByTagName('itemref');
+  var allText = [];
+  for (var j = 0; j < spineRefs.length; j++) {
+    var idref = spineRefs[j].getAttribute('idref');
+    var href = manifest[idref];
+    if (!href) continue;
+    var entry = zip.file(opfDir + href) || zip.file(href);
+    if (!entry) continue;
+    var xhtml = await entry.async('string');
+    var xDoc = dp.parseFromString(xhtml, 'text/html');
+    var body = xDoc.querySelector('body');
+    if (body) {
+      var t = body.textContent.trim();
+      if (t.length > 0) allText.push(t);
+    }
+  }
+  if (allText.length === 0) throw new Error('No text content found in EPUB');
+  return allText.join('\n\n');
 }
 
 /* ───────── TEXT INPUT ───────── */
