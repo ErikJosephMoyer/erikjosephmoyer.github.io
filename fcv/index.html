@@ -66,10 +66,10 @@ select:focus{outline:none}
 var inputFile=null, inputExt='', inputType='';
 
 var allFormats = [
-  {ext:'bmp',type:'Image'},{ext:'csv',type:'Data'},{ext:'doc',type:'Text'},{ext:'docx',type:'Text'},
+  {ext:'csv',type:'Data'},{ext:'doc',type:'Text'},{ext:'docx',type:'Text'},
   {ext:'epub',type:'Text'},{ext:'gif',type:'Image'},{ext:'heic',type:'Image'},{ext:'heif',type:'Image'},
   {ext:'jpg',type:'Image'},{ext:'json',type:'Data'},{ext:'md',type:'Data'},{ext:'pdf',type:'Text'},
-  {ext:'png',type:'Image'},{ext:'svg',type:'Image'},{ext:'tsv',type:'Data'},{ext:'txt',type:'Text/Data'},
+  {ext:'png',type:'Image'},{ext:'svg',type:'Image'},{ext:'tsv',type:'Data'},{ext:'txt',type:'Data/Text'},
   {ext:'webp',type:'Image'},{ext:'xls',type:'Data'},{ext:'xlsx',type:'Data'},{ext:'xml',type:'Data'}
 ];
 
@@ -77,7 +77,7 @@ var outputMap = {
   Text: ['txt','pdf','docx','jpg'],
   Image: ['jpg','png','gif'],
   Data: ['csv','json','xlsx','xml','tsv','md'],
-  'Text/Data': ['txt','pdf','docx','jpg','csv','json','xlsx','xml','tsv','md']
+  'Data/Text': ['txt','pdf','docx','jpg','csv','json','xlsx','xml','tsv','md']
 };
 
 function getType(ext){
@@ -99,7 +99,7 @@ function populateInputDropdown(filterType){
   var sel=document.getElementById('input-select');
   var cur=sel.value;
   sel.innerHTML='<option value="" disabled selected style="color:#666">Select input format</option>';
-  var formats=filterType?allFormats.filter(function(f){return f.type===filterType||f.type==='Text/Data';}):allFormats;
+  var formats=filterType?allFormats.filter(function(f){return f.type===filterType||f.type==='Data/Text';}):allFormats;
   formats.forEach(function(f){
     var o=document.createElement('option');
     o.value=f.ext;
@@ -176,7 +176,7 @@ async function convert(){
 
   try {
     var result = null;
-    var textTypes=['Text','Text/Data'];
+    var textTypes=['Text','Data/Text'];
     var imgTypes=['Image'];
     var dataTypes=['Data'];
 
@@ -184,7 +184,7 @@ async function convert(){
       result = await convertText(inputFile, selExt, outFmt);
     } else if(imgTypes.indexOf(type)>=0){
       result = await convertImage(inputFile, selExt, outFmt);
-    } else if(dataTypes.indexOf(type)>=0 || (type==='Text/Data' && ['csv','json','xlsx','xml','tsv','md'].indexOf(outFmt)>=0)){
+    } else if(dataTypes.indexOf(type)>=0 || (type==='Data/Text' && ['csv','json','xlsx','xml','tsv','md'].indexOf(outFmt)>=0)){
       result = await convertData(inputFile, selExt, outFmt);
     }
 
