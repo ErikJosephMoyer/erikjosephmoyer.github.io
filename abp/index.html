@@ -15,7 +15,8 @@ body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;mar
 h1{font-size:28pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
 h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
 
-button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 14px;white-space:nowrap}
+button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 6px;white-space:nowrap;height:34px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
+button svg{display:block;width:20px;height:20px;flex-shrink:0}
 button:hover{background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
 
@@ -88,7 +89,13 @@ button:disabled{background:#555;color:#888;cursor:default}
 <div id="ch-bar" onclick="seekChapter(event)"><div id="ch-fill"></div></div>
 <div id="time-row"><span id="cur-time">0:00</span><span id="tot-time">0:00</span></div>
 
-<div id="btn-row-top" style="display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;margin:0 0 4pt">
+<div id="btn-row" style="display:flex;align-items:center;justify-content:center;gap:3px;flex-wrap:wrap;margin:0 0 8pt">
+  <button id="speed-btn" title="Speed" disabled onclick="cycleSpeed()" style="min-width:38px">
+    <span id="speed-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">1x</span>
+  </button>
+  <button id="pitch-btn" title="Pitch" disabled onclick="cyclePitch()" style="min-width:30px">
+    <span id="pitch-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">0</span>
+  </button>
   <button id="prev-btn" title="Previous Chapter" disabled onclick="prevChapter()">
     <svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16" fill="#2a2a2a"/><polygon points="20,4 9,12 20,20" fill="#2a2a2a"/></svg>
   </button>
@@ -105,25 +112,13 @@ button:disabled{background:#555;color:#888;cursor:default}
   <button id="next-btn" title="Next Chapter" disabled onclick="nextChapter()">
     <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20" fill="#2a2a2a"/><rect x="17" y="4" width="3" height="16" fill="#2a2a2a"/></svg>
   </button>
-</div>
-<div id="btn-row-bottom" style="display:flex;align-items:center;justify-content:space-between;width:100%">
-  <div style="display:flex;gap:4px">
-    <button id="speed-btn" title="Speed" disabled onclick="cycleSpeed()">
-      <span id="speed-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">1x</span>
-    </button>
-    <button id="pitch-btn" title="Pitch" disabled onclick="cyclePitch()">
-      <span id="pitch-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">0</span>
-    </button>
-  </div>
-  <div style="display:flex;gap:4px">
-    <button id="mute-btn" title="Mute" disabled onclick="toggleMute()">
-      <svg id="unmuted-icon" viewBox="0 0 24 24" width="20" height="20"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#2a2a2a"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="#2a2a2a"/></svg>
-      <svg id="muted-icon" viewBox="0 0 24 24" width="20" height="20" style="display:none"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#2a2a2a"/><line x1="18" y1="8" x2="14" y2="16" stroke="#2a2a2a" stroke-width="2"/></svg>
-    </button>
-    <button id="boost-btn" title="Volume Boost" disabled onclick="cycleBoost()" style="min-width:42px">
-      <span id="boost-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">0</span>
-    </button>
-  </div>
+  <button id="mute-btn" title="Mute" disabled onclick="toggleMute()">
+    <svg id="unmuted-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#2a2a2a"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="#2a2a2a"/></svg>
+    <svg id="muted-icon" viewBox="0 0 24 24" style="display:none"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#2a2a2a"/></svg>
+  </button>
+  <button id="boost-btn" title="Volume Boost" disabled onclick="cycleBoost()" style="min-width:34px">
+    <span id="boost-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">0</span>
+  </button>
 </div>
 
 <script>
@@ -835,8 +830,8 @@ function cycleSpeed(){
 }
 var pitchIdx=2;
 var pitchLevels=[
-  {label:'--',rate:0.85},{label:'-',rate:0.92},{label:'0',rate:1.0},
-  {label:'+',rate:1.04},{label:'++',rate:1.08}
+  {label:'-2',rate:0.85},{label:'-1',rate:0.92},{label:'0',rate:1.0},
+  {label:'1',rate:1.04},{label:'2',rate:1.08}
 ];
 function cyclePitch(){
   pitchIdx=(pitchIdx+1)%pitchLevels.length;
@@ -862,7 +857,7 @@ function cycleBoost(){
   boostIdx = (boostIdx + 1) % boostLevels.length;
   var db = boostLevels[boostIdx];
   gainNode.gain.value = Math.pow(10, db / 20);
-  var labels = ['0', '+1', '+2'];
+  var labels = ['0', '+', '++'];
   document.getElementById('boost-label').textContent = labels[boostIdx];
 }
 
@@ -1002,9 +997,9 @@ document.addEventListener('keydown',(e)=>{
   } catch(e) { console.error('autoReload error:', e); }
 })();
 </script>
-<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff"><a href="/" style="color:#fff">Home</a> | <a href="/fcv/" style="color:#fff">File Converter</a> | <a href="/stt/" style="color:#fff">Speech-to-Texter</a> | <a href="/tts/" style="color:#fff">Text-to-Speecher</a> | <a href="/tps/" style="color:#fff">Typesetter</a>
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/fcv/" style="color:#fff">File Converter</a> | <a href="/stt/" style="color:#fff">Speech-to-Texter</a> | <a href="/tts/" style="color:#fff">Text-to-Speecher</a> | <a href="/tps/" style="color:#fff">Typesetter</a></div>
 <br>
-<img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+<img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:8pt auto 8pt;border-radius:50%">
 </body>
 </html>
 <!-- v -->

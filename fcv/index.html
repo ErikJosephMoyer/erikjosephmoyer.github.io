@@ -14,6 +14,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
@@ -72,7 +73,7 @@ var allFormats = [
   {ext:'epub',type:'Text',desc:'E-Book'},
   {ext:'gif',type:'Image',desc:'Animated'},
   {ext:'heic',type:'Image',desc:'iPhone Photo'},
-  {ext:'heif',type:'Image',desc:'iPhone Photo'},
+  {ext:'heif',type:'Image',desc:'Alt iPhone'},
   {ext:'jpg',type:'Image',desc:'Lossy Image'},
   {ext:'json',type:'Data',desc:'JSON Data'},
   {ext:'md',type:'Data',desc:'Markdown'},
@@ -242,7 +243,44 @@ async function convertText(file, fromExt, toExt){
     }
     text = pages.join('\n');
   } else if(fromExt==='epub'){
-    text = '[EPUB extraction requires server-side processing. Please use the TTS tool to extract text from EPUB files.]';
+    var buf = await file.arrayBuffer();
+    var zip = await JSZip.loadAsync(buf);
+    // Read container.xml to find OPF path
+    var containerXml = await zip.file('META-INF/container.xml').async('string');
+    var cParser = new DOMParser();
+    var cDoc = cParser.parseFromString(containerXml, 'text/xml');
+    var rootfile = cDoc.querySelector('rootfile');
+    var opfPath = rootfile.getAttribute('full-path');
+    var opfDir = opfPath.substring(0, opfPath.lastIndexOf('/') + 1);
+    // Read OPF to get manifest and spine order
+    var opfXml = await zip.file(opfPath).async('string');
+    var opfDoc = cParser.parseFromString(opfXml, 'text/xml');
+    var manifest = {};
+    opfDoc.querySelectorAll('manifest item').forEach(function(item){
+      manifest[item.getAttribute('id')] = item.getAttribute('href');
+    });
+    var spineIds = [];
+    opfDoc.querySelectorAll('spine itemref').forEach(function(ref){
+      spineIds.push(ref.getAttribute('idref'));
+    });
+    // Read each spine item in order, extract text from XHTML
+    var allText = [];
+    for(var i = 0; i < spineIds.length; i++){
+      var href = manifest[spineIds[i]];
+      if(!href) continue;
+      var filePath = opfDir + href;
+      var entry = zip.file(filePath);
+      if(!entry){
+        // try without opfDir prefix
+        entry = zip.file(href);
+      }
+      if(!entry) continue;
+      var xhtml = await entry.async('string');
+      var xDoc = cParser.parseFromString(xhtml, 'text/html');
+      var body = xDoc.querySelector('body');
+      if(body) allText.push(body.textContent.trim());
+    }
+    text = allText.join('\n\n');
   }
 
   if(toExt==='jpg'&&fromExt==='pdf'){
