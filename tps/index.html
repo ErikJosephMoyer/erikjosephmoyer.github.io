@@ -44,14 +44,16 @@ select:focus{outline:none}
 <h2>Settings</h2>
 
 <div class="setting"><span class="setting-label">Font:</span><select id="font-select">
+<option value="Arial" style="font-family:Arial">Arial</option>
+<option value="Arial Narrow" style="font-family:'Arial Narrow'">Arial Narrow</option>
+<option value="Calibri" style="font-family:Calibri">Calibri</option>
 <option value="EB Garamond" style="font-family:'EB Garamond'">EB Garamond</option>
+<option value="Garamond" style="font-family:Garamond">Garamond</option>
+<option value="Georgia" selected style="font-family:Georgia">Georgia</option>
 <option value="Helvetica" style="font-family:Helvetica">Helvetica</option>
-<option value="Literata" style="font-family:Literata">Literata</option>
-<option value="Lora" style="font-family:Lora">Lora</option>
-<option value="Merriweather" style="font-family:Merriweather">Merriweather</option>
-<option value="Open Sans" style="font-family:'Open Sans'">Open Sans</option>
-<option value="Roboto" style="font-family:Roboto">Roboto</option>
-<option value="Times New Roman" selected style="font-family:'Times New Roman'">Times New Roman</option>
+<option value="Helvetica Neue" style="font-family:'Helvetica Neue'">Helvetica Neue</option>
+<option value="Times New Roman" style="font-family:'Times New Roman'">Times New Roman</option>
+<option value="Verdana" style="font-family:Verdana">Verdana</option>
 </select></div>
 
 <div class="setting"><span class="setting-label">Font Size:</span><select id="size-select">
@@ -279,12 +281,39 @@ async function generate(){
   var cw=pw-margin*2;
   var lineH=fontSize*1.3;
 
-  // jsPDF only supports helvetica/courier/times built-in
-  // Map font names to jsPDF built-ins
-  var jsPDFFont='helvetica';
-  if(/times|georgia|garamond|baskerville|palatino|lora|merriweather|literata|source serif/i.test(fontName)) jsPDFFont='times';
-  else if(/courier/i.test(fontName)) jsPDFFont='courier';
-  doc.setFont(jsPDFFont,'normal');
+  // Load and embed the selected font
+  var fontFileMap={
+    'Arial':'Arial','Arial Narrow':'Arial_Narrow','Calibri':'Calibri',
+    'EB Garamond':'EB_Garamond','Garamond':'Garamond','Georgia':'Georgia',
+    'Times New Roman':'Times_New_Roman','Verdana':'Verdana'
+  };
+  var fontFile=fontFileMap[fontName];
+  if(fontFile){
+    try{
+      document.getElementById('status').textContent='Status: Loading font...';
+      var script=document.createElement('script');
+      script.src='/tps/fonts/'+fontFile+'.js';
+      await new Promise(function(resolve,reject){
+        script.onload=resolve; script.onerror=reject;
+        document.head.appendChild(script);
+      });
+      if(typeof FONT_DATA!=='undefined'){
+        var fontBytes=atob(FONT_DATA);
+        var fontArray=new Uint8Array(fontBytes.length);
+        for(var i=0;i<fontBytes.length;i++) fontArray[i]=fontBytes.charCodeAt(i);
+        doc.addFileToVFS(fontFile+'.ttf',FONT_DATA);
+        doc.addFont(fontFile+'.ttf',fontFile,'normal');
+        doc.setFont(fontFile,'normal');
+        FONT_DATA=undefined;
+      }
+    }catch(e){
+      doc.setFont('helvetica','normal');
+    }
+  } else if(fontName==='Helvetica'||fontName==='Helvetica Neue'){
+    doc.setFont('helvetica','normal');
+  } else {
+    doc.setFont('times','normal');
+  }
   doc.setFontSize(fontSize);
 
   function newPage(){
