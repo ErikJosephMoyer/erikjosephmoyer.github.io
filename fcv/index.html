@@ -66,11 +66,25 @@ select:focus{outline:none}
 var inputFile=null, inputExt='', inputType='';
 
 var allFormats = [
-  {ext:'csv',type:'Data'},{ext:'doc',type:'Text'},{ext:'docx',type:'Text'},
-  {ext:'epub',type:'Text'},{ext:'gif',type:'Image'},{ext:'heic',type:'Image'},{ext:'heif',type:'Image'},
-  {ext:'jpg',type:'Image'},{ext:'json',type:'Data'},{ext:'md',type:'Data'},{ext:'pdf',type:'Text'},
-  {ext:'png',type:'Image'},{ext:'svg',type:'Image'},{ext:'tsv',type:'Data'},{ext:'txt',type:'Data/Text'},
-  {ext:'webp',type:'Image'},{ext:'xls',type:'Data'},{ext:'xlsx',type:'Data'},{ext:'xml',type:'Data'}
+  {ext:'csv',type:'Data',desc:'Spreadsheet'},
+  {ext:'doc',type:'Text',desc:'Word Legacy'},
+  {ext:'docx',type:'Text',desc:'Word'},
+  {ext:'epub',type:'Text',desc:'E-Book'},
+  {ext:'gif',type:'Image',desc:'Animated'},
+  {ext:'heic',type:'Image',desc:'iPhone Photo'},
+  {ext:'heif',type:'Image',desc:'iPhone Photo'},
+  {ext:'jpg',type:'Image',desc:'Photo'},
+  {ext:'json',type:'Data',desc:'Structured'},
+  {ext:'md',type:'Data',desc:'Markdown'},
+  {ext:'pdf',type:'Text',desc:'Document'},
+  {ext:'png',type:'Image',desc:'Lossless'},
+  {ext:'svg',type:'Image',desc:'Vector'},
+  {ext:'tsv',type:'Data',desc:'Tab-Delimited'},
+  {ext:'txt',type:'Data/Text',desc:'Plain Text'},
+  {ext:'webp',type:'Image',desc:'Web Photo'},
+  {ext:'xls',type:'Data',desc:'Excel Legacy'},
+  {ext:'xlsx',type:'Data',desc:'Excel'},
+  {ext:'xml',type:'Data',desc:'Markup'}
 ];
 
 var outputMap = {
@@ -103,7 +117,7 @@ function populateInputDropdown(filterType){
   formats.forEach(function(f){
     var o=document.createElement('option');
     o.value=f.ext;
-    o.textContent='.'+f.ext+' ('+f.type+')';
+    o.textContent='.'+f.ext+' ('+f.desc+', '+f.type+')';
     if(f.ext===cur) o.selected=true;
     sel.appendChild(o);
   });
@@ -118,7 +132,8 @@ function populateOutputDropdown(filterType, excludeExt){
     var opt=document.createElement('option');
     opt.value=o;
     var oType=getType(o)||'';
-    opt.textContent='.'+o+' ('+oType+')';
+    var oFmt=allFormats.find(function(x){return x.ext===o;});
+    opt.textContent='.'+o+' ('+(oFmt?oFmt.desc+', ':'')+oType+')';
     if(o===cur) opt.selected=true;
     sel.appendChild(opt);
   });
