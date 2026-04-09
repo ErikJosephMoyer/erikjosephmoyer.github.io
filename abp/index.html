@@ -64,7 +64,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 
 <img src="/images/AudiobookerLogo.png" alt="ABP" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Jibberjabberer</h1>
-<h2>An Audiobook Player</h2>
+<h2><em>Hear With Your Ears</em>: An Audiobook Player</h2>
 
 <div class="btn-row">
   <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
@@ -88,31 +88,42 @@ button:disabled{background:#555;color:#888;cursor:default}
 <div id="ch-bar" onclick="seekChapter(event)"><div id="ch-fill"></div></div>
 <div id="time-row"><span id="cur-time">0:00</span><span id="tot-time">0:00</span></div>
 
-<div id="btn-row">
-  <button id="speed-btn" title="Speed" disabled onclick="cycleSpeed()">
-    <span id="speed-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">1x</span>
+<div id="btn-row-top" style="display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;margin:0 0 4pt">
+  <button id="prev-btn" title="Previous Chapter" disabled onclick="prevChapter()">
+    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16" fill="#2a2a2a"/><polygon points="20,4 9,12 20,20" fill="#2a2a2a"/></svg>
   </button>
-  <div id="transport">
-    <button id="prev-btn" title="Previous Chapter" disabled onclick="prevChapter()">
-      <svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16" fill="#2a2a2a"/><polygon points="20,4 9,12 20,20" fill="#2a2a2a"/></svg>
+  <button id="skipb-btn" title="Back 10s" disabled onclick="skip(-10)">
+    <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="#2a2a2a" stroke="none"/></svg>
+  </button>
+  <button id="play-btn" title="Play" disabled onclick="togglePlay()">
+    <svg viewBox="0 0 24 24" id="play-icon"><polygon points="8,5 19,12 8,19" fill="#2a2a2a" stroke="none"/></svg>
+    <svg viewBox="0 0 24 24" id="pause-icon" style="display:none"><rect x="6" y="4" width="4" height="16" fill="#2a2a2a"/><rect x="14" y="4" width="4" height="16" fill="#2a2a2a"/></svg>
+  </button>
+  <button id="skipf-btn" title="Forward 10s" disabled onclick="skip(10)">
+    <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z" fill="#2a2a2a" stroke="none"/></svg>
+  </button>
+  <button id="next-btn" title="Next Chapter" disabled onclick="nextChapter()">
+    <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20" fill="#2a2a2a"/><rect x="17" y="4" width="3" height="16" fill="#2a2a2a"/></svg>
+  </button>
+</div>
+<div id="btn-row-bottom" style="display:flex;align-items:center;justify-content:space-between;width:100%">
+  <div style="display:flex;gap:4px">
+    <button id="speed-btn" title="Speed" disabled onclick="cycleSpeed()">
+      <span id="speed-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">1x</span>
     </button>
-    <button id="skipb-btn" title="Back 10s" disabled onclick="skip(-10)">
-      <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="#2a2a2a" stroke="none"/></svg>
-    </button>
-    <button id="play-btn" title="Play" disabled onclick="togglePlay()">
-      <svg viewBox="0 0 24 24" id="play-icon"><polygon points="8,5 19,12 8,19" fill="#2a2a2a" stroke="none"/></svg>
-      <svg viewBox="0 0 24 24" id="pause-icon" style="display:none"><rect x="6" y="4" width="4" height="16" fill="#2a2a2a"/><rect x="14" y="4" width="4" height="16" fill="#2a2a2a"/></svg>
-    </button>
-    <button id="skipf-btn" title="Forward 10s" disabled onclick="skip(10)">
-      <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z" fill="#2a2a2a" stroke="none"/></svg>
-    </button>
-    <button id="next-btn" title="Next Chapter" disabled onclick="nextChapter()">
-      <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20" fill="#2a2a2a"/><rect x="17" y="4" width="3" height="16" fill="#2a2a2a"/></svg>
+    <button id="pitch-btn" title="Pitch" disabled onclick="cyclePitch()">
+      <span id="pitch-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">0</span>
     </button>
   </div>
-  <button id="pitch-btn" title="Pitch" disabled onclick="cyclePitch()">
-    <span id="pitch-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">0</span>
-  </button>
+  <div style="display:flex;gap:4px">
+    <button id="mute-btn" title="Mute" disabled onclick="toggleMute()">
+      <svg id="unmuted-icon" viewBox="0 0 24 24" width="20" height="20"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#2a2a2a"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="#2a2a2a"/></svg>
+      <svg id="muted-icon" viewBox="0 0 24 24" width="20" height="20" style="display:none"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#2a2a2a"/><line x1="18" y1="8" x2="14" y2="16" stroke="#2a2a2a" stroke-width="2"/></svg>
+    </button>
+    <button id="boost-btn" title="Volume Boost" disabled onclick="cycleBoost()" style="min-width:42px">
+      <span id="boost-label" style="font:14pt 'EB Garamond',serif;color:#2a2a2a;white-space:nowrap">0</span>
+    </button>
+  </div>
 </div>
 
 <script>
@@ -134,6 +145,9 @@ const toneLevels = [
 ];
 let baseSpeed = 1;
 
+let gainNode = null;
+let boostIdx = 0;
+let boostLevels = [0, 6, 12];
 function ensureAudioCtx(){
   if(audioCtx) return;
   audioCtx = new (window.AudioContext||window.webkitAudioContext)();
@@ -142,8 +156,11 @@ function ensureAudioCtx(){
   biquadFilter.type = 'peaking';
   biquadFilter.gain.value = 0;
   biquadFilter.Q.value = 1;
+  gainNode = audioCtx.createGain();
+  gainNode.gain.value = 1;
   sourceNode.connect(biquadFilter);
-  biquadFilter.connect(audioCtx.destination);
+  biquadFilter.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
 }
 function applyTone(){
   if(!biquadFilter) return;
@@ -715,7 +732,7 @@ function goToChapter(idx){
   updateBookProgress();
 }
 function enablePlayer(){
-  ['speed-btn','pitch-btn','prev-btn','skipb-btn','play-btn','skipf-btn','next-btn'].forEach(id=>{
+  ['speed-btn','pitch-btn','prev-btn','skipb-btn','play-btn','skipf-btn','next-btn','mute-btn','boost-btn'].forEach(id=>{
     document.getElementById(id).disabled=false;
   });
 }
@@ -834,6 +851,19 @@ function cyclePitch(){
     audio.playbackRate=pr;
   }
   document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
+}
+function toggleMute(){
+  audio.muted = !audio.muted;
+  document.getElementById('unmuted-icon').style.display = audio.muted ? 'none' : '';
+  document.getElementById('muted-icon').style.display = audio.muted ? '' : 'none';
+}
+function cycleBoost(){
+  ensureAudioCtx();
+  boostIdx = (boostIdx + 1) % boostLevels.length;
+  var db = boostLevels[boostIdx];
+  gainNode.gain.value = Math.pow(10, db / 20);
+  var labels = ['0', '+1', '+2'];
+  document.getElementById('boost-label').textContent = labels[boostIdx];
 }
 
 function seekChapter(e){

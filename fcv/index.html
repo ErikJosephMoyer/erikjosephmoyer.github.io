@@ -42,7 +42,7 @@ select:focus{outline:none}
 <body>
 <img src="/images/Favicon.png" alt="FCV" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Transmogrifier</h1>
-<h2>A File Conversion Tool</h2>
+<h2><em>Knead With Your Hands</em>: A File Conversion Tool</h2>
 
 <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
 <input type="file" id="file-input">
@@ -66,25 +66,25 @@ select:focus{outline:none}
 var inputFile=null, inputExt='', inputType='';
 
 var allFormats = [
-  {ext:'csv',type:'Data',desc:'Comma-Separated Values'},
+  {ext:'csv',type:'Data',desc:'Comma-Separated'},
   {ext:'doc',type:'Text',desc:'Word 97\u20132003'},
-  {ext:'docx',type:'Text',desc:'Word Document'},
-  {ext:'epub',type:'Text',desc:'Electronic Publication'},
-  {ext:'gif',type:'Image',desc:'Lossless Animated'},
-  {ext:'heic',type:'Image',desc:'High Efficiency Container'},
-  {ext:'heif',type:'Image',desc:'High Efficiency Format'},
-  {ext:'jpg',type:'Image',desc:'Lossy Compressed'},
-  {ext:'json',type:'Data',desc:'JavaScript Object Notation'},
+  {ext:'docx',type:'Text',desc:'Word'},
+  {ext:'epub',type:'Text',desc:'E-Book'},
+  {ext:'gif',type:'Image',desc:'Animated'},
+  {ext:'heic',type:'Image',desc:'iPhone Photo'},
+  {ext:'heif',type:'Image',desc:'iPhone Photo'},
+  {ext:'jpg',type:'Image',desc:'Lossy Image'},
+  {ext:'json',type:'Data',desc:'JSON Data'},
   {ext:'md',type:'Data',desc:'Markdown'},
-  {ext:'pdf',type:'Text',desc:'Portable Document Format'},
-  {ext:'png',type:'Image',desc:'Lossless Compressed'},
-  {ext:'svg',type:'Image',desc:'Scalable Vector Graphics'},
-  {ext:'tsv',type:'Data',desc:'Tab-Separated Values'},
+  {ext:'pdf',type:'Text',desc:'Document'},
+  {ext:'png',type:'Image',desc:'Lossless Image'},
+  {ext:'svg',type:'Image',desc:'Vector'},
+  {ext:'tsv',type:'Data',desc:'Tab-Separated'},
   {ext:'txt',type:'Data/Text',desc:'Plain Text'},
-  {ext:'webp',type:'Image',desc:'Web Lossy/Lossless'},
+  {ext:'webp',type:'Image',desc:'Web Image'},
   {ext:'xls',type:'Data',desc:'Excel 97\u20132003'},
-  {ext:'xlsx',type:'Data',desc:'Excel Workbook'},
-  {ext:'xml',type:'Data',desc:'Extensible Markup Language'}
+  {ext:'xlsx',type:'Data',desc:'Excel'},
+  {ext:'xml',type:'Data',desc:'Markup'}
 ];
 
 var outputMap = {
