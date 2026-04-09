@@ -47,11 +47,11 @@ select:focus{outline:none}
 <div id="file-info">No file selected</div>
 
 <select id="input-select" onchange="onInputFormatChange()">
-<option value="">Select input format</option>
+<option value="" disabled selected style="color:#666">Select input format</option>
 </select>
 
-<select id="output-select" disabled>
-<option value="">Select output format</option>
+<select id="output-select" onchange="onOutputFormatChange()">
+<option value="" disabled selected style="color:#666">Select output format</option>
 </select>
 
 <button id="convert-btn" onclick="convert()" disabled>Convert</button>
@@ -90,46 +90,57 @@ function fmtSize(bytes){
   return Math.round(mb)+'MB';
 }
 
-// Populate input dropdown
-(function(){
+var allOutputs=['csv','docx','gif','jpg','json','md','pdf','png','tsv','txt','xlsx','xml'];
+
+function populateInputDropdown(filterType){
   var sel=document.getElementById('input-select');
-  allFormats.forEach(function(f){
+  var cur=sel.value;
+  sel.innerHTML='<option value="" disabled selected style="color:#666">Select input format</option>';
+  var formats=filterType?allFormats.filter(function(f){return f.type===filterType||f.type==='Text/Data';}):allFormats;
+  formats.forEach(function(f){
     var o=document.createElement('option');
     o.value=f.ext;
     o.textContent='.'+f.ext+' ('+f.type+')';
+    if(f.ext===cur) o.selected=true;
     sel.appendChild(o);
   });
-})();
-
-function onInputFormatChange(){
-  var ext=document.getElementById('input-select').value;
-  if(!ext){
-    document.getElementById('output-select').innerHTML='<option value="">Select output format</option>';
-    document.getElementById('output-select').disabled=true;
-    document.getElementById('convert-btn').disabled=true;
-    return;
-  }
-  updateOutputDropdown(ext);
 }
 
-function updateOutputDropdown(ext){
-  var type=getType(ext);
-  if(!type){document.getElementById('output-select').disabled=true;return;}
-  var outputs=outputMap[type]||[];
+function populateOutputDropdown(filterType, excludeExt){
   var sel=document.getElementById('output-select');
-  sel.innerHTML='<option value="">Select output format</option>';
-  outputs.filter(function(o){return o!==ext;}).forEach(function(o){
+  var cur=sel.value;
+  sel.innerHTML='<option value="" disabled selected style="color:#666">Select output format</option>';
+  var outputs=filterType?(outputMap[filterType]||[]):allOutputs;
+  outputs.filter(function(o){return o!==excludeExt;}).forEach(function(o){
     var opt=document.createElement('option');
     opt.value=o;
     var oType=getType(o)||'';
     opt.textContent='.'+o+' ('+oType+')';
+    if(o===cur) opt.selected=true;
     sel.appendChild(opt);
   });
-  sel.disabled=false;
-  sel.onchange=function(){
-    document.getElementById('convert-btn').disabled=!sel.value;
-  };
 }
+
+function onInputFormatChange(){
+  var ext=document.getElementById('input-select').value;
+  var type=ext?getType(ext):null;
+  populateOutputDropdown(type, ext);
+  document.getElementById('convert-btn').disabled=!document.getElementById('output-select').value;
+}
+
+function onOutputFormatChange(){
+  var outExt=document.getElementById('output-select').value;
+  var inExt=document.getElementById('input-select').value;
+  if(!inExt && outExt){
+    var outType=getType(outExt);
+    if(outType) populateInputDropdown(outType);
+  }
+  document.getElementById('convert-btn').disabled=!(inExt && outExt);
+}
+
+// Initial population — all options in both
+populateInputDropdown(null);
+populateOutputDropdown(null, null);
 
 document.getElementById('file-input').onchange = async function(){
   inputFile = this.files[0];
@@ -141,13 +152,9 @@ document.getElementById('file-input').onchange = async function(){
   document.getElementById('file-info').textContent = inputFile.name+', '+fmtSize(inputFile.size);
   document.getElementById('upload-btn').textContent = 'Replace File';
 
-  // Auto-select input format dropdown
   document.getElementById('input-select').value=inputExt;
-  if(inputType) updateOutputDropdown(inputExt);
-  else {
-    document.getElementById('output-select').innerHTML='<option value="">Unsupported format</option>';
-    document.getElementById('output-select').disabled=true;
-  }
+  if(inputType) populateOutputDropdown(inputType, inputExt);
+  else populateOutputDropdown(null, inputExt);
   document.getElementById('status').textContent = 'Status: Ready';
   document.getElementById('preview').style.display = 'none';
 };
