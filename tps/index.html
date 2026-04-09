@@ -7,7 +7,7 @@
 <title>Erik's Prettifier</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Lora&family=Merriweather&family=Source+Serif+4&family=Roboto&family=Open+Sans&family=Literata&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -69,10 +69,9 @@ select:focus{outline:none}
 <option value="30">30</option>
 </select></div>
 
-<div class="setting"><span class="setting-label">Theme:</span><select id="color-select">
-<option value="black" selected>Black Fill, White Text</option>
-<option value="gray">Gray Fill, White Text</option>
-<option value="white">White Fill, Black Text</option>
+<div class="setting"><span class="setting-label">Alignment:</span><select id="align-select">
+<option value="justify" selected>Justified</option>
+<option value="left">Left-Aligned</option>
 </select></div>
 
 <div class="setting"><span class="setting-label">Margins:</span><select id="margin-select">
@@ -83,9 +82,10 @@ select:focus{outline:none}
 <option value="72">1"</option>
 </select></div>
 
-<div class="setting"><span class="setting-label">Alignment:</span><select id="align-select">
-<option value="justify" selected>Justified</option>
-<option value="left">Left-Aligned</option>
+<div class="setting"><span class="setting-label">Theme:</span><select id="color-select">
+<option value="black" selected>Black Fill, White Text</option>
+<option value="gray">Gray Fill, White Text</option>
+<option value="white">White Fill, Black Text</option>
 </select></div>
 
 <div class="setting"><span class="setting-label">Front &amp; Back Matter:</span><select id="matter-select">
@@ -94,300 +94,750 @@ select:focus{outline:none}
 </select></div>
 
 </div>
-</div>
 
 <button id="gen-btn" onclick="generate()" disabled>Generate PDF</button>
 <div id="status">Status: Ready</div>
 
 <script>
-var inputFile=null, rawText='';
+var inputFile = null, rawText = '';
 
-document.getElementById('file-input').onchange = async function(){
-  inputFile=this.files[0];
-  if(!inputFile) return;
-  var mb=inputFile.size/1048576;
-  var sz=mb<0.05?'0.1MB':mb<0.5?mb.toFixed(1)+'MB':Math.round(mb)+'MB';
-  document.getElementById('file-info').textContent=inputFile.name+', '+sz;
-  document.getElementById('upload-btn').textContent='Replace File';
-  document.getElementById('status').textContent='Status: Extracting text...';
+/* ───────── FILE UPLOAD ───────── */
+document.getElementById('file-input').onchange = async function () {
+  inputFile = this.files[0];
+  if (!inputFile) return;
+  var mb = inputFile.size / 1048576;
+  var sz = mb < 0.05 ? '0.1 MB' : mb < 0.5 ? mb.toFixed(1) + ' MB' : Math.round(mb) + ' MB';
+  document.getElementById('file-info').textContent = inputFile.name + ', ' + sz;
+  document.getElementById('upload-btn').textContent = 'Replace File';
+  document.getElementById('status').textContent = 'Status: Extracting text...';
 
-  var ext=inputFile.name.split('.').pop().toLowerCase();
-  try{
-    if(ext==='txt'){
-      rawText=await inputFile.text();
-    } else if(ext==='docx'||ext==='doc'){
-      var buf=await inputFile.arrayBuffer();
-      rawText=(await mammoth.extractRawText({arrayBuffer:buf})).value;
-    } else if(ext==='pdf'){
-      var pdfjsLib=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
-      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
-      var pdf=await pdfjsLib.getDocument({data:await inputFile.arrayBuffer()}).promise;
-      var pages=[];
-      for(var i=1;i<=pdf.numPages;i++){var pg=await pdf.getPage(i);var ct=await pg.getTextContent();pages.push(ct.items.map(function(it){return it.str;}).join(' '));}
-      rawText=pages.join('\n');
-    } else if(ext==='epub'){
-      rawText='[EPUB: paste text manually or convert to TXT first]';
+  var ext = inputFile.name.split('.').pop().toLowerCase();
+  try {
+    if (ext === 'txt') {
+      rawText = await inputFile.text();
+    } else if (ext === 'docx' || ext === 'doc') {
+      var buf = await inputFile.arrayBuffer();
+      rawText = (await mammoth.extractRawText({ arrayBuffer: buf })).value;
+    } else if (ext === 'pdf') {
+      var pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
+      var pdf = await pdfjsLib.getDocument({ data: await inputFile.arrayBuffer() }).promise;
+      var pages = [];
+      for (var i = 1; i <= pdf.numPages; i++) {
+        var pg = await pdf.getPage(i);
+        var ct = await pg.getTextContent();
+        pages.push(ct.items.map(function (it) { return it.str; }).join(' '));
+      }
+      rawText = pages.join('\n');
+    } else if (ext === 'epub') {
+      rawText = await extractEpub(inputFile);
     }
-    document.getElementById('status').textContent='Status: Ready ('+rawText.split(/\s+/).length+' words)';
-    document.getElementById('gen-btn').disabled=false;
-  }catch(e){
-    document.getElementById('status').textContent='Status: Error reading file';
+    document.getElementById('status').textContent = 'Status: Ready (' + rawText.split(/\s+/).length.toLocaleString() + ' words)';
+    document.getElementById('gen-btn').disabled = false;
+  } catch (e) {
+    console.error(e);
+    document.getElementById('status').textContent = 'Status: Error reading file - ' + e.message;
   }
 };
 
-document.getElementById('text-input').oninput=function(){
-  if(this.value.trim().length>0){
-    rawText=this.value;
-    document.getElementById('gen-btn').disabled=false;
-    document.getElementById('status').textContent='Status: Ready ('+rawText.split(/\s+/).length+' words)';
+/* ───────── EPUB EXTRACTION ───────── */
+async function extractEpub(file) {
+  // EPUBs are ZIP files containing XHTML. We attempt basic extraction.
+  try {
+    var buf = await file.arrayBuffer();
+    var bytes = new Uint8Array(buf);
+    var texts = [];
+    // Walk ZIP local file headers
+    var i = 0;
+    while (i < bytes.length - 4) {
+      if (bytes[i] === 0x50 && bytes[i + 1] === 0x4B && bytes[i + 2] === 0x03 && bytes[i + 3] === 0x04) {
+        var fnLen = bytes[i + 26] | (bytes[i + 27] << 8);
+        var exLen = bytes[i + 28] | (bytes[i + 29] << 8);
+        var cSize = bytes[i + 18] | (bytes[i + 19] << 8) | (bytes[i + 20] << 16) | (bytes[i + 21] << 24);
+        var uSize = bytes[i + 22] | (bytes[i + 23] << 8) | (bytes[i + 24] << 16) | (bytes[i + 25] << 24);
+        var method = bytes[i + 8] | (bytes[i + 9] << 8);
+        var fnBytes = bytes.slice(i + 30, i + 30 + fnLen);
+        var fn = new TextDecoder().decode(fnBytes);
+        var dataStart = i + 30 + fnLen + exLen;
+        if (method === 0 && /\.(xhtml|html|htm)$/i.test(fn) && uSize > 0) {
+          var raw = new TextDecoder().decode(bytes.slice(dataStart, dataStart + uSize));
+          var stripped = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+          if (stripped.length > 20) texts.push(stripped);
+        }
+        i = dataStart + (cSize > 0 ? cSize : uSize);
+        if (cSize === 0 && uSize === 0) i += 1;
+      } else {
+        i++;
+      }
+    }
+    if (texts.length > 0) return texts.join('\n\n');
+    return '[EPUB extraction failed: paste text manually or convert to TXT first]';
+  } catch (e) {
+    return '[EPUB extraction failed: paste text manually or convert to TXT first]';
+  }
+}
+
+/* ───────── TEXT INPUT ───────── */
+document.getElementById('text-input').oninput = function () {
+  if (this.value.trim().length > 0) {
+    rawText = this.value;
+    document.getElementById('gen-btn').disabled = false;
+    document.getElementById('status').textContent = 'Status: Ready (' + rawText.split(/\s+/).length.toLocaleString() + ' words)';
+  } else {
+    if (!inputFile) {
+      document.getElementById('gen-btn').disabled = true;
+      document.getElementById('status').textContent = 'Status: Ready';
+    }
   }
 };
 
-function fixQuotes(t){
-  t=t.replace(/(\s|^)"/g,'$1\u201C');
-  t=t.replace(/"/g,'\u201D');
-  t=t.replace(/(\s|^)'/g,'$1\u2018');
-  t=t.replace(/'/g,'\u2019');
+/* ───────── CURLY QUOTES ───────── */
+function fixQuotes(t) {
+  // Double quotes
+  t = t.replace(/(^|[\s(\[{])"(?=\S)/gm, '$1\u201C');
+  t = t.replace(/"/g, '\u201D');
+  // Single quotes / apostrophes
+  t = t.replace(/(^|[\s(\[{])'(?=\S)/gm, '$1\u2018');
+  t = t.replace(/'/g, '\u2019');
   return t;
 }
 
-function cleanText(t){
-  t=t.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
-  t=t.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'');
-  t=t.replace(/\u00A0/g,' ');
-  t=t.replace(/\u2013/g,'\u2014');
-  t=t.replace(/\ufffd/g,'');
-  t=fixQuotes(t);
+/* ───────── CLEAN TEXT ───────── */
+function cleanText(t) {
+  t = t.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  // Remove control chars except tab and newline
+  t = t.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  // Normalize whitespace chars
+  t = t.replace(/\u00A0/g, ' ');
+  // En-dash to em-dash
+  t = t.replace(/\u2013/g, '\u2014');
+  // Remove replacement character
+  t = t.replace(/\ufffd/g, '');
+  // Remove other common junk
+  t = t.replace(/\uFEFF/g, '');
+  // Fix curly quotes
+  t = fixQuotes(t);
   return t;
 }
 
-function detectMeta(text){
-  var title='',author='',year='',translator='';
-  var lines=text.substring(0,5000).split('\n');
-  // Look for "Title © Year Author" or "Title by Author"
-  for(var i=0;i<lines.length;i++){
-    var l=lines[i].trim();
-    var ym=l.match(/[©\u00A9]\s*(\d{4})\s+(.+)/);
-    if(ym){year=ym[1];author=ym[2].trim();}
-    if(/first published in (\d{4})/i.test(l)){var m=l.match(/(\d{4})/);if(m)year=m[1];}
-    if(/translated by\s+(.+)/i.test(l)){translator=l.match(/translated by\s+(.+)/i)[1].trim();}
-  }
-  // Try to get title from first substantial line
-  for(var i=0;i<Math.min(20,lines.length);i++){
-    var l=lines[i].trim();
-    if(l.length>5&&l.length<200&&!/summary|bio|copyright|isbn|©/i.test(l)){
-      // Check if it looks like a title
-      if(!title&&l.length>5) title=l;
-      break;
+/* ───────── METADATA DETECTION ───────── */
+function detectMeta(text) {
+  var title = '', author = '', year = '', translator = '';
+  var header = text.substring(0, 8000);
+  var lines = header.split('\n');
+
+  for (var i = 0; i < lines.length; i++) {
+    var l = lines[i].trim();
+    // "Title (c) Year Author" pattern
+    var cm = l.match(/^(.+?)\s*[©\u00A9]\s*(\d{4})\s+(.+)/);
+    if (cm) {
+      if (!title || cm[1].length > title.length) title = cm[1].replace(/[:]\s*$/, '').trim();
+      year = cm[2];
+      author = cm[3].trim();
     }
+    // "First published in YYYY"
+    var fpm = l.match(/first published.*?(\d{4})/i);
+    if (fpm && !year) year = fpm[1];
+    // "Translated by ..."
+    var trm = l.match(/translated by\s+(.+)/i);
+    if (trm) translator = trm[1].replace(/[.,;].*$/, '').trim();
+    // "(c) YYYY by Author"
+    var cm2 = l.match(/[©\u00A9]\s*(\d{4})\s+(?:by\s+)?(.+)/i);
+    if (cm2 && !author) { year = cm2[1]; author = cm2[2].trim(); }
   }
-  // Fallback: use filename
-  if(!title&&inputFile){
-    var fn=inputFile.name.replace(/\.[^.]+$/,'');
-    var parts=fn.split(' - ');
-    if(parts.length>=2){author=parts[0].trim();title=parts.slice(1).join(' - ').trim();}
-    else title=fn.substring(0,30);
-  }
-  return {title:title,author:author,year:year,translator:translator};
-}
 
-function detectChapters(text){
-  var patterns=[
-    /^(chapter\s+\d+[^\n]*)/im,
-    /^(chapter\s+[ivxlcdm]+[^\n]*)/im,
-    /^(part\s+\d+[^\n]*)/im,
-    /^(part\s+[ivxlcdm]+[^\n]*)/im,
-    /^(\d+\.\s+[A-Z][^\n]*)/m,
-    /^(section\s+\d+[^\n]*)/im
-  ];
-  var chapters=[];
-  var lines=text.split('\n');
-  for(var i=0;i<lines.length;i++){
-    var l=lines[i].trim();
-    for(var p=0;p<patterns.length;p++){
-      if(patterns[p].test(l)){
-        chapters.push({line:i,title:l,pos:text.indexOf(l)});
+  // Try first substantial line as title if we still don't have one
+  if (!title) {
+    for (var i = 0; i < Math.min(30, lines.length); i++) {
+      var l = lines[i].trim();
+      if (l.length > 3 && l.length < 200 && !/^(summary|bio|copyright|isbn|©|all rights|first published|printed|ebook|www\.|@)/i.test(l)) {
+        title = l;
         break;
       }
     }
   }
-  return chapters;
-}
 
-function stripMatter(text,chapters){
-  if(chapters.length===0) return text;
-  var firstChap=chapters[0].pos;
-  var backKeywords=/^(notes|acknowledgments?|acknowledgements?|bibliography|references|appendix|index|about the author|credits|permissions|sources|glossary|further reading)\s*$/im;
-  var lines=text.split('\n');
-  var lastContent=lines.length;
-  for(var i=lines.length-1;i>0;i--){
-    if(backKeywords.test(lines[i].trim())){lastContent=i;break;}
-  }
-  var body=lines.slice(0,lastContent).join('\n');
-  return body.substring(firstChap);
-}
-
-function buildTOC(chapters){
-  var toc='Contents\n';
-  for(var i=0;i<chapters.length;i++){
-    toc+='\t'+chapters[i].title+'\n';
-  }
-  return toc;
-}
-
-async function generate(){
-  if(!rawText) return;
-  document.getElementById('status').textContent='Status: Generating PDF...';
-  document.getElementById('gen-btn').disabled=true;
-
-  var fontName=document.getElementById('font-select').value;
-  var fontSize=parseInt(document.getElementById('size-select').value);
-  var colorScheme=document.getElementById('color-select').value;
-  var margin=parseFloat(document.getElementById('margin-select').value);
-  var align=document.getElementById('align-select').value;
-  var cutMatter=document.getElementById('matter-select').value==='cut';
-
-  var text=cleanText(rawText);
-  var meta=detectMeta(text);
-  var chapters=detectChapters(text);
-
-  if(cutMatter&&chapters.length>0){
-    text=stripMatter(text,chapters);
-    chapters=detectChapters(text);
-  }
-
-  // Collapse multiple blank lines to single
-  text=text.replace(/\n{3,}/g,'\n\n');
-  // Replace double newlines with single (no para spacing)
-  text=text.replace(/\n\n/g,'\n');
-  // Add indent to each paragraph
-  var lines=text.split('\n');
-  var indentedLines=[];
-  for(var i=0;i<lines.length;i++){
-    var l=lines[i];
-    var isChapter=false;
-    for(var c=0;c<chapters.length;c++){
-      if(l.trim()===chapters[c].title){isChapter=true;break;}
-    }
-    if(isChapter){
-      indentedLines.push({text:l.trim(),chapter:true});
-    } else if(l.trim()){
-      indentedLines.push({text:'\t\t'+l.trim(),chapter:false});
+  // Fallback: parse filename "Author - Title"
+  if ((!title || !author) && inputFile) {
+    var fn = inputFile.name.replace(/\.[^.]+$/, '');
+    var parts = fn.split(' - ');
+    if (parts.length >= 2) {
+      if (!author) author = parts[0].trim();
+      if (!title) title = parts.slice(1).join(' - ').trim();
+    } else if (!title) {
+      title = fn.substring(0, 30);
     }
   }
 
-  // Build PDF
-  var jsPDF=window.jspdf.jsPDF;
-  var bgColor=colorScheme==='black'?'#000000':colorScheme==='gray'?'#2a2a2a':'#FFFFFF';
-  var txtColor=colorScheme==='white'?'#000000':'#FFFFFF';
+  // Clean author: remove "All rights reserved..." etc.
+  author = author.replace(/\s*All rights.*/i, '').replace(/\s*No part.*/i, '').trim();
 
-  var doc=new jsPDF({unit:'pt',format:'letter'});
-  var pw=612,ph=792;
-  var cw=pw-margin*2;
-  var lineH=fontSize*1.3;
+  return { title: title, author: author, year: year, translator: translator };
+}
 
-  // Load and embed the selected font
-  var fontFileMap={
-    'Arial':'Arial','Arial Narrow':'Arial_Narrow','Calibri':'Calibri',
-    'EB Garamond':'EB_Garamond','Garamond':'Garamond','Georgia':'Georgia',
-    'Roboto':'Roboto','Times New Roman':'Times_New_Roman','Verdana':'Verdana'
-  };
-  var fontFile=fontFileMap[fontName];
-  if(fontFile){
-    try{
-      document.getElementById('status').textContent='Status: Loading font...';
-      var script=document.createElement('script');
-      script.src='/tps/fonts/'+fontFile+'.js';
-      await new Promise(function(resolve,reject){
-        script.onload=resolve; script.onerror=reject;
-        document.head.appendChild(script);
-      });
-      if(typeof FONT_DATA!=='undefined'){
-        var fontBytes=atob(FONT_DATA);
-        var fontArray=new Uint8Array(fontBytes.length);
-        for(var i=0;i<fontBytes.length;i++) fontArray[i]=fontBytes.charCodeAt(i);
-        doc.addFileToVFS(fontFile+'.ttf',FONT_DATA);
-        doc.addFont(fontFile+'.ttf',fontFile,'normal');
-        doc.setFont(fontFile,'normal');
-        FONT_DATA=undefined;
+/* ───────── CHAPTER DETECTION ───────── */
+function detectChapters(text) {
+  var lines = text.split('\n');
+  var chapters = [];
+  var seen = {};
+
+  // Patterns for chapter headings in the body text
+  // We look for lines that are standalone short headings
+  var chapterPatterns = [
+    /^(Preface)$/i,
+    /^(Acknowledgments?)$/i,
+    /^(Introduction)$/i,
+    /^(Epilogue)$/i,
+    /^(Prologue)$/i,
+    /^(Foreword)$/i,
+    /^(Afterword)$/i,
+    /^(Conclusion)$/i,
+    // "Chapter N" or "Chapter N: Title" or "CHAPTER N"
+    /^(Chapter\s+\d+[^\n]*)/i,
+    /^(Chapter\s+[IVXLCDM]+[^\n]*)/i,
+    // "Part N" or "Part N: Title"
+    /^(Part\s+\d+[^\n]*)/i,
+    /^(Part\s+[IVXLCDM]+[^\n]*)/i,
+    // Numbered sections: "1 Introduction", "2.1 Sizing teams", "3.12.1 Positive..."
+    /^(\d+\.\d+\.\d+\s+[A-Z][^\n]{2,80})$/,
+    /^(\d+\.\d+\s+[A-Z][^\n]{2,80})$/,
+    /^(\d+\s+[A-Z][^\n]{2,80})$/,
+    // Standalone single number on a line (like "1", "2") - skip these
+  ];
+
+  // First pass: find the TOC section if it exists, to learn the real headings
+  var tocHeadings = [];
+  var inToc = false;
+  var tocEnd = -1;
+  for (var i = 0; i < Math.min(lines.length, 1000); i++) {
+    var l = lines[i].trim();
+    if (/^Contents$/i.test(l)) {
+      inToc = true;
+      continue;
+    }
+    if (inToc) {
+      // TOC entries are lines with text in them
+      if (l.length > 0) {
+        // Stop TOC when we hit the actual body (long paragraph)
+        if (l.length > 120) { tocEnd = i; break; }
+        // Collect TOC heading
+        tocHeadings.push(l);
       }
-    }catch(e){
-      doc.setFont('helvetica','normal');
-    }
-  } else if(fontName==='Helvetica'){
-    doc.setFont('helvetica','normal');
-  } else {
-    doc.setFont('times','normal');
-  }
-  doc.setFontSize(fontSize);
-
-  function newPage(){
-    doc.addPage();
-    doc.setFillColor(bgColor);
-    doc.rect(0,0,pw,ph,'F');
-  }
-
-  // First page background
-  doc.setFillColor(bgColor);
-  doc.rect(0,0,pw,ph,'F');
-  doc.setTextColor(txtColor);
-
-  // Title page
-  var y=margin+fontSize*3;
-  doc.setFontSize(fontSize*1.2);
-  if(meta.title){doc.text(meta.title,margin,y);y+=lineH*1.5;}
-  doc.setFontSize(fontSize);
-  if(meta.author){doc.text(meta.author,margin,y);y+=lineH;}
-  if(meta.translator){doc.text('Translated by '+meta.translator,margin,y);y+=lineH;}
-  if(meta.year){doc.text(meta.year,margin,y);y+=lineH;}
-  y+=lineH;
-
-  // TOC
-  if(chapters.length>0){
-    doc.text('Contents',margin,y);y+=lineH;
-    for(var i=0;i<chapters.length;i++){
-      if(y>ph-margin){newPage();y=margin+lineH;}
-      doc.text('    '+chapters[i].title,margin,y);
-      y+=lineH;
+      // If we see something that looks like body text starting, end TOC
+      if (l === '' && tocHeadings.length > 5) {
+        // Count consecutive blank lines
+        var blanks = 0;
+        for (var j = i; j < Math.min(i + 10, lines.length); j++) {
+          if (lines[j].trim() === '') blanks++;
+          else break;
+        }
+        // If there's a section like "Landmarks", stop
+        if (blanks >= 3) {
+          // Check what comes next
+          for (var j = i; j < Math.min(i + 20, lines.length); j++) {
+            var nl = lines[j].trim();
+            if (nl === 'Landmarks' || nl === 'Cover' || nl === 'Title Page' || nl === 'Start of Content') {
+              tocEnd = j;
+              break;
+            }
+          }
+          if (tocEnd > 0) break;
+        }
+      }
     }
   }
 
-  // Content
-  newPage();
-  y=margin+lineH;
+  // Second pass: find headings in the actual body text
+  // The body starts after front matter (after "Landmarks" / "Start of Content" section, or after the TOC)
+  var bodyStart = 0;
+  for (var i = 0; i < Math.min(lines.length, 1000); i++) {
+    if (lines[i].trim() === 'Start of Content') {
+      bodyStart = i + 1;
+      break;
+    }
+  }
+  // If no "Start of Content" marker, look for first real paragraph after TOC
+  if (bodyStart === 0 && tocEnd > 0) {
+    bodyStart = tocEnd;
+  }
 
-  for(var i=0;i<indentedLines.length;i++){
-    var item=indentedLines[i];
+  // Build a set of known headings from TOC for fast lookup
+  var tocSet = {};
+  for (var i = 0; i < tocHeadings.length; i++) {
+    tocSet[tocHeadings[i].trim()] = true;
+  }
 
-    if(item.chapter){
-      newPage();
-      y=margin+lineH;
-      doc.setFontSize(fontSize*1.1);
-      doc.text(item.text,margin,y);
-      doc.setFontSize(fontSize);
-      y+=lineH*1.5;
+  // Scan body for chapter headings
+  for (var i = bodyStart; i < lines.length; i++) {
+    var l = lines[i].trim();
+    if (l.length === 0) continue;
+    if (l.length > 120) continue; // Too long to be a heading
+
+    // Skip standalone numbers (like "1", "2", "3") which precede "Chapter N" lines
+    if (/^\d+$/.test(l)) continue;
+
+    // Skip lines like "Figure 2.1", "Table 3.2" etc
+    if (/^(Figure|Table|Chart|Diagram)\s+\d/i.test(l)) continue;
+
+    // Skip known non-heading lines
+    if (/^(Cover|Title Page|Table of Contents|Start of Content|Landmarks)$/i.test(l)) continue;
+
+    // Check if this line matches a TOC entry exactly
+    if (tocSet[l]) {
+      if (!seen[l]) {
+        seen[l] = true;
+        chapters.push({ lineNum: i, title: l });
+      }
       continue;
     }
 
-    var wrapped=doc.splitTextToSize(item.text,cw);
-    for(var j=0;j<wrapped.length;j++){
-      if(y>ph-margin){newPage();y=margin+lineH;}
-      doc.text(wrapped[j],margin,y,{align:align==='justify'?'justify':'left',maxWidth:cw});
-      y+=lineH;
+    // Check against chapter patterns
+    for (var p = 0; p < chapterPatterns.length; p++) {
+      if (chapterPatterns[p].test(l)) {
+        // For "Chapter N\nTitle" pattern: check if next non-blank line is the title
+        if (/^Chapter\s+\d+$/i.test(l)) {
+          // Find next non-blank line
+          for (var k = i + 1; k < Math.min(i + 5, lines.length); k++) {
+            var nl = lines[k].trim();
+            if (nl.length > 0) {
+              // This is likely the chapter title text - skip the "Chapter N" line
+              // The actual section headings (like "1.1 Introduction") will be caught separately
+              break;
+            }
+          }
+          break; // Don't add "Chapter N" standalone as a heading
+        }
+        if (!seen[l]) {
+          seen[l] = true;
+          chapters.push({ lineNum: i, title: l });
+        }
+        break;
+      }
     }
   }
 
-  // Generate filename
-  var fname=(meta.author?meta.author.split(' ').pop()+' - ':'')+
-    (meta.title||inputFile.name.replace(/\.[^.]+$/,'').substring(0,30));
-  fname=fname.substring(0,50).replace(/[^a-zA-Z0-9 \-]/g,'').trim();
+  return chapters;
+}
 
-  doc.save(fname+'.pdf');
-  document.getElementById('status').textContent='Status: Done';
-  document.getElementById('gen-btn').disabled=false;
+/* ───────── FRONT/BACK MATTER STRIPPING ───────── */
+function stripMatter(text, chapters) {
+  if (chapters.length === 0) return text;
+
+  var lines = text.split('\n');
+
+  // Find where real content begins: the first chapter heading in the text
+  var firstChapLine = chapters[0].lineNum;
+
+  // Find back matter: look from the end for known back-matter keywords
+  var backKeywords = /^(Notes|End\s*notes|Acknowledgments?|Acknowledgements?|Bibliography|References|Appendix|Index|About the Author|Credits|Permissions|Sources|Glossary|Further Reading|Works Cited|Suggested Reading|Afterword|Colophon|Copyright)$/i;
+  var lastContentLine = lines.length;
+
+  // Find the last real chapter (not appendix/back matter)
+  // We consider the appendix section as back matter
+  var backMatterKeywordsInChapters = /^(Appendix|Notes|Acknowledgments?|Bibliography|Index|About the Author|Glossary|Further Reading|Works Cited|References)/i;
+  var lastBodyChapterIdx = chapters.length - 1;
+  for (var c = chapters.length - 1; c >= 0; c--) {
+    if (backMatterKeywordsInChapters.test(chapters[c].title)) {
+      lastBodyChapterIdx = c - 1;
+    } else {
+      break;
+    }
+  }
+
+  // Also scan from end of file for back matter section headers
+  for (var i = lines.length - 1; i > 0; i--) {
+    var l = lines[i].trim();
+    if (backKeywords.test(l)) {
+      // This might be back matter start - but only if it's after most chapters
+      if (lastBodyChapterIdx >= 0 && i > chapters[lastBodyChapterIdx].lineNum) {
+        lastContentLine = i;
+      }
+      break;
+    }
+  }
+
+  // Build stripped text: from first chapter to last content line
+  var result = lines.slice(firstChapLine, lastContentLine).join('\n');
+  return result;
+}
+
+/* ───────── BUILD TITLE PAGE TEXT ───────── */
+function buildTitlePage(meta, chapters) {
+  var parts = [];
+  if (meta.title) parts.push(meta.title);
+  if (meta.author) parts.push(meta.author);
+  if (meta.translator) parts.push('Translated by ' + meta.translator);
+  if (meta.year) parts.push(meta.year);
+  parts.push(''); // blank line
+  if (chapters.length > 0) {
+    parts.push('Contents');
+    for (var i = 0; i < chapters.length; i++) {
+      parts.push('\t' + chapters[i].title);
+    }
+  }
+  return parts;
+}
+
+/* ───────── LOAD FONT ───────── */
+async function loadFont(doc, fontName) {
+  var fontFileMap = {
+    'Arial': 'Arial',
+    'Arial Narrow': 'Arial_Narrow',
+    'Calibri': 'Calibri',
+    'EB Garamond': 'EB_Garamond',
+    'Garamond': 'Garamond',
+    'Georgia': 'Georgia',
+    'Roboto': 'Roboto',
+    'Times New Roman': 'Times_New_Roman',
+    'Verdana': 'Verdana'
+  };
+
+  if (fontName === 'Helvetica') {
+    doc.setFont('helvetica', 'normal');
+    return 'helvetica';
+  }
+
+  var fontFile = fontFileMap[fontName];
+  if (!fontFile) {
+    doc.setFont('helvetica', 'normal');
+    return 'helvetica';
+  }
+
+  try {
+    document.getElementById('status').textContent = 'Status: Loading font...';
+    // Remove any previously loaded font script
+    var oldScript = document.getElementById('font-loader');
+    if (oldScript) oldScript.remove();
+    // Reset global
+    if (typeof window.FONT_DATA !== 'undefined') window.FONT_DATA = undefined;
+
+    var script = document.createElement('script');
+    script.id = 'font-loader';
+    script.src = '/tps/fonts/' + fontFile + '.js';
+    await new Promise(function (resolve, reject) {
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+
+    if (typeof FONT_DATA !== 'undefined' && FONT_DATA) {
+      doc.addFileToVFS(fontFile + '.ttf', FONT_DATA);
+      doc.addFont(fontFile + '.ttf', fontFile, 'normal');
+      doc.setFont(fontFile, 'normal');
+      window.FONT_DATA = undefined;
+      return fontFile;
+    }
+  } catch (e) {
+    console.warn('Font load failed for ' + fontName + ', falling back to Helvetica', e);
+  }
+
+  doc.setFont('helvetica', 'normal');
+  return 'helvetica';
+}
+
+/* ───────── GENERATE PDF ───────── */
+async function generate() {
+  if (!rawText) return;
+  document.getElementById('status').textContent = 'Status: Generating PDF...';
+  document.getElementById('gen-btn').disabled = true;
+
+  try {
+    await _generate();
+  } catch (e) {
+    console.error(e);
+    document.getElementById('status').textContent = 'Status: Error - ' + e.message;
+  }
+  document.getElementById('gen-btn').disabled = false;
+}
+
+async function _generate() {
+  /* Read settings */
+  var fontName = document.getElementById('font-select').value;
+  var fontSize = parseInt(document.getElementById('size-select').value);
+  var colorScheme = document.getElementById('color-select').value;
+  var margin = parseFloat(document.getElementById('margin-select').value);
+  var align = document.getElementById('align-select').value;
+  var cutMatter = document.getElementById('matter-select').value === 'cut';
+
+  /* Clean text */
+  var text = cleanText(rawText);
+
+  /* Detect metadata */
+  var meta = detectMeta(text);
+
+  /* Detect chapters from full text */
+  var chapters = detectChapters(text);
+
+  /* Strip front/back matter if requested */
+  if (cutMatter && chapters.length > 0) {
+    text = stripMatter(text, chapters);
+    // Re-detect chapters in the stripped text
+    chapters = detectChapters(text);
+  }
+
+  /* Clean the body text */
+  // Remove "Chapter N" standalone lines that precede the actual title
+  text = text.replace(/^Chapter\s+\d+\s*$/gm, '');
+  // Remove standalone number lines (like "1", "2") that are chapter number markers
+  text = text.replace(/^\d+\s*$/gm, '');
+  // Remove "Figure X.Y" caption lines and the description line after
+  text = text.replace(/^Figure\s+\d+[^\n]*\n[^\n]*$/gm, '');
+  // Collapse 3+ blank lines to 2
+  text = text.replace(/\n{3,}/g, '\n\n');
+
+  /* Build chapter heading set for quick lookup */
+  var chapterSet = {};
+  for (var c = 0; c < chapters.length; c++) {
+    chapterSet[chapters[c].title] = true;
+  }
+
+  /* Parse text into structured blocks */
+  var blocks = []; // {type:'heading'|'para', text:string}
+  var rawLines = text.split('\n');
+  var currentPara = [];
+
+  function flushPara() {
+    if (currentPara.length > 0) {
+      var joined = currentPara.join(' ').trim();
+      if (joined.length > 0) {
+        blocks.push({ type: 'para', text: joined });
+      }
+      currentPara = [];
+    }
+  }
+
+  for (var i = 0; i < rawLines.length; i++) {
+    var line = rawLines[i].trim();
+
+    if (line.length === 0) {
+      // Blank line = paragraph break
+      flushPara();
+      continue;
+    }
+
+    // Check if this line is a chapter heading
+    if (chapterSet[line]) {
+      flushPara();
+      blocks.push({ type: 'heading', text: line });
+      continue;
+    }
+
+    // Otherwise it's body text - accumulate into current paragraph
+    currentPara.push(line);
+  }
+  flushPara();
+
+  /* ───────── BUILD PDF ───────── */
+  var jsPDF = window.jspdf.jsPDF;
+  var bgColor = colorScheme === 'black' ? '#000000' : colorScheme === 'gray' ? '#2a2a2a' : '#FFFFFF';
+  var txtColor = colorScheme === 'white' ? '#000000' : '#FFFFFF';
+  var pw = 612, ph = 792; // letter size in points
+
+  var doc = new jsPDF({ unit: 'pt', format: 'letter' });
+  var lineH = fontSize * 1.2;
+  var cw = pw - margin * 2;
+  var tabW = fontSize * 1.5; // width of two "tabs" approximation
+
+  /* Load font */
+  var loadedFont = await loadFont(doc, fontName);
+
+  doc.setFontSize(fontSize);
+
+  /* Helper: fill background on current page */
+  function fillBg() {
+    doc.setFillColor(bgColor);
+    doc.rect(0, 0, pw, ph, 'F');
+    doc.setTextColor(txtColor);
+  }
+
+  /* Helper: add a new page with background */
+  function newPage() {
+    doc.addPage();
+    fillBg();
+  }
+
+  /* ───── TITLE PAGE ───── */
+  fillBg();
+  var y = margin + fontSize * 2;
+
+  // Title (slightly larger)
+  if (meta.title) {
+    doc.setFontSize(fontSize * 1.3);
+    var titleLines = doc.splitTextToSize(meta.title, cw);
+    for (var t = 0; t < titleLines.length; t++) {
+      doc.text(titleLines[t], margin, y);
+      y += fontSize * 1.3 * 1.2;
+    }
+    doc.setFontSize(fontSize);
+    y += lineH * 0.3;
+  }
+
+  // Author
+  if (meta.author) {
+    doc.text(meta.author, margin, y);
+    y += lineH;
+  }
+  // Translator
+  if (meta.translator) {
+    doc.text('Translated by ' + meta.translator, margin, y);
+    y += lineH;
+  }
+  // Year
+  if (meta.year) {
+    doc.text(meta.year, margin, y);
+    y += lineH;
+  }
+
+  // Blank line before Contents
+  y += lineH;
+
+  // Contents
+  if (chapters.length > 0) {
+    doc.text('Contents', margin, y);
+    y += lineH;
+    for (var i = 0; i < chapters.length; i++) {
+      if (y > ph - margin - lineH) {
+        newPage();
+        y = margin + lineH;
+      }
+      // Indented TOC entry
+      doc.text(chapters[i].title, margin + tabW, y);
+      y += lineH;
+    }
+  }
+
+  /* ───── BODY PAGES ───── */
+  // Start body on new page
+  newPage();
+  y = margin + lineH;
+
+  for (var b = 0; b < blocks.length; b++) {
+    var block = blocks[b];
+
+    if (block.type === 'heading') {
+      /* Chapter heading: page break, no indent */
+      // Don't add a page break for the very first heading if we're already at top of page
+      if (b > 0 || y > margin + lineH * 2) {
+        newPage();
+        y = margin + lineH;
+      }
+      // Render heading slightly larger
+      doc.setFontSize(fontSize * 1.15);
+      var headLines = doc.splitTextToSize(block.text, cw);
+      for (var h = 0; h < headLines.length; h++) {
+        if (y > ph - margin) {
+          newPage();
+          y = margin + lineH;
+        }
+        doc.text(headLines[h], margin, y);
+        y += fontSize * 1.15 * 1.2;
+      }
+      doc.setFontSize(fontSize);
+      y += lineH * 0.5; // small gap after heading
+      continue;
+    }
+
+    /* Body paragraph: indented with two tabs, fully justified */
+    var paraText = block.text;
+
+    // Two-tab indent: we reduce available width and offset x
+    var indentX = margin + tabW;
+    var paraWidth = cw - tabW;
+
+    // Split text to fit within paragraph width
+    var wrapped = doc.splitTextToSize(paraText, paraWidth);
+
+    for (var w = 0; w < wrapped.length; w++) {
+      if (y > ph - margin) {
+        newPage();
+        y = margin + lineH;
+      }
+
+      var lineText = wrapped[w];
+      var xPos = (w === 0) ? indentX : margin; // only first line indented
+      var lineWidth = (w === 0) ? paraWidth : cw;
+
+      if (align === 'justify' && w < wrapped.length - 1 && lineText.trim().length > 0) {
+        // Justify: distribute words across the line width
+        renderJustifiedLine(doc, lineText, xPos, y, lineWidth);
+      } else {
+        doc.text(lineText, xPos, y);
+      }
+      y += lineH;
+    }
+    // No extra space between paragraphs (single-spaced, no gap)
+  }
+
+  /* ───── REMOVE TRAILING BLANK PAGES ───── */
+  // jsPDF pages are 1-indexed
+  var totalPages = doc.internal.getNumberOfPages();
+  // We shouldn't have blank pages, but just in case
+  while (totalPages > 1) {
+    doc.setPage(totalPages);
+    // Can't easily detect blank - just trust the flow
+    break;
+  }
+
+  /* ───── GENERATE FILENAME ───── */
+  var fname = '';
+  if (meta.author) {
+    var authorParts = meta.author.trim().split(/\s+/);
+    fname = authorParts[authorParts.length - 1];
+  }
+  if (meta.title) {
+    fname += (fname ? ' - ' : '') + meta.title;
+  }
+  if (!fname && inputFile) {
+    fname = inputFile.name.replace(/\.[^.]+$/, '').substring(0, 30);
+  }
+  if (!fname) fname = 'output';
+  // Sanitize
+  fname = fname.replace(/[<>:"/\\|?*]/g, '').trim();
+  if (fname.length > 80) fname = fname.substring(0, 80).trim();
+
+  doc.save(fname + '.pdf');
+  document.getElementById('status').textContent = 'Status: Done! Saved as ' + fname + '.pdf';
+}
+
+/* ───────── JUSTIFIED TEXT RENDERER ───────── */
+function renderJustifiedLine(doc, lineText, x, y, maxWidth) {
+  var words = lineText.trim().split(/\s+/);
+  if (words.length <= 1) {
+    doc.text(lineText, x, y);
+    return;
+  }
+
+  // Calculate total width of all words
+  var totalWordWidth = 0;
+  for (var i = 0; i < words.length; i++) {
+    totalWordWidth += doc.getTextWidth(words[i]);
+  }
+
+  var totalSpace = maxWidth - totalWordWidth;
+  var spaceWidth = totalSpace / (words.length - 1);
+
+  // If space between words would be unreasonably large, just left-align
+  var normalSpace = doc.getTextWidth(' ');
+  if (spaceWidth > normalSpace * 4 || spaceWidth < 0) {
+    doc.text(lineText, x, y);
+    return;
+  }
+
+  var cx = x;
+  for (var i = 0; i < words.length; i++) {
+    doc.text(words[i], cx, y);
+    cx += doc.getTextWidth(words[i]) + spaceWidth;
+  }
 }
 </script>
-<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/abp/" style="color:#fff">Audiobooker</a> | <a href="/fcv/" style="color:#fff">File Converter</a> | <a href="/stt/" style="color:#fff">Speech-to-Texter</a> | <a href="/tts/" style="color:#fff">Text-to-Speecher</a></div>
+
+<div style="text-align:center;margin:16pt 0 0">
+<a href="/" style="color:#fff">Home</a> |
+<a href="/abp/" style="color:#fff">Audiobooker</a> |
+<a href="/fcv/" style="color:#fff">File Converter</a> |
+<a href="/stt/" style="color:#fff">Speech-to-Texter</a> |
+<a href="/tts/" style="color:#fff">Text-to-Speecher</a>
+</div>
 <br>
 <img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 </body>
