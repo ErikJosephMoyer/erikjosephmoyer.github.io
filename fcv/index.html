@@ -24,6 +24,9 @@ button:hover{background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
 #upload-btn,#convert-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
 #file-info{text-align:center;font-size:14pt;color:white;margin:0 0 8pt}
+select:invalid{color:#666}
+#input-select,#output-select{color:#666}
+
 #detected{text-align:center;font-size:16pt;color:white;margin:0 0 8pt}
 select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 4pt}
 select option{background:#2a2a2a;color:#fff}
@@ -123,6 +126,7 @@ function populateOutputDropdown(filterType, excludeExt){
 
 function onInputFormatChange(){
   var ext=document.getElementById('input-select').value;
+  document.getElementById('input-select').style.color=ext?'#fff':'#666';
   var type=ext?getType(ext):null;
   populateOutputDropdown(type, ext);
   document.getElementById('convert-btn').disabled=!document.getElementById('output-select').value;
@@ -130,6 +134,7 @@ function onInputFormatChange(){
 
 function onOutputFormatChange(){
   var outExt=document.getElementById('output-select').value;
+  document.getElementById('output-select').style.color=outExt?'#fff':'#666';
   var inExt=document.getElementById('input-select').value;
   if(!inExt && outExt){
     var outType=getType(outExt);
@@ -153,6 +158,7 @@ document.getElementById('file-input').onchange = async function(){
   document.getElementById('upload-btn').textContent = 'Replace File';
 
   document.getElementById('input-select').value=inputExt;
+  document.getElementById('input-select').style.color='#fff';
   if(inputType) populateOutputDropdown(inputType, inputExt);
   else populateOutputDropdown(null, inputExt);
   document.getElementById('status').textContent = 'Status: Ready';
