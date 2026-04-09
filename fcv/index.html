@@ -66,25 +66,25 @@ select:focus{outline:none}
 var inputFile=null, inputExt='', inputType='';
 
 var allFormats = [
-  {ext:'csv',type:'Data',desc:'Spreadsheet'},
-  {ext:'doc',type:'Text',desc:'Word Legacy'},
-  {ext:'docx',type:'Text',desc:'Word'},
-  {ext:'epub',type:'Text',desc:'E-Book'},
-  {ext:'gif',type:'Image',desc:'Animated'},
-  {ext:'heic',type:'Image',desc:'iPhone Photo'},
-  {ext:'heif',type:'Image',desc:'iPhone Photo'},
-  {ext:'jpg',type:'Image',desc:'Photo'},
-  {ext:'json',type:'Data',desc:'Structured'},
+  {ext:'csv',type:'Data',desc:'Comma-Separated Values'},
+  {ext:'doc',type:'Text',desc:'Word 97\u20132003'},
+  {ext:'docx',type:'Text',desc:'Word Document'},
+  {ext:'epub',type:'Text',desc:'Electronic Publication'},
+  {ext:'gif',type:'Image',desc:'Lossless Animated'},
+  {ext:'heic',type:'Image',desc:'High Efficiency Container'},
+  {ext:'heif',type:'Image',desc:'High Efficiency Format'},
+  {ext:'jpg',type:'Image',desc:'Lossy Compressed'},
+  {ext:'json',type:'Data',desc:'JavaScript Object Notation'},
   {ext:'md',type:'Data',desc:'Markdown'},
-  {ext:'pdf',type:'Text',desc:'Document'},
-  {ext:'png',type:'Image',desc:'Lossless'},
-  {ext:'svg',type:'Image',desc:'Vector'},
-  {ext:'tsv',type:'Data',desc:'Tab-Delimited'},
+  {ext:'pdf',type:'Text',desc:'Portable Document Format'},
+  {ext:'png',type:'Image',desc:'Lossless Compressed'},
+  {ext:'svg',type:'Image',desc:'Scalable Vector Graphics'},
+  {ext:'tsv',type:'Data',desc:'Tab-Separated Values'},
   {ext:'txt',type:'Data/Text',desc:'Plain Text'},
-  {ext:'webp',type:'Image',desc:'Web Photo'},
-  {ext:'xls',type:'Data',desc:'Excel Legacy'},
-  {ext:'xlsx',type:'Data',desc:'Excel'},
-  {ext:'xml',type:'Data',desc:'Markup'}
+  {ext:'webp',type:'Image',desc:'Web Lossy/Lossless'},
+  {ext:'xls',type:'Data',desc:'Excel 97\u20132003'},
+  {ext:'xlsx',type:'Data',desc:'Excel Workbook'},
+  {ext:'xml',type:'Data',desc:'Extensible Markup Language'}
 ];
 
 var outputMap = {
