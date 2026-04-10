@@ -937,8 +937,6 @@ document.addEventListener('keydown',(e)=>{
   else if(e.key==='ArrowRight'&&e.shiftKey){e.preventDefault();nextChapter();}
   else if(e.key==='ArrowLeft'){e.preventDefault();skip(-10);}
   else if(e.key==='ArrowRight'){e.preventDefault();skip(10);}
-  if(e.key==='n'||e.key==='N'){e.preventDefault();nextChapter();}
-  if(e.key==='p'||e.key==='P'){e.preventDefault();prevChapter();}
 });
 (async function autoReload(){
   const lastKey = localStorage.getItem('jbj_last');
