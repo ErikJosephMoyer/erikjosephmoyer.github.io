@@ -19,6 +19,14 @@ button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;c
 button svg{display:block;width:20px;height:20px;flex-shrink:0}
 button:hover{background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
+@media(max-width:600px){
+  #transport-row{gap:0}
+  #transport-row button{flex:1}
+  #transport-row #play-btn{flex:3}
+  #mod-row{gap:0}
+  #mod-row>div{flex:1;gap:0}
+  #mod-row button{flex:1;min-width:0}
+}
 
 .btn-row{display:flex;justify-content:center;gap:8px;margin:0 0 8pt;flex-wrap:wrap}
 .btn-row button{}
@@ -89,7 +97,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 <div id="ch-bar" onclick="seekChapter(event)"><div id="ch-fill"></div></div>
 <div id="time-row"><span id="cur-time">0:00</span><span id="tot-time">0:00</span></div>
 
-<div style="display:flex;align-items:center;justify-content:center;gap:3px;margin:0 0 4pt">
+<div id="transport-row" style="display:flex;align-items:center;justify-content:center;gap:3px;margin:0 0 4pt">
   <button id="prev-btn" title="Previous Chapter" disabled onclick="prevChapter()">
     <svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16" fill="#2a2a2a"/><polygon points="20,4 9,12 20,20" fill="#2a2a2a"/></svg>
   </button>
@@ -107,7 +115,7 @@ button:disabled{background:#555;color:#888;cursor:default}
     <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20" fill="#2a2a2a"/><rect x="17" y="4" width="3" height="16" fill="#2a2a2a"/></svg>
   </button>
 </div>
-<div style="display:flex;align-items:center;justify-content:space-between;margin:0 0 8pt">
+<div id="mod-row" style="display:flex;align-items:center;justify-content:space-between;margin:0 0 8pt">
   <div style="display:flex;gap:3px">
     <button id="speed-btn" title="Speed" disabled onclick="cycleSpeed()" style="min-width:38px">
       <span id="speed-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">1x</span>
