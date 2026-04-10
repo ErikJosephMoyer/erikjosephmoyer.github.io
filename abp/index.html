@@ -20,11 +20,10 @@ button svg{display:block;width:20px;height:20px;flex-shrink:0}
 button:hover{background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
 @media(max-width:600px){
-  #transport-row,#mod-row{gap:0}
+  #transport-row,#mod-row{gap:0;justify-content:flex-start}
   #transport-row button,#mod-row button{flex:1;min-width:0;margin-right:1px}
   #transport-row button:last-child,#mod-row button:last-child{margin-right:0}
   #transport-row #play-btn{flex:3}
-  #mod-row{flex-wrap:nowrap}
   #mod-row>div{display:contents}
 }
 
