@@ -20,13 +20,12 @@ button svg{display:block;width:20px;height:20px;flex-shrink:0}
 button:hover{background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
 @media(max-width:600px){
-  #transport-row{gap:0}
-  #transport-row button{flex:1}
+  #transport-row,#mod-row{gap:0}
+  #transport-row button,#mod-row button{flex:1;min-width:0;margin-right:1px}
+  #transport-row button:last-child,#mod-row button:last-child{margin-right:0}
   #transport-row #play-btn{flex:3}
-  #mod-row{gap:1px}
-  #mod-row>div{flex:1;gap:0}
-  #mod-row button{flex:1;min-width:0;border-right:1px solid #2a2a2a}
-  #mod-row button:last-child{border-right:none}
+  #mod-row{flex-wrap:nowrap}
+  #mod-row>div{display:contents}
 }
 
 .btn-row{display:flex;justify-content:center;gap:8px;margin:0 0 8pt;flex-wrap:wrap}
