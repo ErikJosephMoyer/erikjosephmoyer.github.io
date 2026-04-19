@@ -15,20 +15,20 @@ body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;mar
 h1{font-size:28pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
 h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
 
-button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 6px;white-space:nowrap;height:34px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
+button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 6px;white-space:nowrap;height:51px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
 button svg{display:block;width:20px;height:20px;flex-shrink:0;margin:auto}
 button:hover{background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
 #all-btn-row{display:flex;gap:4px;margin:0 0 8pt}
 #all-btn-row button{flex:1;min-width:0}
-#all-btn-row #play-btn{flex:2}
+#all-btn-row #skipb-btn,#all-btn-row #skipf-btn{flex:2}
+#all-btn-row #play-btn{flex:3}
 #all-btn-row .mob-break{display:none}
 @media(max-width:600px){
   #all-btn-row{flex-wrap:wrap}
   #all-btn-row .transport{order:1}
   #all-btn-row .mob-break{display:block;order:2;flex-basis:100%;height:0;margin:0;padding:0;background:transparent;border:none;pointer-events:none}
   #all-btn-row .modifier{order:3}
-  #all-btn-row #play-btn{flex:2}
 }
 
 .btn-row{display:flex;justify-content:center;gap:8px;margin:0 0 8pt;flex-wrap:wrap}
