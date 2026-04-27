@@ -32,12 +32,13 @@ select:focus{outline:none}
 .setting select{flex:1}
 #status{text-align:center;font-size:16pt;color:white;margin:0 0 8pt}
 #file-input{display:none}
+@media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
 </style>
 </head>
 <body>
 <img src="/images/TypesetterLogo.PNG" alt="Typesetter" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Prettifier</h1>
-<h2><em>Read With Your Eyes</em>: A Typesetting Tool</h2>
+<h2><em>Read With Your Eyes</em>:<span class="sub-break"> </span>A Typesetting Tool</h2>
 
 <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
 <input type="file" id="file-input" accept=".txt,.doc,.docx,.pdf,.epub">
