@@ -149,6 +149,7 @@ async function pollProgress(jid){
       audio.src = downloadUrl;
       audio.load();
       enablePlayer();
+      waveformPeaks = null;
       drawWaveform();
       document.getElementById('gen-btn').disabled = false;
     } else {
@@ -214,16 +215,50 @@ audio.onended=function(){
   document.getElementById('play-icon').style.display='';
   document.getElementById('pause-icon').style.display='none';
 };
-function drawWaveform(){
+var waveformPeaks = null;
+async function drawWaveform(){
   document.getElementById('music-note').style.display='none';
   var canvas=document.getElementById('waveform-canvas');
   var ctx=canvas.getContext('2d');
   var W=canvas.parentElement.clientWidth;
   canvas.width=W;canvas.height=80;canvas.style.display='block';
-  ctx.fillStyle='#fff';
-  for(var x=0;x<W;x++){
-    var h=10+Math.sin(x*0.05)*15+Math.sin(x*0.13)*10+Math.random()*8;
-    ctx.fillRect(x,40-h/2,1,h);
+  ctx.clearRect(0,0,W,80);
+  ctx.fillStyle='#888';
+  // Placeholder while decoding
+  for(var x=0;x<W;x++) ctx.fillRect(x,39,1,2);
+  try {
+    if(!waveformPeaks){
+      var resp = await fetch(downloadUrl);
+      var buf = await resp.arrayBuffer();
+      var AC = window.AudioContext || window.webkitAudioContext;
+      var ac = new AC();
+      var audioBuf = await ac.decodeAudioData(buf);
+      var raw = audioBuf.getChannelData(0);
+      var samplesPerPx = Math.max(1, Math.floor(raw.length / W));
+      waveformPeaks = new Float32Array(W);
+      for(var p=0; p<W; p++){
+        var start = p * samplesPerPx;
+        var end = Math.min(raw.length, start + samplesPerPx);
+        var max = 0;
+        for(var i=start; i<end; i++){
+          var v = Math.abs(raw[i]);
+          if(v>max) max = v;
+        }
+        waveformPeaks[p] = max;
+      }
+      ac.close();
+    }
+    ctx.clearRect(0,0,W,80);
+    ctx.fillStyle='#fff';
+    var mid = 40;
+    for(var x=0; x<W; x++){
+      var h = Math.max(1, waveformPeaks[x] * 76);
+      ctx.fillRect(x, mid - h/2, 1, h);
+    }
+  } catch(e){
+    console.warn('Waveform decode failed', e);
+    ctx.fillStyle='#fff';
+    for(var x=0;x<W;x++) ctx.fillRect(x,39,1,2);
   }
 }
 window.onresize=function(){if(jobId)drawWaveform();};

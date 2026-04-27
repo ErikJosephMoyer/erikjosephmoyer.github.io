@@ -238,19 +238,43 @@ async function loadFile(key){
 }
 function saveProgress(){
   if(!fileKey) return;
-  const time = audio.currentTime || 0;
-  localStorage.setItem('jbj_'+fileKey, JSON.stringify({ch:currentChapter, time, ts:Date.now(), spd:speedIdx, pit:pitchIdx}));
-  localStorage.setItem('jbj_last', fileKey);
+  try {
+    const time = audio.currentTime || 0;
+    const data = {
+      ch: currentChapter,
+      time: time,
+      ts: Date.now(),
+      spd: speedIdx,
+      pit: pitchIdx,
+      muted: audio.muted ? 1 : 0,
+      boost: typeof boostIdx==='number' ? boostIdx : 0,
+      tone: typeof toneIdx==='number' ? toneIdx : 2
+    };
+    localStorage.setItem('jbj_'+fileKey, JSON.stringify(data));
+    localStorage.setItem('jbj_last', fileKey);
+  } catch(e) { console.warn('saveProgress failed', e); }
 }
 function restoreProgress(){
   if(!fileKey) return null;
   try{return JSON.parse(localStorage.getItem('jbj_'+fileKey));}catch(e){return null;}
 }
-setInterval(saveProgress, 3000);
+// Save aggressively for mobile reliability
+setInterval(saveProgress, 2000);
+// Save on every event we can - mobile browsers fire some but not others
 window.addEventListener('beforeunload', saveProgress);
-document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden') saveProgress(); });
 window.addEventListener('pagehide', saveProgress);
+window.addEventListener('blur', saveProgress);
+document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden') saveProgress(); });
 audio.addEventListener('pause', saveProgress);
+audio.addEventListener('seeking', saveProgress);
+// Throttled save during playback (every ~5s of audio time)
+let _lastTimeSave = 0;
+audio.addEventListener('timeupdate', function(){
+  if(Math.abs(audio.currentTime - _lastTimeSave) > 5){
+    _lastTimeSave = audio.currentTime;
+    saveProgress();
+  }
+});
 
 let pendingRestore = null;
 let manualUpload = false;
@@ -406,9 +430,18 @@ function finishLoad(){
     currentChapter = saved.ch;
     document.getElementById('chapter-select').value = currentChapter;
     if(typeof saved.spd==='number'){ speedIdx=saved.spd; baseSpeed=speeds[speedIdx]||1; document.getElementById('speed-label').textContent=baseSpeed+'x'; }
-    if(typeof saved.pit==='number'){ pitchIdx=saved.pit; document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label; var pr=pitchLevels[pitchIdx].rate; if(pr!==1.0){audio.preservesPitch=false;audio.playbackRate=pr;} }
+    if(typeof saved.pit==='number'){ pitchIdx=saved.pit; document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label; }
     audio.preservesPitch=true;
     audio.playbackRate=baseSpeed;
+    if(typeof saved.pit==='number'){
+      var pr=pitchLevels[saved.pit].rate;
+      if(pr!==1.0){ audio.preservesPitch=false; audio.playbackRate=pr; }
+    }
+    if(saved.muted){ audio.muted=true; document.getElementById('unmuted-icon').style.display='none'; document.getElementById('muted-icon').style.display=''; }
+    if(typeof saved.boost==='number' && saved.boost>0){
+      try { ensureAudioCtx(); boostIdx=saved.boost; gainNode.gain.value=Math.pow(10,(boostLevels[boostIdx]||0)/20); document.getElementById('boost-label').textContent=['0','+','++'][boostIdx]; } catch(e){}
+    }
+    if(typeof saved.tone==='number'){ toneIdx=saved.tone; }
     if(multiFileMode && chapters[currentChapter].fileUrl){
       audio.onloadedmetadata = () => { audio.currentTime = saved.time || 0; };
       audio.src = chapters[currentChapter].fileUrl;
@@ -823,17 +856,81 @@ function skip(s){
   const ch=chapters[currentChapter];
   if(multiFileMode){
     const newTime=audio.currentTime+s;
+    if(s<0 && audio.currentTime<3 && currentChapter>0){
+      // Less than 3s in: jump to previous chapter, position s seconds before end
+      var prevIdx = currentChapter-1;
+      var overflow = audio.currentTime + s; // negative
+      goToChapterAtOffset(prevIdx, overflow);
+      return;
+    }
+    if(s<0 && audio.currentTime<Math.abs(s)){
+      audio.currentTime = 0;
+      saveProgress();
+      return;
+    }
     if(newTime<0) audio.currentTime=0;
     else if(newTime>audio.duration) nextChapter();
     else audio.currentTime=newTime;
   } else {
+    const inChapterTime = audio.currentTime - ch.startTime;
+    if(s<0 && inChapterTime<3 && currentChapter>0){
+      // <3s into chapter: go back to previous chapter, |s|-inChapterTime before its end
+      var prevCh = chapters[currentChapter-1];
+      var backInto = Math.abs(s) - inChapterTime;
+      currentChapter = currentChapter-1;
+      document.getElementById('chapter-select').value = currentChapter;
+      audio.currentTime = Math.max(prevCh.startTime, prevCh.endTime - backInto);
+      updateBookProgress();
+      saveProgress();
+      return;
+    }
+    if(s<0 && inChapterTime<Math.abs(s)){
+      audio.currentTime = ch.startTime;
+      saveProgress();
+      return;
+    }
     const newTime=audio.currentTime+s;
     if(newTime<ch.startTime) audio.currentTime=ch.startTime;
     else if(newTime>=ch.endTime&&currentChapter<chapters.length-1) goToChapter(currentChapter+1);
     else audio.currentTime=Math.max(0,Math.min(audio.duration||0,newTime));
   }
+  saveProgress();
 }
-function prevChapter(){ goToChapter(currentChapter-1); }
+function goToChapterAtOffset(idx, offsetFromEnd){
+  // For multi-file mode: go to chapter idx and seek (offsetFromEnd) seconds before its end
+  if(idx<0||idx>=chapters.length) return;
+  wasPlaying = !audio.paused;
+  currentChapter = idx;
+  document.getElementById('chapter-select').value = idx;
+  if(multiFileMode && chapters[idx].fileUrl){
+    audio.onloadedmetadata = () => {
+      var endTime = audio.duration;
+      audio.currentTime = Math.max(0, endTime + offsetFromEnd);
+      audio.preservesPitch=true; audio.playbackRate=baseSpeed;
+      if(wasPlaying) audio.play();
+      saveProgress();
+    };
+    audio.src = chapters[idx].fileUrl;
+    audio.load();
+  } else {
+    audio.currentTime = Math.max(chapters[idx].startTime, chapters[idx].endTime + offsetFromEnd);
+    saveProgress();
+  }
+  updateBookProgress();
+}
+function prevChapter(){
+  // If >5s into current chapter, restart current chapter; else go to previous chapter
+  if(!chapters.length) return;
+  const ch = chapters[currentChapter];
+  const inChapterTime = multiFileMode ? audio.currentTime : (audio.currentTime - ch.startTime);
+  if(inChapterTime > 5){
+    if(multiFileMode) audio.currentTime = 0;
+    else audio.currentTime = ch.startTime;
+    saveProgress();
+  } else {
+    goToChapter(currentChapter-1);
+  }
+}
 function nextChapter(){ goToChapter(currentChapter+1); }
 
 function cycleSpeed(){
@@ -869,6 +966,7 @@ function toggleMute(){
   audio.muted = !audio.muted;
   document.getElementById('unmuted-icon').style.display = audio.muted ? 'none' : '';
   document.getElementById('muted-icon').style.display = audio.muted ? '' : 'none';
+  saveProgress();
 }
 function cycleBoost(){
   ensureAudioCtx();
@@ -877,6 +975,7 @@ function cycleBoost(){
   gainNode.gain.value = Math.pow(10, db / 20);
   var labels = ['0', '+', '++'];
   document.getElementById('boost-label').textContent = labels[boostIdx];
+  saveProgress();
 }
 
 function seekChapter(e){
@@ -951,8 +1050,8 @@ function updateBookProgress(){
 document.addEventListener('keydown',(e)=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
   if(e.key===' '){e.preventDefault();togglePlay();}
-  if(e.key==='ArrowLeft'&&e.shiftKey){e.preventDefault();prevChapter();}
-  else if(e.key==='ArrowRight'&&e.shiftKey){e.preventDefault();nextChapter();}
+  if(e.key==='ArrowLeft'&&(e.shiftKey||e.ctrlKey||e.metaKey)){e.preventDefault();prevChapter();}
+  else if(e.key==='ArrowRight'&&(e.shiftKey||e.ctrlKey||e.metaKey)){e.preventDefault();nextChapter();}
   else if(e.key==='ArrowLeft'){e.preventDefault();skip(-10);}
   else if(e.key==='ArrowRight'){e.preventDefault();skip(10);}
 });
