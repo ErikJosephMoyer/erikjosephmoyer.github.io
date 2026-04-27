@@ -303,50 +303,48 @@ function downloadAudio(){
   a.download = `stt_ejm_${getOutputName()}.mp3`;
   a.click();
 }
-function drawWaveform(fileOrBlob){
+async function drawWaveform(fileOrBlob){
   const area = document.getElementById('waveform-area');
   const canvas = document.getElementById('waveform-canvas');
   const ctx = canvas.getContext('2d');
   area.style.display = 'flex';
-  var mn=document.getElementById('music-note'); if(mn) mn.style.display='none';
-
-  if(fileOrBlob.size > 5*1024*1024){
-    const W = area.clientWidth; canvas.width=W; canvas.height=60;
-    ctx.fillStyle='#fff';
-    for(let x=0;x<W;x++){
-      const h=5+Math.sin(x*0.05)*12+Math.sin(x*0.13)*8+Math.random()*6;
-      ctx.fillRect(x,30-h/2,1,h);
-    }
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = function(){
-    const actx = new (window.AudioContext||window.webkitAudioContext)();
-    actx.decodeAudioData(reader.result, decoded => {
-      const data = decoded.getChannelData(0);
-      const W = area.clientWidth; canvas.width=W; canvas.height=60;
-      const step = Math.max(1,Math.ceil(data.length/W));
-      ctx.clearRect(0,0,W,60); ctx.fillStyle='#fff';
-      for(let x=0;x<W;x++){
-        let min=1,max=-1;
-        for(let j=0;j<step;j++){
-          const v=data[x*step+j]||0;
-          if(v<min)min=v;if(v>max)max=v;
-        }
-        ctx.fillRect(x,(1+min)/2*60,1,Math.max(1,(1+max)/2*60-(1+min)/2*60));
-      }
-      actx.close();
-    }, ()=>{
-      const W=area.clientWidth; canvas.width=W; canvas.height=60;
-      ctx.fillStyle='#fff';
-      for(let x=0;x<W;x++){
-        const h=5+Math.sin(x*0.05)*12+Math.sin(x*0.13)*8+Math.random()*6;
-        ctx.fillRect(x,30-h/2,1,h);
-      }
+  var mn = document.getElementById('music-note'); if(mn) mn.style.display='none';
+  const W = area.clientWidth; canvas.width = W; canvas.height = 60;
+  ctx.clearRect(0, 0, W, 60);
+  // Loading indicator: thin centerline
+  ctx.fillStyle = '#888';
+  for(let x=0; x<W; x++) ctx.fillRect(x, 29, 1, 2);
+  let actx;
+  try {
+    const buf = await fileOrBlob.arrayBuffer();
+    actx = new (window.AudioContext||window.webkitAudioContext)();
+    const decoded = await new Promise((resolve, reject) => {
+      actx.decodeAudioData(buf.slice(0), resolve, reject);
     });
-  };
-  reader.readAsArrayBuffer(fileOrBlob);
+    const data = decoded.getChannelData(0);
+    const samplesPerPx = Math.max(1, Math.floor(data.length / W));
+    ctx.clearRect(0, 0, W, 60);
+    ctx.fillStyle = '#fff';
+    const mid = 30;
+    for(let x=0; x<W; x++){
+      const start = x * samplesPerPx;
+      const end = Math.min(data.length, start + samplesPerPx);
+      let peak = 0;
+      for(let i=start; i<end; i++){
+        const v = Math.abs(data[i]);
+        if(v > peak) peak = v;
+      }
+      const h = Math.max(1, peak * 56);
+      ctx.fillRect(x, mid - h/2, 1, h);
+    }
+  } catch(e){
+    console.warn('STT waveform decode failed', e);
+    ctx.clearRect(0, 0, W, 60);
+    ctx.fillStyle = '#fff';
+    for(let x=0; x<W; x++) ctx.fillRect(x, 29, 1, 2);
+  } finally {
+    if(actx) try { actx.close(); } catch(e){}
+  }
 }
 document.addEventListener('keydown',(e)=>{
   if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
