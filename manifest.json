@@ -1,0 +1,23 @@
+{
+  "name": "Erik's Tools",
+  "short_name": "EM Tools",
+  "description": "Audiobooker, Converter, Speech-to-Texter, Text-to-Speecher, and Typesetter",
+  "start_url": "/app/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#2a2a2a",
+  "theme_color": "#2a2a2a",
+  "icons": [
+    {"src": "/images/Favicon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/images/Favicon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/images/Favicon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Audiobooker", "url": "/abp/", "icons": [{"src": "/images/Audiobooker.png", "sizes": "100x100"}]},
+    {"name": "Converter", "url": "/fcv/", "icons": [{"src": "/images/Converter.PNG", "sizes": "100x100"}]},
+    {"name": "Speech-to-Texter", "url": "/stt/", "icons": [{"src": "/images/SpeechToTexter.png", "sizes": "100x100"}]},
+    {"name": "Text-to-Speecher", "url": "/tts/", "icons": [{"src": "/images/TextToSpeecher.png", "sizes": "100x100"}]},
+    {"name": "Typesetter", "url": "/tps/", "icons": [{"src": "/images/Typesetter.PNG", "sizes": "100x100"}]}
+  ]
+}
