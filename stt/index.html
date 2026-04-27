@@ -41,13 +41,14 @@ button:disabled{background:#555;color:#888;cursor:default}
 #music-note{font-size:40pt;color:#666;position:absolute;user-select:none}
 
 .hidden-input{display:none}
+@media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
 </style>
 </head>
 <body>
 
 <img src="/images/SpeechToTexterLogo.png" alt="STT" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Textualizer</h1>
-<h2><em>Write With Your Mouth</em>: A Speech-to-Text Tool</h2>
+<h2><em>Write With Your Mouth</em>:<span class="sub-break"> </span>A Speech-to-Text Tool</h2>
 
 <div class="btn-row">
   <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload Audio</button>
