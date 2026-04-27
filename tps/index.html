@@ -60,7 +60,7 @@ select:focus{outline:none}
 <option value="Garamond" style="font-family:Garamond">Garamond</option>
 <option value="Georgia" selected style="font-family:Georgia">Georgia</option>
 <option value="Helvetica" style="font-family:Helvetica">Helvetica</option>
-<option value="Roboto" style="font-family:Roboto">Roboto</option>
+<option value="Cascadia Code" style="font-family:'Cascadia Code',monospace">Cascadia Code</option>
 <option value="Times New Roman" style="font-family:'Times New Roman'">Times New Roman</option>
 <option value="Verdana" style="font-family:Verdana">Verdana</option>
 </select></div>
@@ -132,9 +132,42 @@ document.getElementById('file-input').onchange = async function () {
       for (var i = 1; i <= pdf.numPages; i++) {
         var pg = await pdf.getPage(i);
         var ct = await pg.getTextContent();
-        pages.push(ct.items.map(function (it) { return it.str; }).join(' '));
+        // Reconstruct lines by Y-coordinate, then collapse hard-wrapped lines into paragraphs.
+        // Lines whose previous line ends with sentence-terminator (.!?) are likely paragraph ends.
+        var pageLines = [];
+        var curLine = '';
+        var prevY = null;
+        for (var k = 0; k < ct.items.length; k++) {
+          var it = ct.items[k];
+          var y = it.transform ? it.transform[5] : null;
+          if (prevY !== null && y !== null && Math.abs(prevY - y) > 1) {
+            pageLines.push(curLine);
+            curLine = '';
+          }
+          curLine += it.str;
+          if (it.hasEOL) {
+            pageLines.push(curLine);
+            curLine = '';
+          }
+          prevY = y;
+        }
+        if (curLine) pageLines.push(curLine);
+        // Now join lines: blank lines separate paragraphs, otherwise join with space.
+        var text = '';
+        for (var k = 0; k < pageLines.length; k++) {
+          var l = pageLines[k].replace(/\s+/g, ' ').trim();
+          if (l.length === 0) { text += '\n\n'; continue; }
+          if (text.length > 0 && !text.endsWith('\n')) text += ' ';
+          text += l;
+          // Heuristic: line ending in sentence-terminator + next line starts capitalized → paragraph break
+          var next = pageLines[k + 1] ? pageLines[k + 1].trim() : '';
+          if (/[.!?][")\]]?$/.test(l) && next && /^[A-Z"]/.test(next) && l.length < 80) {
+            text += '\n\n';
+          }
+        }
+        pages.push(text);
       }
-      rawText = pages.join('\n');
+      rawText = pages.join('\n\n');
     } else if (ext === 'epub') {
       rawText = await extractEpub(inputFile);
     }
@@ -176,10 +209,16 @@ async function extractEpub(file) {
     var entry = zip.file(opfDir + href) || zip.file(href);
     if (!entry) continue;
     var xhtml = await entry.async('string');
+    // Inject double-newlines between block-level elements before parsing,
+    // so paragraphs don't collapse into one wall of text.
+    xhtml = xhtml.replace(/<\/(p|div|h[1-6]|li|blockquote|tr|br|hr|article|section)>/gi, '</$1>\n\n');
+    xhtml = xhtml.replace(/<br\s*\/?>/gi, '\n');
     var xDoc = dp.parseFromString(xhtml, 'text/html');
     var body = xDoc.querySelector('body');
     if (body) {
-      var t = body.textContent.trim();
+      var t = body.textContent;
+      // Collapse 3+ blanks but preserve paragraph breaks
+      t = t.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
       if (t.length > 0) allText.push(t);
     }
   }
@@ -285,190 +324,147 @@ function detectMeta(text) {
   return { title: title, author: author, year: year, translator: translator };
 }
 
-/* ───────── CHAPTER DETECTION ───────── */
+/* ───────── CHAPTER DETECTION ─────────
+ * Returns array of {lineNum, title, level} where level 1 = top-level (Part, Book),
+ * level 2 = chapter under a part, level 0 = standalone chapter (no parts).
+ * Crucially we DO NOT dedupe by title — "CHAPTER I" can repeat under different parts.
+ */
 function detectChapters(text) {
   var lines = text.split('\n');
   var chapters = [];
-  var seen = {};
 
-  // Patterns for chapter headings in the body text
-  // We look for lines that are standalone short headings
-  var chapterPatterns = [
-    /^(Preface)$/i,
-    /^(Acknowledgments?)$/i,
-    /^(Introduction)$/i,
-    /^(Epilogue)$/i,
-    /^(Prologue)$/i,
-    /^(Foreword)$/i,
-    /^(Afterword)$/i,
-    /^(Conclusion)$/i,
-    // "Chapter N" or "Chapter N: Title" or "CHAPTER N"
-    /^(Chapter\s+\d+[^\n]*)/i,
-    /^(Chapter\s+[IVXLCDM]+[^\n]*)/i,
-    // "Part N" or "Part N: Title"
-    /^(Part\s+\d+[^\n]*)/i,
-    /^(Part\s+[IVXLCDM]+[^\n]*)/i,
-    // Numbered sections: "1 Introduction", "2.1 Sizing teams", "3.12.1 Positive..."
-    /^(\d+\.\d+\.\d+\s+[A-Z][^\n]{2,80})$/,
-    /^(\d+\.\d+\s+[A-Z][^\n]{2,80})$/,
-    /^(\d+\s+[A-Z][^\n]{2,80})$/,
-    // Standalone single number on a line (like "1", "2") - skip these
-  ];
+  // Patterns for STANDALONE-LINE headings. A heading is a short line by itself.
+  var partPattern = /^(Part|Book|Volume)\s+([IVXLCDM]+|\d+|One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten)\b[^\n]{0,80}$/i;
+  var chapterPattern = /^(Chapter|Ch\.?|Section)\s+([IVXLCDM]+|\d+)\b[^\n]{0,80}$/i;
+  var standaloneKeywords = /^(Preface|Acknowledgments?|Acknowledgements?|Introduction|Epilogue|Prologue|Foreword|Afterword|Conclusion|Dedication)$/i;
+  // Numbered sections: "1 Introduction", "2.1 Sizing teams"
+  var numberedSection = /^(\d+(?:\.\d+){0,2})\s+[A-Z][^\n]{2,80}$/;
+  // Body-of-text exclusions
+  var figureLine = /^(Figure|Table|Chart|Diagram|Fig\.?|Tbl\.?)\s+\d/i;
+  var navMarker = /^(Cover|Title Page|Table of Contents|Start of Content|Landmarks|Copyright|Imprint|Half Title|Frontispiece|Contents)$/i;
 
-  // First pass: find the TOC section if it exists, to learn the real headings
-  var tocHeadings = [];
-  var inToc = false;
-  var tocEnd = -1;
-  for (var i = 0; i < Math.min(lines.length, 1000); i++) {
-    var l = lines[i].trim();
-    if (/^Contents$/i.test(l)) {
-      inToc = true;
-      continue;
-    }
-    if (inToc) {
-      // TOC entries are lines with text in them
-      if (l.length > 0) {
-        // Stop TOC when we hit the actual body (long paragraph)
-        if (l.length > 120) { tocEnd = i; break; }
-        // Collect TOC heading
-        tocHeadings.push(l);
-      }
-      // If we see something that looks like body text starting, end TOC
-      if (l === '' && tocHeadings.length > 5) {
-        // Count consecutive blank lines
-        var blanks = 0;
-        for (var j = i; j < Math.min(i + 10, lines.length); j++) {
-          if (lines[j].trim() === '') blanks++;
-          else break;
-        }
-        // If there's a section like "Landmarks", stop
-        if (blanks >= 3) {
-          // Check what comes next
-          for (var j = i; j < Math.min(i + 20, lines.length); j++) {
-            var nl = lines[j].trim();
-            if (nl === 'Landmarks' || nl === 'Cover' || nl === 'Title Page' || nl === 'Start of Content') {
-              tocEnd = j;
-              break;
-            }
-          }
-          if (tocEnd > 0) break;
-        }
-      }
-    }
-  }
-
-  // Second pass: find headings in the actual body text
-  // The body starts after front matter (after "Landmarks" / "Start of Content" section, or after the TOC)
+  // First, locate where the body content starts. Strategy:
+  // 1) "Start of Content" marker (epub) → bodyStart is right after it
+  // 2) End of "Contents" TOC block → bodyStart there
+  // 3) First Part/Chapter heading after the first 200 lines (skip front matter)
+  // 4) Default: line 0
   var bodyStart = 0;
-  for (var i = 0; i < Math.min(lines.length, 1000); i++) {
-    if (lines[i].trim() === 'Start of Content') {
-      bodyStart = i + 1;
-      break;
+  var sawContents = false, contentsStart = -1, contentsEnd = -1;
+  for (var i = 0; i < Math.min(lines.length, 2000); i++) {
+    var l = lines[i].trim();
+    if (l === 'Start of Content') { bodyStart = i + 1; break; }
+    if (!sawContents && /^Contents$/i.test(l)) {
+      sawContents = true;
+      contentsStart = i;
+      // TOC block ends at the first long paragraph or the first big gap of blank lines
+      for (var j = i + 1; j < Math.min(i + 500, lines.length); j++) {
+        var jl = lines[j].trim();
+        if (jl.length > 120) { contentsEnd = j; break; }
+      }
+      if (contentsEnd > 0) bodyStart = contentsEnd;
     }
   }
-  // If no "Start of Content" marker, look for first real paragraph after TOC
-  if (bodyStart === 0 && tocEnd > 0) {
-    bodyStart = tocEnd;
-  }
 
-  // Build a set of known headings from TOC for fast lookup
-  var tocSet = {};
-  for (var i = 0; i < tocHeadings.length; i++) {
-    tocSet[tocHeadings[i].trim()] = true;
-  }
-
-  // Scan body for chapter headings
+  // Second pass: scan from bodyStart for headings
   for (var i = bodyStart; i < lines.length; i++) {
     var l = lines[i].trim();
     if (l.length === 0) continue;
-    if (l.length > 120) continue; // Too long to be a heading
+    if (l.length > 120) continue;
+    if (/^\d+$/.test(l)) continue; // standalone page numbers
+    if (figureLine.test(l)) continue;
+    if (navMarker.test(l)) continue;
 
-    // Skip standalone numbers (like "1", "2", "3") which precede "Chapter N" lines
-    if (/^\d+$/.test(l)) continue;
+    // Confirm it's standalone: prev or next line is blank (or this is first/last line)
+    var prevBlank = (i === 0) || lines[i - 1].trim() === '';
+    var nextBlank = (i === lines.length - 1) || lines[i + 1].trim() === '';
+    var isStandalone = prevBlank || nextBlank;
 
-    // Skip lines like "Figure 2.1", "Table 3.2" etc
-    if (/^(Figure|Table|Chart|Diagram)\s+\d/i.test(l)) continue;
+    var level = -1;
+    var title = l;
 
-    // Skip known non-heading lines
-    if (/^(Cover|Title Page|Table of Contents|Start of Content|Landmarks)$/i.test(l)) continue;
-
-    // Check if this line matches a TOC entry exactly
-    if (tocSet[l]) {
-      if (!seen[l]) {
-        seen[l] = true;
-        chapters.push({ lineNum: i, title: l });
-      }
-      continue;
-    }
-
-    // Check against chapter patterns
-    for (var p = 0; p < chapterPatterns.length; p++) {
-      if (chapterPatterns[p].test(l)) {
-        // For "Chapter N\nTitle" pattern: check if next non-blank line is the title
-        if (/^Chapter\s+\d+$/i.test(l)) {
-          // Find next non-blank line
-          for (var k = i + 1; k < Math.min(i + 5, lines.length); k++) {
-            var nl = lines[k].trim();
-            if (nl.length > 0) {
-              // This is likely the chapter title text - skip the "Chapter N" line
-              // The actual section headings (like "1.1 Introduction") will be caught separately
-              break;
-            }
-          }
-          break; // Don't add "Chapter N" standalone as a heading
-        }
-        if (!seen[l]) {
-          seen[l] = true;
-          chapters.push({ lineNum: i, title: l });
+    if (partPattern.test(l)) level = 1;
+    else if (chapterPattern.test(l)) level = 2;
+    else if (standaloneKeywords.test(l)) level = 0;
+    else if (numberedSection.test(l)) level = 2;
+    // "CHAPTER" or "PART" line followed by a separate title line
+    else if (/^(CHAPTER|PART|BOOK|VOLUME)\s+([IVXLCDM]+|\d+|One|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten)$/i.test(l)) {
+      // Look ahead for a title
+      level = /^PART|BOOK|VOLUME/i.test(l) ? 1 : 2;
+      // Try to combine with next non-blank line if it looks like a title
+      for (var k = i + 1; k < Math.min(i + 4, lines.length); k++) {
+        var nl = lines[k].trim();
+        if (nl.length === 0) continue;
+        if (nl.length < 80 && !/[.!?]$/.test(nl) && /^[A-Z]/.test(nl)) {
+          title = l + ': ' + nl;
         }
         break;
       }
     }
+
+    if (level >= 0 && isStandalone) {
+      chapters.push({ lineNum: i, title: title, level: level, raw: l });
+    }
+  }
+
+  // If we have parts but no chapters under them at all, demote parts to level 0
+  // If we have parts AND chapters, keep the hierarchy.
+  var hasPart = chapters.some(function(c){ return c.level === 1; });
+  var hasChap = chapters.some(function(c){ return c.level === 2; });
+  if (hasPart && !hasChap) {
+    chapters.forEach(function(c){ if (c.level === 1) c.level = 0; });
   }
 
   return chapters;
 }
 
-/* ───────── FRONT/BACK MATTER STRIPPING ───────── */
+/* ───────── FRONT/BACK MATTER STRIPPING ─────────
+ * Aggressive: cuts everything before the first Part/Chapter heading
+ * and everything after detected back-matter section headers.
+ */
 function stripMatter(text, chapters) {
   if (chapters.length === 0) return text;
-
   var lines = text.split('\n');
 
-  // Find where real content begins: the first chapter heading in the text
-  var firstChapLine = chapters[0].lineNum;
+  // Find first body heading (level 1 or 2). Skip "Preface/Foreword/Introduction" if cutMatter is set —
+  // these are technically front matter even though they're commonly listed in TOC.
+  var firstBodyIdx = -1;
+  for (var i = 0; i < chapters.length; i++) {
+    if (chapters[i].level === 1 || chapters[i].level === 2) {
+      firstBodyIdx = i;
+      break;
+    }
+  }
+  // Fallback: first heading of any kind
+  if (firstBodyIdx < 0) firstBodyIdx = 0;
+  var firstChapLine = chapters[firstBodyIdx].lineNum;
 
-  // Find back matter: look from the end for known back-matter keywords
-  var backKeywords = /^(Notes|End\s*notes|Acknowledgments?|Acknowledgements?|Bibliography|References|Appendix|Index|About the Author|Credits|Permissions|Sources|Glossary|Further Reading|Works Cited|Suggested Reading|Afterword|Colophon|Copyright)$/i;
+  // Find last body chapter — anything after Appendix/Notes/etc. is back matter.
+  var backRe = /^(Notes|End\s*notes|Acknowledg(e)?ments?|Bibliography|References|Appendix(es|ces)?|Index|About the Author|Credits|Permissions|Sources|Glossary|Further Reading|Works Cited|Suggested Reading|Colophon|Copyright|Discussion Questions|Reading Group|Author's? Note)\b/i;
   var lastContentLine = lines.length;
-
-  // Find the last real chapter (not appendix/back matter)
-  // We consider the appendix section as back matter
-  var backMatterKeywordsInChapters = /^(Appendix|Notes|Acknowledgments?|Bibliography|Index|About the Author|Glossary|Further Reading|Works Cited|References)/i;
-  var lastBodyChapterIdx = chapters.length - 1;
-  for (var c = chapters.length - 1; c >= 0; c--) {
-    if (backMatterKeywordsInChapters.test(chapters[c].title)) {
-      lastBodyChapterIdx = c - 1;
+  // Walk chapters from end; stop when we hit a non-back-matter chapter
+  for (var c = chapters.length - 1; c >= firstBodyIdx; c--) {
+    if (backRe.test(chapters[c].title) || backRe.test(chapters[c].raw || '')) {
+      lastContentLine = chapters[c].lineNum;
     } else {
       break;
     }
   }
 
-  // Also scan from end of file for back matter section headers
-  for (var i = lines.length - 1; i > 0; i--) {
+  // Also scan raw lines from end for back-matter section header that wasn't picked up
+  for (var i = lines.length - 1; i > firstChapLine; i--) {
     var l = lines[i].trim();
-    if (backKeywords.test(l)) {
-      // This might be back matter start - but only if it's after most chapters
-      if (lastBodyChapterIdx >= 0 && i > chapters[lastBodyChapterIdx].lineNum) {
-        lastContentLine = i;
+    if (backRe.test(l) && l.length < 60) {
+      // Confirm it's standalone
+      var prevBlank = (i === 0) || lines[i - 1].trim() === '';
+      var nextBlank = (i === lines.length - 1) || lines[i + 1].trim() === '';
+      if (prevBlank || nextBlank) {
+        if (i < lastContentLine) lastContentLine = i;
+        break;
       }
-      break;
     }
   }
 
-  // Build stripped text: from first chapter to last content line
-  var result = lines.slice(firstChapLine, lastContentLine).join('\n');
-  return result;
+  return lines.slice(firstChapLine, lastContentLine).join('\n');
 }
 
 /* ───────── BUILD TITLE PAGE TEXT ───────── */
@@ -497,7 +493,7 @@ async function loadFont(doc, fontName) {
     'EB Garamond': 'EB_Garamond',
     'Garamond': 'Garamond',
     'Georgia': 'Georgia',
-    'Roboto': 'Roboto',
+    'Cascadia Code': 'Cascadia_Code',
     'Times New Roman': 'Times_New_Roman',
     'Verdana': 'Verdana'
   };
@@ -619,44 +615,55 @@ async function _generate() {
   // Collapse 3+ blank lines to 2
   text = text.replace(/\n{3,}/g, '\n\n');
 
-  /* Build chapter heading set for quick lookup */
-  var chapterSet = {};
-  for (var c = 0; c < chapters.length; c++) {
-    chapterSet[chapters[c].title] = true;
+  /* Re-detect chapters in the cleaned text since line numbers shifted */
+  var bodyChapters = detectChapters(text);
+  // Build a set of heading raw-strings for line-by-line matching
+  var headingLineNums = {};
+  var headingByLine = {};
+  for (var c = 0; c < bodyChapters.length; c++) {
+    headingLineNums[bodyChapters[c].lineNum] = true;
+    headingByLine[bodyChapters[c].lineNum] = bodyChapters[c];
   }
 
-  /* Parse text into structured blocks */
-  var blocks = []; // {type:'heading'|'para', text:string}
+  /* Parse text into structured blocks. Smart paragraph joining:
+   * - Hard line break (single \n with no blank after) → join with space
+   * - Blank line (\n\n+) → new paragraph
+   * - Chapter heading line → emit as heading block, flush surrounding paragraph
+   */
+  var blocks = []; // {type:'heading'|'para', text:string, level?:number}
   var rawLines = text.split('\n');
   var currentPara = [];
 
   function flushPara() {
     if (currentPara.length > 0) {
-      var joined = currentPara.join(' ').trim();
-      if (joined.length > 0) {
-        blocks.push({ type: 'para', text: joined });
-      }
+      var joined = currentPara.join(' ').replace(/\s+/g, ' ').trim();
+      if (joined.length > 0) blocks.push({ type: 'para', text: joined });
       currentPara = [];
     }
   }
 
+  // Skip the headings we found before bodyStart from leaking — we already trimmed text
   for (var i = 0; i < rawLines.length; i++) {
     var line = rawLines[i].trim();
 
-    if (line.length === 0) {
-      // Blank line = paragraph break
+    if (line.length === 0) { flushPara(); continue; }
+
+    if (headingLineNums[i]) {
       flushPara();
+      var hb = headingByLine[i];
+      blocks.push({ type: 'heading', text: hb.title, level: hb.level, raw: hb.raw });
+      // If we combined a 2-line heading (e.g. "PART I" + "NEW TITLE"), skip the next non-blank line
+      if (hb.title.indexOf(': ') > 0 && hb.title.split(': ')[0] === hb.raw) {
+        for (var k = i + 1; k < Math.min(i + 4, rawLines.length); k++) {
+          if (rawLines[k].trim().length > 0) {
+            i = k; // skip past the title line we already absorbed
+            break;
+          }
+        }
+      }
       continue;
     }
 
-    // Check if this line is a chapter heading
-    if (chapterSet[line]) {
-      flushPara();
-      blocks.push({ type: 'heading', text: line });
-      continue;
-    }
-
-    // Otherwise it's body text - accumulate into current paragraph
     currentPara.push(line);
   }
   flushPara();
@@ -690,65 +697,53 @@ async function _generate() {
     fillBg();
   }
 
-  /* ───── TITLE PAGE ───── */
-  fillBg();
-  var y = margin + lineH;
+  /* ───── TITLE PAGE (only if we have a TOC) ───── */
+  var y;
+  var skipTitlePage = (bodyChapters.length === 0);
+  if (!skipTitlePage) {
+    fillBg();
+    y = margin + lineH;
 
-  // Title (same size as body)
-  if (meta.title) {
-    var titleLines = doc.splitTextToSize(meta.title, cw);
-    for (var t = 0; t < titleLines.length; t++) {
-      doc.text(titleLines[t], margin, y);
-      y += lineH;
-    }
-  }
-  // Author (no extra space)
-  if (meta.author) {
-    doc.text(meta.author, margin, y);
-    y += lineH;
-  }
-  if (meta.translator) {
-    doc.text('Translated by ' + meta.translator, margin, y);
-    y += lineH;
-  }
-  if (meta.year) {
-    doc.text(meta.year, margin, y);
-    y += lineH;
-  }
-  // One blank line before Contents
-  y += lineH;
-  // Contents
-  if (chapters.length > 0) {
-    doc.text('Contents', margin, y);
-    y += lineH;
-    for (var i = 0; i < chapters.length; i++) {
-      if (y > ph - margin - lineH) {
-        newPage();
-        y = margin + lineH;
-      }
-      var tocLines = doc.splitTextToSize(chapters[i].title, cw - tabW);
-      for (var tl = 0; tl < tocLines.length; tl++) {
-        doc.text(tocLines[tl], margin + tabW, y);
+    if (meta.title) {
+      var titleLines = doc.splitTextToSize(meta.title, cw);
+      for (var t = 0; t < titleLines.length; t++) {
+        doc.text(titleLines[t], margin, y);
         y += lineH;
       }
     }
+    if (meta.author) { doc.text(meta.author, margin, y); y += lineH; }
+    if (meta.translator) { doc.text('Translated by ' + meta.translator, margin, y); y += lineH; }
+    if (meta.year) { doc.text(meta.year, margin, y); y += lineH; }
+    y += lineH;
+    doc.text('Contents', margin, y);
+    y += lineH;
+    for (var i = 0; i < bodyChapters.length; i++) {
+      if (y > ph - margin - lineH) { newPage(); y = margin + lineH; }
+      // Indent: level 0 = no indent, level 1 = 1 tab, level 2 = 2 tabs
+      var indentLevel = bodyChapters[i].level === 1 ? 1 : (bodyChapters[i].level === 2 ? 2 : 0);
+      var indentX = margin + tabW * indentLevel;
+      var availW = cw - tabW * indentLevel;
+      var tocLines = doc.splitTextToSize(bodyChapters[i].title, availW);
+      for (var tl = 0; tl < tocLines.length; tl++) {
+        doc.text(tocLines[tl], indentX, y);
+        y += lineH;
+      }
+    }
+    newPage();
+  } else {
+    // No TOC: start straight on first page, no separate title page
+    fillBg();
   }
-
-  /* ───── BODY PAGES ───── */
-  // Start body on new page
-  newPage();
   y = margin + lineH;
 
   for (var b = 0; b < blocks.length; b++) {
     var block = blocks[b];
 
     if (block.type === 'heading') {
-      // Only major chapters get page breaks (single number like "1 Intro", "2 Orgs", "Preface")
-      // Subsections (2.1, 2.2.1 etc.) do NOT get page breaks
-      var isMajor = /^(Preface|Prologue|Epilogue|Introduction|Conclusion|Foreword|Afterword)$/i.test(block.text)
-        || /^(Chapter\s+)/i.test(block.text)
-        || /^(Part\s+)/i.test(block.text)
-        || /^\d+\s+[A-Z]/.test(block.text) && !/^\d+\./.test(block.text);
+      // Page break for major sections (level 0 standalone, level 1 part, level 2 chapter).
+      // Subsections (numbered like 2.1) keep flowing.
+      var isMajor = (typeof block.level === 'number' && block.level <= 2 &&
+                     !/^\d+\.\d+/.test(block.raw || block.text));
       if (isMajor && (b > 0 || y > margin + lineH * 2)) {
         newPage();
         y = margin + lineH;
