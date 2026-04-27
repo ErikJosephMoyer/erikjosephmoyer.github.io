@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/images/Favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/images/Favicon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2a2a2a">
 <title>Erik's Jibberjabberer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1120,6 +1123,7 @@ document.addEventListener('keydown',(e)=>{
 <div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/fcv/" style="color:#fff">Converter</a> | <a href="/stt/" style="color:#fff">Speech-to-Texter</a> | <a href="/tts/" style="color:#fff">Text-to-Speecher</a> | <a href="/tps/" style="color:#fff">Typesetter</a></div>
 <br>
 <img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:8pt auto 8pt;border-radius:50%">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>
 </body>
 </html>
 <!-- v -->
