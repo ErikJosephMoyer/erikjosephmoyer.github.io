@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/images/Favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/images/Favicon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2a2a2a">
+<title>Erik's Decipherer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
+h1{font-size:28pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
+h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
+button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 14px;white-space:nowrap}
+button:hover{background:#ccc}
+button:disabled{background:#555;color:#888;cursor:default}
+#upload-btn,#run-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
+#file-info{text-align:center;font-size:14pt;color:white;margin:0 0 8pt}
+select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 8pt}
+select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
+#settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:4pt 16pt;margin:0 0 8pt}
+@media(max-width:600px){#settings-grid{grid-template-columns:1fr}}
+.setting{display:flex;align-items:center;gap:8px}
+.setting-label{white-space:nowrap;font-size:16pt}
+.setting select{flex:1}
+#status{text-align:center;font-size:16pt;color:white;margin:0 0 8pt}
+#preview-area{margin:0 0 8pt;text-align:center}
+#preview-area img,#preview-area canvas{max-width:100%;max-height:280px;border:1px solid #555;border-radius:4px}
+#output{width:100%;height:280px;background:transparent;border:1px solid #fff;color:#fff;font:14pt/1.3 'EB Garamond',serif;padding:10px;resize:vertical;margin:0 0 8pt;display:block}
+#output::placeholder{color:#666}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8pt}
+.btn-row button{flex:1;min-width:120px}
+#progress-bar{width:100%;height:6px;background:#444;border-radius:3px;overflow:hidden;margin:0 0 8pt}
+#progress-fill{height:100%;background:#fff;width:0%;transition:width 0.2s}
+#file-input{display:none}
+@media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
+</style>
+</head>
+<body>
+<img src="/images/Favicon.png" alt="OCR" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+<h1>Erik's Decipherer</h1>
+<h2><em>See With Your Mind</em>:<span class="sub-break"> </span>An Optical Character Recognizer</h2>
+
+<button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload Image or PDF</button>
+<input type="file" id="file-input" accept="image/*,.pdf">
+<div id="file-info">No file selected</div>
+
+<div id="preview-area"></div>
+
+<h2>Settings</h2>
+<div id="settings-grid">
+  <div class="setting"><span class="setting-label">Language:</span><select id="lang-select">
+    <option value="eng" selected>English</option>
+    <option value="eng+spa">English + Spanish</option>
+    <option value="eng+fra">English + French</option>
+    <option value="eng+deu">English + German</option>
+    <option value="eng+ita">English + Italian</option>
+    <option value="eng+por">English + Portuguese</option>
+    <option value="eng+rus">English + Russian</option>
+    <option value="eng+chi_sim">English + Chinese (Simp.)</option>
+    <option value="eng+jpn">English + Japanese</option>
+    <option value="eng+kor">English + Korean</option>
+    <option value="eng+ara">English + Arabic</option>
+    <option value="eng+hin">English + Hindi</option>
+    <option value="spa">Spanish</option>
+    <option value="fra">French</option>
+    <option value="deu">German</option>
+    <option value="rus">Russian</option>
+  </select></div>
+
+  <div class="setting"><span class="setting-label">Page Mode:</span><select id="psm-select">
+    <option value="3" selected>Auto (full page)</option>
+    <option value="6">Single block</option>
+    <option value="4">Single column</option>
+    <option value="11">Sparse text</option>
+    <option value="7">Single line</option>
+    <option value="8">Single word</option>
+  </select></div>
+
+  <div class="setting"><span class="setting-label">Preprocess:</span><select id="prep-select">
+    <option value="auto" selected>Auto</option>
+    <option value="none">None</option>
+    <option value="threshold">High contrast</option>
+    <option value="grayscale">Grayscale</option>
+    <option value="invert">Invert (light text)</option>
+  </select></div>
+
+  <div class="setting"><span class="setting-label">Output:</span><select id="format-select">
+    <option value="plain" selected>Plain text</option>
+    <option value="layout">Preserve layout</option>
+    <option value="confidence">With confidence scores</option>
+  </select></div>
+</div>
+
+<button id="run-btn" disabled onclick="runOCR()">Run OCR</button>
+<div id="progress-bar"><div id="progress-fill"></div></div>
+<div id="status">Status: Ready — upload an image or PDF</div>
+
+<textarea id="output" placeholder="Recognized text will appear here…" readonly></textarea>
+
+<div class="btn-row">
+  <button id="copy-btn" disabled onclick="copyText()">Copy</button>
+  <button id="dl-btn" disabled onclick="downloadTxt()">Download .txt</button>
+  <button id="clear-btn" disabled onclick="clearAll()">Clear</button>
+</div>
+
+<script>
+var inputFile = null;
+var inputType = null; // 'image' or 'pdf'
+var pdfPages = []; // array of canvases
+var lastOutput = '';
+
+document.getElementById('file-input').onchange = async function () {
+  inputFile = this.files[0];
+  if (!inputFile) return;
+  var ext = inputFile.name.split('.').pop().toLowerCase();
+  document.getElementById('file-info').textContent = inputFile.name + ' (' + Math.round(inputFile.size / 1024) + ' KB)';
+  document.getElementById('upload-btn').textContent = 'Replace File';
+  var prev = document.getElementById('preview-area');
+  prev.innerHTML = '';
+  pdfPages = [];
+
+  if (ext === 'pdf') {
+    inputType = 'pdf';
+    document.getElementById('status').textContent = 'Status: Rendering PDF pages...';
+    var pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
+    var pdf = await pdfjsLib.getDocument({ data: await inputFile.arrayBuffer() }).promise;
+    for (var i = 1; i <= pdf.numPages; i++) {
+      var pg = await pdf.getPage(i);
+      var vp = pg.getViewport({ scale: 2 });
+      var canvas = document.createElement('canvas');
+      canvas.width = vp.width; canvas.height = vp.height;
+      await pg.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+      pdfPages.push(canvas);
+    }
+    // Show first page only as preview
+    var thumb = pdfPages[0].toDataURL();
+    var img = document.createElement('img');
+    img.src = thumb;
+    prev.appendChild(img);
+    document.getElementById('status').textContent = 'Status: Ready — ' + pdf.numPages + ' page' + (pdf.numPages > 1 ? 's' : '');
+  } else {
+    inputType = 'image';
+    var img = document.createElement('img');
+    img.src = URL.createObjectURL(inputFile);
+    prev.appendChild(img);
+    document.getElementById('status').textContent = 'Status: Ready';
+  }
+  document.getElementById('run-btn').disabled = false;
+};
+
+function preprocessCanvas(srcCanvas, mode) {
+  if (mode === 'none') return srcCanvas;
+  var c = document.createElement('canvas');
+  c.width = srcCanvas.width;
+  c.height = srcCanvas.height;
+  var ctx = c.getContext('2d');
+  ctx.drawImage(srcCanvas, 0, 0);
+  var imgData = ctx.getImageData(0, 0, c.width, c.height);
+  var d = imgData.data;
+  if (mode === 'grayscale' || mode === 'threshold' || mode === 'auto') {
+    for (var i = 0; i < d.length; i += 4) {
+      var g = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
+      d[i] = d[i + 1] = d[i + 2] = g;
+    }
+  }
+  if (mode === 'threshold') {
+    // Otsu's method (simplified): pick threshold, binarize
+    var hist = new Array(256).fill(0);
+    for (var i = 0; i < d.length; i += 4) hist[Math.round(d[i])]++;
+    var total = c.width * c.height;
+    var sum = 0; for (var t = 0; t < 256; t++) sum += t * hist[t];
+    var sumB = 0, wB = 0, max = 0, threshold = 127;
+    for (var t = 0; t < 256; t++) {
+      wB += hist[t]; if (wB === 0) continue;
+      var wF = total - wB; if (wF === 0) break;
+      sumB += t * hist[t];
+      var mB = sumB / wB, mF = (sum - sumB) / wF;
+      var between = wB * wF * (mB - mF) * (mB - mF);
+      if (between > max) { max = between; threshold = t; }
+    }
+    for (var i = 0; i < d.length; i += 4) {
+      var v = d[i] >= threshold ? 255 : 0;
+      d[i] = d[i + 1] = d[i + 2] = v;
+    }
+  }
+  if (mode === 'invert') {
+    for (var i = 0; i < d.length; i += 4) {
+      d[i] = 255 - d[i]; d[i + 1] = 255 - d[i + 1]; d[i + 2] = 255 - d[i + 2];
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+  return c;
+}
+
+function imageToCanvas(file) {
+  return new Promise(function (resolve, reject) {
+    var img = new Image();
+    img.onload = function () {
+      var c = document.createElement('canvas');
+      c.width = img.naturalWidth; c.height = img.naturalHeight;
+      c.getContext('2d').drawImage(img, 0, 0);
+      resolve(c);
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function runOCR() {
+  if (!inputFile) return;
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('output').value = '';
+  lastOutput = '';
+  var lang = document.getElementById('lang-select').value;
+  var psm = parseInt(document.getElementById('psm-select').value, 10);
+  var prepMode = document.getElementById('prep-select').value;
+  var format = document.getElementById('format-select').value;
+
+  var canvases;
+  try {
+    if (inputType === 'pdf') canvases = pdfPages;
+    else canvases = [await imageToCanvas(inputFile)];
+  } catch (e) {
+    document.getElementById('status').textContent = 'Status: Error loading file - ' + e.message;
+    document.getElementById('run-btn').disabled = false;
+    return;
+  }
+
+  document.getElementById('status').textContent = 'Status: Loading OCR engine (' + lang + ')...';
+  var worker = await Tesseract.createWorker(lang, 1, {
+    logger: function (m) {
+      if (m.status === 'recognizing text' && typeof m.progress === 'number') {
+        document.getElementById('progress-fill').style.width = Math.round(m.progress * 100) + '%';
+      }
+    }
+  });
+  await worker.setParameters({ tessedit_pageseg_mode: String(psm) });
+
+  var results = [];
+  for (var p = 0; p < canvases.length; p++) {
+    var preprocessed = preprocessCanvas(canvases[p], prepMode === 'auto' ? 'grayscale' : prepMode);
+    document.getElementById('status').textContent = 'Status: Recognizing page ' + (p + 1) + '/' + canvases.length + '...';
+    document.getElementById('progress-fill').style.width = '0%';
+    var res = await worker.recognize(preprocessed);
+    results.push(res);
+    // Live update output as we go
+    var partial = formatResults(results, format, canvases.length > 1);
+    document.getElementById('output').value = partial;
+  }
+  await worker.terminate();
+
+  lastOutput = formatResults(results, format, canvases.length > 1);
+  document.getElementById('output').value = lastOutput;
+  document.getElementById('progress-fill').style.width = '100%';
+
+  // Compute average confidence
+  var avgConf = 0, totalWords = 0;
+  for (var i = 0; i < results.length; i++) {
+    var words = (results[i].data && results[i].data.words) || [];
+    for (var j = 0; j < words.length; j++) {
+      avgConf += words[j].confidence; totalWords++;
+    }
+  }
+  avgConf = totalWords > 0 ? Math.round(avgConf / totalWords) : 0;
+  var wordCount = lastOutput.split(/\s+/).filter(function (w) { return w.length > 0; }).length;
+
+  document.getElementById('status').textContent = 'Status: Done — ' + wordCount + ' words, ' + avgConf + '% confidence';
+  document.getElementById('copy-btn').disabled = false;
+  document.getElementById('dl-btn').disabled = false;
+  document.getElementById('clear-btn').disabled = false;
+  document.getElementById('run-btn').disabled = false;
+}
+
+function formatResults(results, format, multi) {
+  var parts = [];
+  for (var i = 0; i < results.length; i++) {
+    var pageHeader = multi ? '\n=== Page ' + (i + 1) + ' ===\n\n' : '';
+    var data = results[i].data;
+    if (format === 'plain') {
+      parts.push(pageHeader + (data.text || '').trim());
+    } else if (format === 'layout') {
+      // Use Tesseract's structured paragraphs
+      var blocks = data.blocks || [];
+      var out = [];
+      for (var b = 0; b < blocks.length; b++) {
+        var paras = blocks[b].paragraphs || [];
+        for (var pi = 0; pi < paras.length; pi++) {
+          var lines = paras[pi].lines || [];
+          var paraText = lines.map(function (l) { return l.text.trim(); }).join('\n');
+          if (paraText.length > 0) out.push(paraText);
+        }
+      }
+      parts.push(pageHeader + out.join('\n\n'));
+    } else if (format === 'confidence') {
+      var words = data.words || [];
+      var lines = [];
+      var curLine = [];
+      var lastY = null;
+      for (var w = 0; w < words.length; w++) {
+        var word = words[w];
+        var y = word.bbox ? word.bbox.y0 : 0;
+        if (lastY !== null && Math.abs(lastY - y) > 8) { lines.push(curLine.join(' ')); curLine = []; }
+        curLine.push(word.text + '(' + Math.round(word.confidence) + ')');
+        lastY = y;
+      }
+      if (curLine.length) lines.push(curLine.join(' '));
+      parts.push(pageHeader + lines.join('\n'));
+    }
+  }
+  return parts.join(multi ? '\n\n' : '\n').trim();
+}
+
+function copyText() {
+  navigator.clipboard.writeText(lastOutput);
+  document.getElementById('status').textContent = 'Status: Copied to clipboard';
+}
+function downloadTxt() {
+  var name = inputFile ? inputFile.name.replace(/\.[^.]+$/, '') : 'ocr-output';
+  var blob = new Blob([lastOutput], { type: 'text/plain' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name + '.txt';
+  a.click();
+}
+function clearAll() {
+  inputFile = null; inputType = null; pdfPages = []; lastOutput = '';
+  document.getElementById('output').value = '';
+  document.getElementById('preview-area').innerHTML = '';
+  document.getElementById('file-info').textContent = 'No file selected';
+  document.getElementById('upload-btn').textContent = 'Upload Image or PDF';
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('copy-btn').disabled = true;
+  document.getElementById('dl-btn').disabled = true;
+  document.getElementById('clear-btn').disabled = true;
+  document.getElementById('status').textContent = 'Status: Ready';
+}
+</script>
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/abp/" style="color:#fff">Audiobooker</a> | <a href="/fcv/" style="color:#fff">Converter</a> | <a href="/stt/" style="color:#fff">Speech-to-Texter</a> | <a href="/tts/" style="color:#fff">Text-to-Speecher</a> | <a href="/tps/" style="color:#fff">Typesetter</a></div>
+<br>
+<img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>
+</body>
+</html>
