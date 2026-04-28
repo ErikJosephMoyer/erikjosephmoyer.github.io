@@ -183,10 +183,27 @@ body.fs-active.fs-no-book #book-progress{font-size:15pt;margin:0 0 12px}
 body.fs-active.fs-no-book #audio-chapter-select{width:min(80vw,500px);margin:0 auto 8px;display:block}
 body.fs-active.fs-no-book #audio-pane{width:min(80vw,500px)}
 
-/* Floating exit button */
-.fs-exit-btn{position:fixed;top:8px;right:8px;z-index:10010;width:38px;height:38px;padding:0;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;border:1px solid #888;display:none;align-items:center;justify-content:center;cursor:pointer;font:18pt 'EB Garamond',serif;line-height:1}
-.fs-exit-btn:hover{background:rgba(0,0,0,0.95)}
-body.fs-active .fs-exit-btn{display:inline-flex}
+/* Floating fullscreen-only buttons (exit + help) */
+.fs-exit-btn,.fs-help-btn{position:fixed;top:8px;z-index:10010;width:38px;height:38px;padding:0;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;border:1px solid #888;display:none;align-items:center;justify-content:center;cursor:pointer;font:18pt 'EB Garamond',serif;line-height:1}
+.fs-exit-btn{right:8px}
+.fs-help-btn{right:54px;font-weight:700}
+.fs-exit-btn:hover,.fs-help-btn:hover{background:rgba(0,0,0,0.95)}
+body.fs-active .fs-exit-btn,body.fs-active .fs-help-btn{display:inline-flex}
+
+/* In fullscreen, the shortcuts hint becomes an overlay panel toggled by the ? button */
+body.fs-active #shortcuts-hint{display:none !important}
+body.fs-active #shortcuts-hint.shown{display:flex !important;position:fixed;top:56px;right:8px;z-index:10005;background:#1a1a1a;border:1px solid #888;border-radius:6px;padding:12px 16px;max-width:min(90vw,420px);max-height:75vh;overflow-y:auto;flex-direction:column;align-items:flex-start;gap:6px}
+
+/* Both-mode fullscreen with cover: cover floats bottom-right, audio elements
+   leave room for it. Without cover, audio takes full width. */
+body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #cover-wrap{
+  position:absolute;bottom:8px;right:8px;width:100px;height:100px;margin:0;flex:0 0 auto;z-index:5
+}
+body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #book-progress,
+body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #book-title,
+body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #audio-chapter-select,
+body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #audio-pane{margin-right:116px}
+body.fs-active:not(.fs-no-book):not(.fs-no-audio) #book-title{display:none}
 
 /* Mobile fullscreen tweaks */
 @media(max-width:600px){
@@ -216,6 +233,8 @@ body.fs-active .fs-exit-btn{display:inline-flex}
 #ebook-btn-row button:disabled svg{fill:#888}
 #ebook-btn-row .btn-label{font:13pt 'EB Garamond',serif;color:#2a2a2a}
 #ebook-btn-row button:disabled .btn-label{color:#888}
+/* Font-size buttons use sans-serif so the A+/A− glyphs read crisply */
+#font-up-btn .btn-label,#font-down-btn .btn-label{font-family:Helvetica,Arial,sans-serif;font-weight:700;font-size:14pt}
 
 /* All-buttons row */
 #all-btn-row{display:flex;gap:4px;margin:0 0 8pt;flex-wrap:wrap}
@@ -238,6 +257,21 @@ body.fs-active .fs-exit-btn{display:inline-flex}
 @media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
 
 /* Clickable keyboard-shortcut hint buttons */
+/* Hide ebook chrome until a book is loaded; hide audio chrome until audio is loaded */
+body:not(.book-loaded) #chapter-select,
+body:not(.book-loaded) #settings-toggle,
+body:not(.book-loaded) #settings-panel,
+body:not(.book-loaded) #ebook-btn-row,
+body:not(.book-loaded) #status,
+body:not(.book-loaded) #progress-bar,
+body:not(.book-loaded) #progress-text,
+body:not(.book-loaded) #reader-pane{display:none !important}
+body:not(.audio-loaded) #audio-chapter-select,
+body:not(.audio-loaded) #book-progress,
+body:not(.audio-loaded) #cover-wrap,
+body:not(.audio-loaded) #book-title,
+body:not(.audio-loaded) #audio-pane{display:none !important}
+
 #shortcuts-hint{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin:16pt auto;max-width:600px;font-size:12pt;color:#888}
 .kbd-row{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .kbd-btn{display:inline-block;background:#444;color:#fff;border:1px solid #666;border-radius:3px;padding:2px 8px;font:11pt 'EB Garamond',serif;cursor:pointer;white-space:nowrap;height:auto;min-height:0}
@@ -249,6 +283,7 @@ body.fs-active .fs-exit-btn{display:inline-flex}
 </head>
 <body>
 <button class="fs-exit-btn" onclick="exitFullscreen()" title="Exit Fullscreen (Esc)">×</button>
+<button class="fs-help-btn" onclick="toggleShortcutsOverlay()" title="Keyboard Shortcuts">?</button>
 <img src="/images/Favicon.png" alt="EBR" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Bibliocaster</h1>
 <h2><em>Read With Your Brainbox</em>:<span class="sub-break"> </span>An E-Book/Audiobook Readio</h2>
@@ -283,19 +318,19 @@ body.fs-active .fs-exit-btn{display:inline-flex}
       <option value="Verdana,sans-serif" style="font-family:Verdana">Verdana</option>
     </select></div>
     <div class="setting"><span class="setting-label">Size:</span><select id="size-select" onchange="applySettings()">
+      <option value="8">8pt</option>
+      <option value="10">10pt</option>
       <option value="12">12pt</option>
-      <option value="14">14pt</option>
       <option value="16" selected>16pt</option>
-      <option value="18">18pt</option>
       <option value="20">20pt</option>
       <option value="24">24pt</option>
-      <option value="28">28pt</option>
+      <option value="32">32pt</option>
     </select></div>
     <div class="setting"><span class="setting-label">Spacing:</span><select id="lh-select" onchange="applySettings()">
       <option value="sardines">Sardines</option>
-      <option value="single">Single</option>
+      <option value="single" selected>Single</option>
       <option value="1.1">1.1</option>
-      <option value="1.5" selected>1.5</option>
+      <option value="1.5">1.5</option>
       <option value="double">Double</option>
       <option value="native">Native</option>
     </select></div>
@@ -307,8 +342,8 @@ body.fs-active .fs-exit-btn{display:inline-flex}
     </select></div>
     <div class="setting"><span class="setting-label">Margin:</span><select id="margin-select" onchange="applySettings()">
       <option value="0">None</option>
-      <option value="9.6">Narrow</option>
-      <option value="48" selected>Normal</option>
+      <option value="9.6" selected>Narrow</option>
+      <option value="48">Normal</option>
       <option value="96">Wide</option>
     </select></div>
     <div class="setting"><span class="setting-label">Alignment:</span><select id="align-select" onchange="applySettings()">
@@ -320,9 +355,9 @@ body.fs-active .fs-exit-btn{display:inline-flex}
       <option value="double" selected>Double</option>
     </select></div>
     <div class="setting"><span class="setting-label">Indent:</span><select id="indent-select" onchange="applySettings()">
-      <option value="yes">Yes</option>
+      <option value="yes" selected>Yes</option>
       <option value="no">No</option>
-      <option value="native" selected>Native</option>
+      <option value="native">Native</option>
     </select></div>
     <div class="setting"><span class="setting-label">Front/Back:</span><select id="matter-select" onchange="onMatterChange()">
       <option value="include" selected>Include</option>
@@ -331,10 +366,14 @@ body.fs-active .fs-exit-btn{display:inline-flex}
   </div>
 </div>
 
-<!-- E-book control row: 7 icon-style buttons matching the audiobook controls -->
+<!-- E-book control row: 7 icon-style buttons matching the audiobook controls
+     Order: Fullscreen | ◀◀Chapter | ◀Page | Page▶ | Chapter▶▶ | A− | A+ -->
 <div id="ebook-btn-row">
   <button id="fs-btn" class="modifier" disabled onclick="toggleFullscreen()" title="Fullscreen (F)">
     <svg viewBox="0 0 24 24"><path d="M3 3h7v2H5v5H3V3zm11 0h7v7h-2V5h-5V3zM3 14h2v5h5v2H3v-7zm16 0h2v7h-7v-2h5v-5z"/></svg>
+  </button>
+  <button id="prev-ch-btn" class="transport" disabled onclick="navChapter(-1)" title="Previous Chapter (Shift+Left)">
+    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16"/><polygon points="20,4 9,12 20,20"/></svg>
   </button>
   <button id="prev-pg-btn" class="transport" disabled onclick="pageScroll(-1)" title="Previous Page (Left)">
     <svg viewBox="0 0 24 24"><polygon points="15,4 5,12 15,20"/></svg>
@@ -342,17 +381,14 @@ body.fs-active .fs-exit-btn{display:inline-flex}
   <button id="next-pg-btn" class="transport" disabled onclick="pageScroll(1)" title="Next Page (Right)">
     <svg viewBox="0 0 24 24"><polygon points="9,4 19,12 9,20"/></svg>
   </button>
-  <button id="prev-ch-btn" class="transport" disabled onclick="navChapter(-1)" title="Previous Chapter (Shift+Left)">
-    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16"/><polygon points="20,4 9,12 20,20"/></svg>
-  </button>
   <button id="next-ch-btn" class="transport" disabled onclick="navChapter(1)" title="Next Chapter (Shift+Right)">
     <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20"/><rect x="17" y="4" width="3" height="16"/></svg>
   </button>
-  <button id="font-up-btn" class="modifier" disabled onclick="bumpFontSize(1)" title="Increase Font Size (+)">
-    <span class="btn-label">A+</span>
-  </button>
   <button id="font-down-btn" class="modifier" disabled onclick="bumpFontSize(-1)" title="Decrease Font Size (−)">
     <span class="btn-label">A−</span>
+  </button>
+  <button id="font-up-btn" class="modifier" disabled onclick="bumpFontSize(1)" title="Increase Font Size (+)">
+    <span class="btn-label">A+</span>
   </button>
 </div>
 
@@ -499,7 +535,10 @@ function applySettings(){
   if (chapters.length && typeof currentChapter === 'number') {
     var savedScroll = content.scrollLeft;
     renderChapter(currentChapter, true);
-    requestAnimationFrame(function(){ content.scrollLeft = savedScroll; });
+    requestAnimationFrame(function(){
+      content.scrollLeft = savedScroll;
+      schedulePagination();  // page count depends on size/spacing/margin/view
+    });
   }
 }
 
@@ -854,11 +893,82 @@ function renderChapter(idx, keepScroll){
   saveBookProgress();
 }
 
+/* ───────── PAGINATION ─────────
+ * Pre-compute page-counts per chapter by temporarily rendering each one
+ * with the same width/styles as the visible reader, then measuring scrollWidth.
+ * Used for the "Page X of Y (Z%), Chapter A of B" progress display.
+ * Recomputed on book load, resize, fullscreen toggle, and any setting that
+ * affects layout (font, size, margin, spacing, view, indent).
+ */
+var pagesPerChapter = [];
+var totalPages = 0;
+var _paginating = false;
+
+function computePagination(){
+  if (_paginating || !chapters.length) return;
+  var c = document.getElementById('reader-content');
+  if (!c || !c.clientWidth) return;
+  _paginating = true;
+  var spacing = document.getElementById('lh-select').value;
+  var origHTML = c.innerHTML;
+  var origScrollLeft = c.scrollLeft;
+  var origVis = c.style.visibility;
+  c.style.visibility = 'hidden';
+  pagesPerChapter = [];
+  totalPages = 0;
+  for (var i = 0; i < chapters.length; i++) {
+    c.innerHTML = normalizeBreaks(chapters[i].html, spacing);
+    void c.offsetWidth;  // force reflow
+    var cw = c.clientWidth || 1;
+    var pages = Math.max(1, Math.ceil(c.scrollWidth / cw));
+    pagesPerChapter.push(pages);
+    totalPages += pages;
+  }
+  c.innerHTML = origHTML;
+  void c.offsetWidth;
+  c.scrollLeft = origScrollLeft;
+  c.style.visibility = origVis;
+  _paginating = false;
+  updateProgress();
+}
+
 function updateProgress(){
-  if (chapters.length === 0) return;
-  var pct = chapters.length > 1 ? (currentChapter / (chapters.length - 1)) * 100 : 0;
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-text').textContent = 'Chapter ' + (currentChapter + 1) + ' of ' + chapters.length;
+  var pt = document.getElementById('progress-text');
+  if (!pt || chapters.length === 0) { if (pt) pt.textContent = ''; return; }
+  var c = document.getElementById('reader-content');
+  var cw = c.clientWidth || 1;
+  var pageInCh = Math.floor(c.scrollLeft / cw) + 1;
+  var pages = pagesPerChapter.length ? pagesPerChapter : null;
+  if (pages) {
+    var pagesBefore = 0;
+    for (var i = 0; i < currentChapter; i++) pagesBefore += pages[i] || 1;
+    var pageNum = pagesBefore + pageInCh;
+    var total = totalPages || 1;
+    var pct = Math.round((pageNum - 1) / total * 100);
+    pct = Math.max(0, Math.min(100, pct));
+    pt.textContent = 'Page ' + pageNum + ' of ' + total + ' (' + pct + '%), Chapter ' + (currentChapter + 1) + ' of ' + chapters.length;
+    document.getElementById('progress-fill').style.width = ((pageNum - 1) / total * 100) + '%';
+  } else {
+    // Fallback while pagination is computing
+    pt.textContent = 'Chapter ' + (currentChapter + 1) + ' of ' + chapters.length;
+    var pct2 = chapters.length > 1 ? (currentChapter / (chapters.length - 1)) * 100 : 0;
+    document.getElementById('progress-fill').style.width = pct2 + '%';
+  }
+}
+
+// Re-paginate on resize/setting change (debounced)
+var _paginateTimer = null;
+function schedulePagination(){
+  if (_paginateTimer) clearTimeout(_paginateTimer);
+  _paginateTimer = setTimeout(function(){
+    if (chapters.length) computePagination();
+  }, 200);
+}
+window.addEventListener('resize', schedulePagination);
+
+/* ───────── FULLSCREEN HELPERS ───────── */
+function toggleShortcutsOverlay(){
+  document.getElementById('shortcuts-hint').classList.toggle('shown');
 }
 
 function navChapter(delta){
@@ -890,15 +1000,17 @@ window.addEventListener('pagehide', saveBookProgress);
 window.addEventListener('blur', saveBookProgress);
 document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'hidden') saveBookProgress(); });
 
-// Throttled scroll save
+// Throttled scroll save + progress refresh
 var _bookScrollTimer = null;
-document.addEventListener('DOMContentLoaded', function(){
+(function attachReaderScroll(){
   var rc = document.getElementById('reader-content');
-  if (rc) rc.addEventListener('scroll', function(){
+  if (!rc) { setTimeout(attachReaderScroll, 50); return; }
+  rc.addEventListener('scroll', function(){
+    updateProgress();
     if (_bookScrollTimer) return;
     _bookScrollTimer = setTimeout(function(){ saveBookProgress(); _bookScrollTimer = null; }, 500);
   });
-});
+})();
 
 /* ───────── FRONT/BACK MATTER FILTER ─────────
  * Mirrors /tps/'s heuristic. Front matter is everything before the first
@@ -981,7 +1093,10 @@ function enterFullscreen(){
   var hasAudio = !!(audio && audio.src);
   document.body.classList.toggle('fs-no-book', !hasBook);
   document.body.classList.toggle('fs-no-audio', !hasAudio);
+  document.body.classList.toggle('fs-has-cover', hasCover);
   document.body.classList.add('fs-active');
+  // After layout settles in fullscreen, recompute pagination at the new dimensions
+  setTimeout(function(){ if (chapters.length) computePagination(); }, 200);
   // Try native fullscreen API; fall back to CSS pseudo-fullscreen on mobile Safari
   var req = t.requestFullscreen || t.webkitRequestFullscreen;
   if (req) {
@@ -1073,6 +1188,7 @@ async function loadEbookFile(file, manual){
     await parseBook(file);
     allChapters = chapters.slice();
     chapters = filterMatter(allChapters);
+    document.body.classList.add('book-loaded');
     populateChapterSelect();
     var savedPos = JSON.parse(localStorage.getItem('ebr_pos_' + bookKey) || 'null');
     var startCh = (savedPos && savedPos.ch < chapters.length) ? savedPos.ch : 0;
@@ -1088,7 +1204,13 @@ async function loadEbookFile(file, manual){
     enableEbookButtons();
     enableEbookShortcuts();
     enableFullscreenIfReady();
-    document.getElementById('status').textContent = 'Status: Loaded — ' + chapters.length + ' Chapter' + (chapters.length === 1 ? '' : 's');
+    // Compute pagination after layout settles, then refresh progress display
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        computePagination();
+      });
+    });
+    document.getElementById('status').textContent = '';
 
     // Persist file (only if uploaded; auto-resumed files are already stored)
     if (manual && file.size < 200 * 1024 * 1024) {
@@ -1448,6 +1570,7 @@ document.getElementById('folder-input').onchange = async function(){
     document.getElementById('cover-wrap').style.display = 'block';
     document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
     hasCover = true;
+    document.body.classList.add('fs-has-cover');
   }
 
   audioChapters = [];
@@ -1506,6 +1629,8 @@ function finishAudioLoad(){
   enableAudioPlayer();
   document.getElementById('audio-pane').classList.remove('hidden');
   document.getElementById('book-progress').style.display = 'block';
+  document.body.classList.add('audio-loaded');
+  document.body.classList.toggle('fs-has-cover', hasCover);
   localStorage.setItem('ebr_audio_last', fileKey);
 
   var saved = restoreAudioProgress();
