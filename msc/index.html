@@ -21,7 +21,7 @@ button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;c
 button:hover{background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
 .tab-row{display:flex;gap:0;margin:0 0 8pt;border-bottom:1px solid #555}
-.tab{flex:1;background:transparent;color:#aaa;border:1px solid #555;border-bottom:none;border-radius:4px 4px 0 0;padding:8px 4px;font:14pt 'EB Garamond',serif;cursor:pointer}
+.tab{flex:1;background:transparent;color:#aaa;border:1px solid #555;border-bottom:none;border-radius:4px 4px 0 0;padding:8px 4px;font:14pt 'EB Garamond',Georgia,serif;cursor:pointer}
 .tab.active{background:#fff;color:#2a2a2a}
 .tab-content{display:none}
 .tab-content.active{display:block}
@@ -34,25 +34,25 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #result{background:rgba(255,255,255,0.05);border:1px solid #555;border-radius:6px;padding:14px;margin:0 0 8pt;min-height:60px;font:14pt/1.4 'EB Garamond',serif}
 #result .label{color:#bbb;font-size:13pt}
 #result .value{color:#fff;font-size:18pt;font-weight:500}
-#result .alts{color:#aaa;font-size:13pt;font-style:italic}
-#progression{font:14pt/1.5 'Cascadia Code',ui-monospace,monospace;white-space:pre-wrap;word-break:break-word}
+#result .alts{color:#aaa;font-size:13pt}
+#progression{font:14pt/1.5 'EB Garamond',Georgia,serif;white-space:pre-wrap;word-break:break-word}
 #piano{display:flex;justify-content:center;margin:0 0 8pt;user-select:none;overflow-x:auto}
 .key{position:relative;cursor:pointer}
-.key-white{width:36px;height:130px;background:#fff;border:1px solid #888;display:inline-block;flex-shrink:0;color:#444;font:11pt sans-serif;text-align:center;padding-top:108px}
-.key-black{width:22px;height:80px;background:#2a2a2a;border:1px solid #fff;color:#fff;font:9pt sans-serif;text-align:center;padding-top:60px;margin-left:-12px;margin-right:-12px;z-index:2;flex-shrink:0;position:relative}
+.key-white{width:36px;height:130px;background:#fff;border:1px solid #888;display:inline-block;flex-shrink:0;color:#444;font:11pt 'EB Garamond',Georgia,serif;text-align:center;padding-top:108px}
+.key-black{width:22px;height:80px;background:#2a2a2a;border:1px solid #fff;color:#fff;font:9pt 'EB Garamond',Georgia,serif;text-align:center;padding-top:60px;margin-left:-12px;margin-right:-12px;z-index:2;flex-shrink:0;position:relative}
 .key.selected.key-white{background:#88ccff;color:#000}
 .key.selected.key-black{background:#3377cc;color:#fff}
-#guitar{margin:0 0 8pt;padding:6px;background:rgba(255,255,255,0.04);border:1px solid #555;border-radius:6px;font:13pt 'Cascadia Code',ui-monospace,monospace}
+#guitar{margin:0 0 8pt;padding:6px;background:rgba(255,255,255,0.04);border:1px solid #555;border-radius:6px;font:13pt 'EB Garamond',Georgia,serif}
 .gstring{display:flex;align-items:center;gap:0;margin:2px 0}
-.gstring-name{width:30px;color:#aaa;text-align:right;padding-right:6px;font-size:12pt}
-.fret{flex:1;min-width:30px;height:30px;border-right:1px solid #555;cursor:pointer;text-align:center;line-height:28px;color:#888;font-size:11pt;background:transparent}
-.fret.zero{font-weight:600;color:#fff;background:rgba(255,255,255,0.06);border-right:2px solid #fff}
+.gstring-name{width:30px;color:#aaa;text-align:right;padding-right:6px;font:14pt 'EB Garamond',Georgia,serif}
+.fret{flex:1;min-width:30px;height:30px;border-right:1px solid #555;cursor:pointer;text-align:center;line-height:28px;color:#888;font-size:11pt;background:transparent;transition:none}
 .fret.selected{background:#88ccff;color:#000;font-weight:600}
 .fret:hover{background:rgba(255,255,255,0.1)}
 .tab-input{display:flex;gap:4px;margin:0 0 8pt}
 .tab-input-row{display:flex;align-items:center;gap:4px;margin:2px 0}
-.tab-input-row label{width:30px;text-align:right;color:#aaa;font:12pt 'Cascadia Code',ui-monospace,monospace}
-.tab-input-row input{flex:1;background:transparent;border:1px solid #fff;color:#fff;font:14pt 'Cascadia Code',ui-monospace,monospace;padding:6px;text-align:center}
+.tab-input-row{justify-content:center}
+.tab-input-row label{width:30px;text-align:right;color:#aaa;font:14pt 'EB Garamond',Georgia,serif}
+.tab-input-row input{width:60px;flex:0 0 auto;background:transparent;border:1px solid #fff;color:#fff;font:14pt 'EB Garamond',Georgia,serif;padding:6px;text-align:center}
 .tab-input-row input:focus{outline:none;border-color:#88ccff}
 #audio-upload{display:none}
 #upload-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
@@ -74,14 +74,14 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 
 <div class="tab-row">
   <button class="tab active" onclick="setTab('notes')">Notes</button>
+  <button class="tab" onclick="setTab('audio')">Audio</button>
   <button class="tab" onclick="setTab('piano')">Piano</button>
   <button class="tab" onclick="setTab('guitar')">Fretboard</button>
-  <button class="tab" onclick="setTab('tab')">Tab</button>
-  <button class="tab" onclick="setTab('audio')">Audio</button>
+  <button class="tab" onclick="setTab('tab')">Guitar Tab</button>
 </div>
 
 <div id="tab-notes" class="tab-content active">
-  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt">Tap notes to add to the chord/key:</p>
+  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt">Select notes to identify the chord and key:</p>
   <div class="note-buttons" id="note-buttons"></div>
   <div class="btn-row">
     <button onclick="clearNotes()">Clear</button>
@@ -90,7 +90,7 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 </div>
 
 <div id="tab-piano" class="tab-content">
-  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt;text-align:center">Tap piano keys to select notes:</p>
+  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt;text-align:center">Select piano keys to identify the chord and key:</p>
   <div id="piano"></div>
   <div class="btn-row">
     <button onclick="clearPiano()">Clear</button>
@@ -99,7 +99,7 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 </div>
 
 <div id="tab-guitar" class="tab-content">
-  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt;text-align:center">Tap frets (0–12). Tap again to deselect.</p>
+  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt;text-align:center">Select guitar frets to identify the chord and key:</p>
   <div id="guitar"></div>
   <div class="btn-row">
     <button onclick="clearGuitar()">Clear</button>
@@ -108,7 +108,7 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 </div>
 
 <div id="tab-tab" class="tab-content">
-  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt;text-align:center">Type fret number per string (0–24, or x for muted):</p>
+  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt;text-align:center">Enter fret number for each string (0-24, or blank if muted):</p>
   <div id="tab-fields">
     <div class="tab-input-row"><label>e</label><input type="text" id="tab-e" maxlength="2" placeholder=""></div>
     <div class="tab-input-row"><label>B</label><input type="text" id="tab-B" maxlength="2" placeholder=""></div>
@@ -330,7 +330,7 @@ var guitarSelected = {}; // "string-fret" → pc
     row.appendChild(name);
     for(var f=0; f<=12; f++){
       var fret = document.createElement('div');
-      fret.className = 'fret' + (f===0?' zero':'');
+      fret.className = 'fret';
       fret.dataset.string = s;
       fret.dataset.fret = f;
       fret.textContent = f;
@@ -343,15 +343,15 @@ var guitarSelected = {}; // "string-fret" → pc
 function toggleFret(){
   var s = parseInt(this.dataset.string,10);
   var f = parseInt(this.dataset.fret,10);
-  // Clear other selected frets on the same string (only one note per string)
-  document.querySelectorAll('.fret[data-string="'+s+'"]').forEach(function(e){e.classList.remove('selected');});
+  var wasThisSelected = this.classList.contains('selected');
+  // Clear any selected fret on this string (only one note per string)
+  var stringFrets = document.querySelectorAll('.fret[data-string="'+s+'"]');
+  for(var i=0;i<stringFrets.length;i++) stringFrets[i].classList.remove('selected');
   delete guitarSelected[s];
-  // If we just cleared the one we tapped, leave it cleared
-  if(this.dataset.justCleared === 'yes'){ this.dataset.justCleared=''; return; }
-  // Otherwise mark this fret
+  // Tapping the already-selected fret deselects it
+  if(wasThisSelected) return;
   this.classList.add('selected');
-  var pc = (STRING_TUNING[s] + f) % 12;
-  guitarSelected[s] = pc;
+  guitarSelected[s] = (STRING_TUNING[s] + f) % 12;
 }
 function clearGuitar(){
   guitarSelected = {};
@@ -393,29 +393,37 @@ function clearTab(){
 
 /* ───────── DISPLAY ANALYSIS ───────── */
 function showAnalysis(pcs){
-  var noteNames = pcs.map(function(p){return NOTES[p];}).join(', ');
-  // Chord identification
+  var noteNames = pcs.map(function(p){return NOTE_LABELS[p];}).join(', ');
   var chords = identifyChords(pcs);
-  // Key identification: build pc vector with each played note weight 1
+  // Key identification: pc vector with each played note weight 1
   var pcVec = new Array(12).fill(0);
   pcs.forEach(function(p){pcVec[p]=1;});
   var keys = identifyKey(pcVec);
-  // Build output
-  var html = '<div class="label">Notes:</div><div class="value">'+noteNames+'</div>';
-  if(chords.length > 0){
-    html += '<div class="label" style="margin-top:8pt">Chord:</div>';
-    html += '<div class="value">'+chords[0].name+'</div>';
-    if(chords.length > 1){
-      var alts = chords.slice(1, 4).map(function(c){return c.name;}).join(', ');
-      html += '<div class="alts">also possible: '+alts+'</div>';
+  // Pick keys tied at the top score, dropping relative pairs (e.g. C major
+  // and A minor share the same notes, list only one — the best-scoring).
+  var topScore = keys[0].score;
+  var validKeys = [];
+  for(var i=0;i<keys.length;i++){
+    if(keys[i].score < topScore - 0.01) break;
+    var rel = keys[i].mode === 'major'
+      ? (keys[i].tonic + 9) % 12  // relative minor of major X is at X+9
+      : (keys[i].tonic + 3) % 12; // relative major of minor X is at X+3
+    var dup = false;
+    for(var j=0;j<validKeys.length;j++){
+      if(validKeys[j].mode !== keys[i].mode && validKeys[j].tonic === rel){ dup = true; break; }
     }
-  } else {
-    html += '<div class="label" style="margin-top:8pt">Chord:</div><div class="value">— (no standard chord matches these notes)</div>';
+    if(!dup) validKeys.push(keys[i]);
   }
-  html += '<div class="label" style="margin-top:8pt">Likely key:</div>';
-  html += '<div class="value">'+keys[0].key+'</div>';
-  var altKeys = keys.slice(1, 4).map(function(k){return k.key+' ('+k.score.toFixed(2)+')';}).join(', ');
-  html += '<div class="alts">other candidates: '+altKeys+'</div>';
+
+  var html = '<div class="label">Notes:</div><div class="value">'+noteNames+'</div>';
+  html += '<div class="label" style="margin-top:8pt">Chord:</div>';
+  if(chords.length > 0){
+    html += '<div class="value">'+chords[0].name+'</div>';
+  } else {
+    html += '<div class="value">No standard chord matches these notes</div>';
+  }
+  html += '<div class="label" style="margin-top:8pt">Key:</div>';
+  html += '<div class="value">'+validKeys.map(function(k){return k.key;}).join(' or ')+'</div>';
   document.getElementById('result').innerHTML = html;
   document.getElementById('status').textContent = 'Status: Done';
 }
@@ -423,7 +431,7 @@ function showAnalysis(pcs){
 /* ───────── TAB SWITCHING ───────── */
 function setTab(name){
   document.querySelectorAll('.tab').forEach(function(t,i){
-    var names = ['notes','piano','guitar','tab','audio'];
+    var names = ['notes','audio','piano','guitar','tab'];
     t.classList.toggle('active', names[i] === name);
   });
   document.querySelectorAll('.tab-content').forEach(function(c){
