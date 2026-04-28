@@ -25,8 +25,8 @@ button:disabled{background:#555;color:#888;cursor:default}
 select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 8pt}
 select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #font-select option{font-family:inherit}
-.btn-row{display:flex;gap:8px;margin:0 0 8pt;flex-wrap:wrap}
-.btn-row button{flex:1;min-width:120px;height:42px;padding:0 14px}
+.btn-row{display:flex;gap:6px;margin:0 0 6px;flex-wrap:wrap;align-items:stretch}
+.btn-row button{flex:1;min-width:120px;height:38px;padding:0 14px;line-height:1}
 #upload-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
 #file-info,#audio-info,#status{text-align:center;font-size:14pt;color:#fff;margin:0 0 8pt}
 #file-input,#audio-input,#folder-input,#cover-input{display:none}
@@ -411,6 +411,10 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
   </div>
 </div>
 
+<div id="status">Status: Ready — Upload an E-Book File</div>
+<div id="progress-bar"><div id="progress-fill"></div></div>
+<div id="progress-text"></div>
+
 <!-- E-book control row: 7 icon-style buttons matching the audiobook controls
      Order: Fullscreen | ◀◀Chapter | ◀Page | Page▶ | Chapter▶▶ | A− | A+ -->
 <div id="ebook-btn-row">
@@ -437,35 +441,15 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
   </button>
 </div>
 
-<div id="status">Status: Ready — Upload an E-Book File</div>
-<div id="progress-bar"><div id="progress-fill"></div></div>
-<div id="progress-text"></div>
-
 <div id="reader-pane">
   <div id="reader-content" class="theme-dark"></div>
 </div>
 
-<!-- ━━━━━━━━━━━━━━━━ AUDIOBOOK PLAYER ━━━━━━━━━━━━━━━━ -->
-<div class="btn-row">
-  <button id="audio-upload-btn" onclick="document.getElementById('audio-input').click()">Upload Audiobook File</button>
-  <button id="folder-btn" onclick="document.getElementById('folder-input').click()">Upload Audiobook Folder</button>
-</div>
-<input type="file" id="audio-input" accept="audio/*,.m4b,.mp3,.m4a,.ogg,.wav,.mp4,.webm,.aac,.flac,.opus">
-<input type="file" id="folder-input" webkitdirectory>
-
-<div id="audio-info">No Audiobook Selected</div>
-
-<select id="audio-chapter-select" disabled style="display:none"><option>No Chapters</option></select>
-
-<div id="book-progress">Read 0:00:00 of 0:00:00 (0%), 0:00:00 Left</div>
-
-<div id="cover-wrap"><img id="cover-img" src="" alt="Cover"></div>
-<h2 id="book-title"></h2>
+<!-- ━━━━━━━━━━━━━━━━ AUDIOBOOK PLAYER ━━━━━━━━━━━━━━━━
+     New order: playback buttons → progress bar → progress text →
+     chapter dropdown → cover → title → upload buttons → file info -->
 
 <div id="audio-pane" class="hidden">
-  <div id="ch-bar" onclick="seekAudio(event)"><div id="ch-fill"></div></div>
-  <div id="time-row"><span id="cur-time">0:00</span><span id="tot-time">0:00</span></div>
-
   <div id="all-btn-row">
     <button id="abp-speed-btn" class="modifier" title="Speed (S)" disabled onclick="cycleSpeed()">
       <span id="speed-label" class="btn-label">1x</span>
@@ -498,7 +482,21 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
     </button>
     <div class="mob-break"></div>
   </div>
+  <div id="ch-bar" onclick="seekAudio(event)"><div id="ch-fill"></div></div>
+  <div id="time-row"><span id="cur-time">0:00</span><span id="tot-time">0:00</span></div>
 </div>
+
+<div id="book-progress">Read 0:00:00 of 0:00:00 (0%), 0:00:00 Left</div>
+<select id="audio-chapter-select" disabled style="display:none"><option>No Chapters</option></select>
+<div id="cover-wrap"><img id="cover-img" src="" alt="Cover"></div>
+<h2 id="book-title"></h2>
+<div class="btn-row">
+  <button id="audio-upload-btn" onclick="document.getElementById('audio-input').click()">Upload Audiobook File</button>
+  <button id="folder-btn" onclick="document.getElementById('folder-input').click()">Upload Audiobook Folder</button>
+</div>
+<input type="file" id="audio-input" accept="audio/*,.m4b,.mp3,.m4a,.ogg,.wav,.mp4,.webm,.aac,.flac,.opus">
+<input type="file" id="folder-input" webkitdirectory>
+<div id="audio-info">No Audiobook Selected</div>
 
 <!-- Clickable keyboard shortcuts (also work via the keyboard) -->
 <div id="shortcuts-hint">
