@@ -7,7 +7,7 @@
 <link rel="apple-touch-icon" href="/images/Favicon-192.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2a2a2a">
-<title>Erik's Ingurgitator</title>
+<title>Erik's Bibliomancer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
@@ -42,11 +42,20 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 .setting-label{white-space:nowrap;font-size:14pt;color:#bbb;min-width:90px}
 .setting select{flex:1;margin:0;font-size:14pt;padding:4px 8px}
 
-/* Reader pane — wider on desktop (2x viewport-relative width up to 1400px) */
-#reader-pane{border:1px solid #555;border-radius:6px;padding:0;margin:0 0 8pt;background:rgba(255,255,255,0.02);min-height:100px;position:relative;left:50%;transform:translateX(-50%);width:min(96vw,1400px);max-width:96vw}
-@media(max-width:800px){#reader-pane{width:100%;max-width:100%;left:0;transform:none}}
-#reader-content{padding:24px;max-height:none;overflow-y:auto;line-height:1.5;columns:2;column-gap:48px;column-rule:1px solid #444}
-@media(max-width:800px){#reader-content{columns:1;column-rule:none}}
+/* Reader pane — viewport-bounded, paginated horizontally (true 2-page-spread reading)
+   Height never exceeds the viewport. Content flows into columns; user pages right
+   to advance. Single-page mode = 1 column; Double = 2 columns side by side. */
+#reader-pane{border:1px solid #555;border-radius:6px;padding:0;margin:0 0 8pt;background:rgba(255,255,255,0.02);position:relative;height:min(80vh,calc(100vh - 280px));min-height:300px;overflow:hidden}
+#reader-pane.view-double{left:50%;transform:translateX(-50%);width:min(96vw,1400px);max-width:96vw}
+#reader-pane.view-single{left:0;transform:none;width:100%;max-width:100%}
+@media(max-width:800px){
+  #reader-pane.view-double{left:0;transform:none;width:100%;max-width:100%}
+  #reader-pane{height:min(75vh,calc(100vh - 240px));min-height:240px}
+}
+#reader-content{padding:24px 32px;height:100%;column-gap:48px;column-fill:auto;overflow-x:auto;overflow-y:hidden;line-height:1.5;hyphens:auto;-webkit-hyphens:auto;scroll-behavior:smooth;scrollbar-width:thin}
+.view-double #reader-content{columns:2;column-rule:1px solid #444}
+.view-single #reader-content{columns:1;column-rule:none}
+@media(max-width:800px){.view-double #reader-content{columns:1;column-rule:none}}
 #reader-content.hidden{display:none}
 #reader-content p{margin:0 0 1em;break-inside:avoid-column;orphans:2;widows:2}
 #reader-content h1,#reader-content h2,#reader-content h3,#reader-content h4{margin:1em 0 0.5em;font-weight:600;line-height:1.2;break-after:avoid}
@@ -55,33 +64,139 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #reader-content h3{font-size:1.2em;text-align:left;border:none;padding:0}
 #reader-content em{font-style:italic}
 #reader-content strong{font-weight:600}
-#reader-content blockquote{margin:1em 0;padding-left:1em;border-left:3px solid #888;color:#bbb}
-#reader-content img{max-width:100%;height:auto;display:block;margin:1em auto;border-radius:4px}
-#reader-content a{color:#88ccff;text-decoration:underline}
+#reader-content blockquote{margin:1em 0;padding-left:1em;border-left:3px solid #888;color:#bbb;break-inside:avoid-column}
+#reader-content img{max-width:100%;max-height:90%;height:auto;display:block;margin:1em auto;border-radius:4px;break-inside:avoid-column}
+/* Links inherit text color (no blue). Underline + pointer only inside the
+   table-of-contents chapter. Body links look like regular text. */
+#reader-content a{color:inherit;text-decoration:none;cursor:text}
+#reader-content.is-toc a{text-decoration:underline;cursor:pointer}
+#reader-content.is-toc a:hover{cursor:pointer}
 #reader-content ul,#reader-content ol{margin:0 0 1em 1.5em}
 #reader-content li{margin-bottom:0.3em;break-inside:avoid-column}
 
 /* Theme variants */
 #reader-content.theme-dark{background:#2a2a2a;color:#fff}
+#reader-content.theme-midnight{background:#000;color:#e8e8e8}
 #reader-content.theme-sepia{background:#f4ecd8;color:#5b4636}
 #reader-content.theme-light{background:#fff;color:#222}
-#reader-content.theme-dark blockquote{color:#bbb}
+#reader-content.theme-dark blockquote,#reader-content.theme-midnight blockquote{color:#bbb}
 #reader-content.theme-sepia blockquote{color:#7a6045;border-left-color:#a08868}
 #reader-content.theme-light blockquote{color:#666;border-left-color:#999}
-#reader-content.theme-dark a{color:#88ccff}
-#reader-content.theme-sepia a{color:#7a4f12}
-#reader-content.theme-light a{color:#0066cc}
 #reader-content.theme-sepia,#reader-content.theme-light{column-rule-color:#bbb}
+#reader-content.theme-midnight{column-rule-color:#222}
+
+/* Spacing classes — drive both line-height and paragraph margins.
+   Native = file's own spacing (no overrides). All other modes also normalize <br> runs in JS. */
+#reader-content.sp-sardines{line-height:1.0}
+#reader-content.sp-sardines p{margin:0}
+#reader-content.sp-single{line-height:1.0}
+#reader-content.sp-single p{margin:0 0 1em}
+#reader-content.sp-1-1{line-height:1.1}
+#reader-content.sp-1-1 p{margin:0 0 1em}
+#reader-content.sp-1-5{line-height:1.5}
+#reader-content.sp-1-5 p{margin:0 0 1em}
+#reader-content.sp-double{line-height:2.0}
+#reader-content.sp-double p{margin:0 0 1em}
+
+/* Indent classes */
+#reader-content.indent-yes p{text-indent:1.5em}
+#reader-content.indent-yes h1+p,#reader-content.indent-yes h2+p,#reader-content.indent-yes h3+p,#reader-content.indent-yes h4+p,#reader-content.indent-yes blockquote+p{text-indent:0}
+#reader-content.indent-no p{text-indent:0 !important}
+#reader-content.indent-no [style*="text-indent"]{text-indent:0 !important}
 
 #chapter-select,#audio-chapter-select{margin:0 0 8pt}
 #progress-bar{width:100%;height:6px;background:#444;border-radius:3px;overflow:hidden;margin:0 0 8pt}
 #progress-fill{height:100%;background:#fff;width:0%;transition:width 0.2s}
 #progress-text{text-align:center;font-size:13pt;color:#aaa;margin:0 0 8pt}
 
-/* Fullscreen — works for native API and CSS pseudo-fullscreen (mobile fallback) */
-#fs-target:fullscreen,#fs-target:-webkit-full-screen,#fs-target.pseudo-fs{background:#2a2a2a;padding:20px;overflow-y:auto;display:block}
-#fs-target.pseudo-fs{position:fixed;inset:0;z-index:9999}
-#fs-target:fullscreen #reader-pane,#fs-target:-webkit-full-screen #reader-pane,#fs-target.pseudo-fs #reader-pane{width:100%;max-width:100%;left:0;transform:none}
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   IN-APP FULLSCREEN MODE
+   Uses body.fs-active to coordinate. Six render modes via two extra
+   classes: fs-no-book (audio-only) / fs-no-audio (ebook-only) /
+   neither (both). Mobile vs desktop is just a media query.
+   Page chrome is hidden; essentials remain; reader fills viewport;
+   no vertical scrolling — only horizontal page-flips. */
+body.fs-active{overflow:hidden;max-width:100vw;padding:0;margin:0;height:100vh;height:100dvh}
+body.fs-active>img,body.fs-active>h1,body.fs-active>h2,body.fs-active>br,body.fs-active>div:not(#fs-target){display:none !important}
+
+#fs-target:fullscreen,#fs-target:-webkit-full-screen,#fs-target.pseudo-fs,
+body.fs-active>#fs-target{
+  background:#2a2a2a;
+  height:100vh;
+  height:100dvh;
+  max-height:100dvh;
+  overflow:hidden !important;
+  padding:8px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  box-sizing:border-box;
+}
+#fs-target.pseudo-fs{position:fixed;inset:0;z-index:9999;width:100vw}
+
+/* Hide chrome that doesn't belong in fullscreen */
+body.fs-active h3,
+body.fs-active #upload-btn,
+body.fs-active #file-info,
+body.fs-active #audio-info,
+body.fs-active #status,
+body.fs-active #progress-bar,
+body.fs-active #progress-text,
+body.fs-active #shortcuts-hint,
+body.fs-active .btn-row{display:none !important}
+
+/* Compact controls in fullscreen */
+body.fs-active #chapter-select,
+body.fs-active #audio-chapter-select{margin:0;padding:4px 10px;font-size:13pt;flex:0 0 auto;height:36px;line-height:1}
+body.fs-active #settings-toggle{margin:0;padding:4px 10px;flex:0 0 auto;height:32px}
+body.fs-active #settings-toggle span{font-size:13pt}
+body.fs-active #settings-panel{position:absolute;top:48px;left:8px;right:8px;z-index:10005;max-height:60vh;overflow-y:auto;background:#2a2a2a;border:1px solid #888}
+body.fs-active #ebook-btn-row,
+body.fs-active #all-btn-row{margin:0;flex:0 0 auto}
+body.fs-active #ebook-btn-row button,
+body.fs-active #all-btn-row button{height:38px}
+body.fs-active #reader-pane{flex:1 1 auto;min-height:0;height:auto !important;max-height:none !important;left:0 !important;transform:none !important;width:100% !important;max-width:100% !important;border:none}
+body.fs-active #book-progress{font-size:12pt;margin:0;flex:0 0 auto;display:block}
+body.fs-active #cover-wrap{margin:2px auto;width:60px;height:60px;flex:0 0 auto}
+body.fs-active #book-title{font-size:13pt;margin:0;flex:0 0 auto;text-align:center}
+body.fs-active #audio-pane{flex:0 0 auto;background:transparent;border:none;padding:0}
+body.fs-active #audio-pane.hidden{display:none}
+body.fs-active #ch-bar{height:10px}
+body.fs-active #time-row{font-size:11pt;margin:0 0 4pt}
+
+/* ── Mode: e-book only (no audio) ── */
+body.fs-active.fs-no-audio #book-progress,
+body.fs-active.fs-no-audio #cover-wrap,
+body.fs-active.fs-no-audio #book-title,
+body.fs-active.fs-no-audio #audio-pane,
+body.fs-active.fs-no-audio #audio-chapter-select{display:none !important}
+
+/* ── Mode: audio only (no book) — feature the cover + title big ── */
+body.fs-active.fs-no-book #reader-pane,
+body.fs-active.fs-no-book #ebook-btn-row,
+body.fs-active.fs-no-book #chapter-select,
+body.fs-active.fs-no-book #settings-toggle{display:none !important}
+body.fs-active.fs-no-book #fs-target{justify-content:center;align-items:center}
+body.fs-active.fs-no-book #cover-wrap{width:min(45vh,360px);height:min(45vh,360px);margin:0 auto 16px}
+body.fs-active.fs-no-book #book-title{font-size:22pt;margin:0 0 12px;display:block}
+body.fs-active.fs-no-book #book-progress{font-size:15pt;margin:0 0 12px}
+body.fs-active.fs-no-book #audio-chapter-select{width:min(80vw,500px);margin:0 auto 8px;display:block}
+body.fs-active.fs-no-book #audio-pane{width:min(80vw,500px)}
+
+/* Floating exit button */
+.fs-exit-btn{position:fixed;top:8px;right:8px;z-index:10010;width:38px;height:38px;padding:0;border-radius:50%;background:rgba(0,0,0,0.7);color:#fff;border:1px solid #888;display:none;align-items:center;justify-content:center;cursor:pointer;font:18pt 'EB Garamond',serif;line-height:1}
+.fs-exit-btn:hover{background:rgba(0,0,0,0.95)}
+body.fs-active .fs-exit-btn{display:inline-flex}
+
+/* Mobile fullscreen tweaks */
+@media(max-width:600px){
+  body.fs-active #ebook-btn-row button,
+  body.fs-active #all-btn-row button{height:34px}
+  body.fs-active #cover-wrap{width:50px;height:50px}
+  body.fs-active.fs-no-book #cover-wrap{width:min(55vw,280px);height:min(55vw,280px)}
+  body.fs-active #book-title{font-size:11pt}
+  body.fs-active #chapter-select,body.fs-active #audio-chapter-select{font-size:12pt;height:32px}
+}
 
 /* Audio player section */
 #cover-wrap{width:33%;max-width:231px;aspect-ratio:1;overflow:hidden;margin:8pt auto;display:none}
@@ -92,6 +207,15 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #ch-bar{width:100%;height:16px;background:#555;cursor:pointer;margin:0 0 4px;position:relative;border-radius:3px;overflow:hidden}
 #ch-fill{height:100%;background:#fff;width:0%;pointer-events:none}
 #time-row{display:flex;justify-content:space-between;font-size:14pt;color:#fff;margin:0 0 8pt}
+
+/* E-book control row — same icon style as the audiobook playback row */
+#ebook-btn-row{display:flex;gap:4px;margin:0 0 8pt;flex-wrap:wrap}
+#ebook-btn-row button{flex:1;min-width:0;height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:#fff;overflow:hidden}
+#ebook-btn-row button:disabled{background:#555}
+#ebook-btn-row svg{width:20px;height:20px;fill:#2a2a2a;display:block}
+#ebook-btn-row button:disabled svg{fill:#888}
+#ebook-btn-row .btn-label{font:13pt 'EB Garamond',serif;color:#2a2a2a}
+#ebook-btn-row button:disabled .btn-label{color:#888}
 
 /* All-buttons row */
 #all-btn-row{display:flex;gap:4px;margin:0 0 8pt;flex-wrap:wrap}
@@ -124,8 +248,9 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 </style>
 </head>
 <body>
+<button class="fs-exit-btn" onclick="exitFullscreen()" title="Exit Fullscreen (Esc)">×</button>
 <img src="/images/Favicon.png" alt="EBR" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
-<h1>Erik's Ingurgitator</h1>
+<h1>Erik's Bibliomancer</h1>
 <h2><em>Read With Your Cranium</em>:<span class="sub-break"> </span>A Book Player</h2>
 
 <div id="fs-target">
@@ -150,9 +275,9 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
       <option value="'Arial Narrow',sans-serif" style="font-family:'Arial Narrow'">Arial Narrow</option>
       <option value="Calibri,sans-serif" style="font-family:Calibri">Calibri</option>
       <option value="'Cascadia Code',monospace" style="font-family:'Cascadia Code',monospace">Cascadia Code</option>
-      <option value="'EB Garamond',serif" selected style="font-family:'EB Garamond'">EB Garamond</option>
+      <option value="'EB Garamond',serif" style="font-family:'EB Garamond'">EB Garamond</option>
       <option value="Garamond,serif" style="font-family:Garamond">Garamond</option>
-      <option value="Georgia,serif" style="font-family:Georgia">Georgia</option>
+      <option value="Georgia,serif" selected style="font-family:Georgia">Georgia</option>
       <option value="Helvetica,sans-serif" style="font-family:Helvetica">Helvetica</option>
       <option value="'Times New Roman',serif" style="font-family:'Times New Roman'">Times New Roman</option>
       <option value="Verdana,sans-serif" style="font-family:Verdana">Verdana</option>
@@ -166,34 +291,69 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
       <option value="24">24pt</option>
       <option value="28">28pt</option>
     </select></div>
-    <div class="setting"><span class="setting-label">Line Height:</span><select id="lh-select" onchange="applySettings()">
-      <option value="1.2">Tight</option>
-      <option value="1.5" selected>Normal</option>
-      <option value="1.8">Loose</option>
-      <option value="2.0">Spacious</option>
+    <div class="setting"><span class="setting-label">Spacing:</span><select id="lh-select" onchange="applySettings()">
+      <option value="sardines">Sardines</option>
+      <option value="single">Single</option>
+      <option value="1.1">1.1</option>
+      <option value="1.5" selected>1.5</option>
+      <option value="double">Double</option>
+      <option value="native">Native</option>
     </select></div>
     <div class="setting"><span class="setting-label">Theme:</span><select id="theme-select" onchange="applySettings()">
       <option value="theme-dark" selected>Dark</option>
+      <option value="theme-midnight">Midnight</option>
       <option value="theme-sepia">Sepia</option>
       <option value="theme-light">Light</option>
     </select></div>
     <div class="setting"><span class="setting-label">Margin:</span><select id="margin-select" onchange="applySettings()">
-      <option value="12">Tight</option>
-      <option value="24" selected>Normal</option>
-      <option value="40">Wide</option>
-      <option value="60">Spacious</option>
+      <option value="0">None</option>
+      <option value="9.6">Narrow</option>
+      <option value="48" selected>Normal</option>
+      <option value="96">Wide</option>
     </select></div>
     <div class="setting"><span class="setting-label">Alignment:</span><select id="align-select" onchange="applySettings()">
       <option value="left">Left</option>
       <option value="justify" selected>Justified</option>
     </select></div>
+    <div class="setting"><span class="setting-label">Page View:</span><select id="view-select" onchange="applySettings()">
+      <option value="single">Single</option>
+      <option value="double" selected>Double</option>
+    </select></div>
+    <div class="setting"><span class="setting-label">Indent:</span><select id="indent-select" onchange="applySettings()">
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+      <option value="native" selected>Native</option>
+    </select></div>
+    <div class="setting"><span class="setting-label">Front/Back:</span><select id="matter-select" onchange="onMatterChange()">
+      <option value="include" selected>Include</option>
+      <option value="exclude">Exclude</option>
+    </select></div>
   </div>
 </div>
 
-<div class="btn-row">
-  <button id="fs-btn" onclick="toggleFullscreen()" disabled title="Fullscreen (F)">Fullscreen</button>
-  <button id="prev-ch-btn" onclick="navChapter(-1)" disabled title="Previous Chapter (Shift+Left)">◀ Prev Chapter</button>
-  <button id="next-ch-btn" onclick="navChapter(1)" disabled title="Next Chapter (Shift+Right)">Next Chapter ▶</button>
+<!-- E-book control row: 7 icon-style buttons matching the audiobook controls -->
+<div id="ebook-btn-row">
+  <button id="fs-btn" class="modifier" disabled onclick="toggleFullscreen()" title="Fullscreen (F)">
+    <svg viewBox="0 0 24 24"><path d="M3 3h7v2H5v5H3V3zm11 0h7v7h-2V5h-5V3zM3 14h2v5h5v2H3v-7zm16 0h2v7h-7v-2h5v-5z"/></svg>
+  </button>
+  <button id="prev-pg-btn" class="transport" disabled onclick="pageScroll(-1)" title="Previous Page (Left)">
+    <svg viewBox="0 0 24 24"><polygon points="15,4 5,12 15,20"/></svg>
+  </button>
+  <button id="next-pg-btn" class="transport" disabled onclick="pageScroll(1)" title="Next Page (Right)">
+    <svg viewBox="0 0 24 24"><polygon points="9,4 19,12 9,20"/></svg>
+  </button>
+  <button id="prev-ch-btn" class="transport" disabled onclick="navChapter(-1)" title="Previous Chapter (Shift+Left)">
+    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16"/><polygon points="20,4 9,12 20,20"/></svg>
+  </button>
+  <button id="next-ch-btn" class="transport" disabled onclick="navChapter(1)" title="Next Chapter (Shift+Right)">
+    <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20"/><rect x="17" y="4" width="3" height="16"/></svg>
+  </button>
+  <button id="font-up-btn" class="modifier" disabled onclick="bumpFontSize(1)" title="Increase Font Size (+)">
+    <span class="btn-label">A+</span>
+  </button>
+  <button id="font-down-btn" class="modifier" disabled onclick="bumpFontSize(-1)" title="Decrease Font Size (−)">
+    <span class="btn-label">A−</span>
+  </button>
 </div>
 
 <div id="status">Status: Ready — Upload an E-Book File</div>
@@ -296,22 +456,51 @@ function toggleSettings(){
 
 function applySettings(){
   var content = document.getElementById('reader-content');
+  var pane = document.getElementById('reader-pane');
   content.style.fontFamily = document.getElementById('font-select').value;
   content.style.fontSize = document.getElementById('size-select').value + 'pt';
-  content.style.lineHeight = document.getElementById('lh-select').value;
   content.style.padding = document.getElementById('margin-select').value + 'px';
   content.style.textAlign = document.getElementById('align-select').value;
+
+  // Spacing — drives line-height + paragraph margins via class; also re-renders
+  // current chapter so <br>-run normalization can run with the new mode.
+  var spacing = document.getElementById('lh-select').value;
+  content.classList.remove('sp-sardines','sp-single','sp-1-1','sp-1-5','sp-double');
+  if (spacing !== 'native') content.classList.add('sp-' + spacing.replace('.', '-'));
+
+  // Theme
   var theme = document.getElementById('theme-select').value;
-  content.classList.remove('theme-dark','theme-sepia','theme-light');
+  content.classList.remove('theme-dark','theme-midnight','theme-sepia','theme-light');
   content.classList.add(theme);
+
+  // Page view (single | double)
+  var view = document.getElementById('view-select').value;
+  pane.classList.remove('view-single','view-double');
+  pane.classList.add('view-' + view);
+
+  // Indent
+  var indent = document.getElementById('indent-select').value;
+  content.classList.remove('indent-yes','indent-no','indent-native');
+  content.classList.add('indent-' + indent);
+
   localStorage.setItem('ebr_settings', JSON.stringify({
     font: document.getElementById('font-select').value,
     size: document.getElementById('size-select').value,
-    lh: document.getElementById('lh-select').value,
+    lh: spacing,
     margin: document.getElementById('margin-select').value,
     align: document.getElementById('align-select').value,
     theme: theme,
+    view: view,
+    indent: indent,
+    matter: document.getElementById('matter-select').value,
   }));
+
+  // Re-render current chapter so spacing normalization + view changes apply.
+  if (chapters.length && typeof currentChapter === 'number') {
+    var savedScroll = content.scrollLeft;
+    renderChapter(currentChapter, true);
+    requestAnimationFrame(function(){ content.scrollLeft = savedScroll; });
+  }
 }
 
 function loadSettings(){
@@ -324,10 +513,34 @@ function loadSettings(){
     if (s.margin) document.getElementById('margin-select').value = s.margin;
     if (s.align) document.getElementById('align-select').value = s.align;
     if (s.theme) document.getElementById('theme-select').value = s.theme;
+    if (s.view) document.getElementById('view-select').value = s.view;
+    if (s.indent) document.getElementById('indent-select').value = s.indent;
+    if (s.matter) document.getElementById('matter-select').value = s.matter;
     applySettings();
   } catch(e){}
 }
 loadSettings();
+
+/* ───────── HTML NORMALIZATION ─────────
+ * Per the spacing setting, collapse runs of <br> tags so we never see more
+ * than one blank line between paragraphs (or zero, for sardines mode).
+ * Tolerates whitespace/tabs/&nbsp; between consecutive <br>s.
+ */
+function normalizeBreaks(html, mode){
+  if (mode === 'native') return html;
+  var brRun3 = /(?:[\s\u00a0]*<br\s*\/?>[\s\u00a0]*){3,}/gi;
+  var brRun2 = /(?:[\s\u00a0]*<br\s*\/?>[\s\u00a0]*){2,}/gi;
+  var emptyP = /<p[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi;
+  if (mode === 'sardines') {
+    html = html.replace(brRun2, '<br>');
+    html = html.replace(emptyP, '');
+  } else {
+    html = html.replace(brRun3, '<br><br>');
+    // Collapse multiple consecutive empty paragraphs to one
+    html = html.replace(/(<p[^>]*>(?:\s|&nbsp;)*<\/p>\s*){2,}/gi, '<p></p>');
+  }
+  return html;
+}
 
 /* ───────── BOOK STATE ───────── */
 var bookFile = null;
@@ -429,10 +642,17 @@ function splitTextIntoChapters(html, name){
 }
 
 async function parsePdf(file){
+  // Reconstruct paragraphs from PDF text content using the /tps/ algorithm:
+  // (1) group items into lines by Y-coordinate / hasEOL,
+  // (2) join lines with a space (PDFs hard-wrap mid-sentence),
+  // (3) start a new paragraph only when a line ends with sentence-terminator
+  //     punctuation AND the next line starts capitalized AND the current line
+  //     is short — these heuristics catch paragraph breaks without mistaking
+  //     hard-wraps for new paragraphs.
   var pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
   var pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
-  var allHtml = '';
+  var allText = '';
   for (var i = 1; i <= pdf.numPages; i++) {
     document.getElementById('status').textContent = 'Status: Loading PDF Page ' + i + ' / ' + pdf.numPages + '...';
     var pg = await pdf.getPage(i);
@@ -447,14 +667,33 @@ async function parsePdf(file){
       prevY = y;
     }
     if (curLine) pageLines.push(curLine);
-    var pageHtml = '';
+    var pageText = '';
     for (var k = 0; k < pageLines.length; k++) {
       var l = pageLines[k].replace(/\s+/g, ' ').trim();
-      if (l) pageHtml += '<p>' + escapeHtml(l) + '</p>';
+      if (l.length === 0) { pageText += '\n\n'; continue; }
+      if (pageText.length > 0 && !pageText.endsWith('\n')) pageText += ' ';
+      pageText += l;
+      var next = pageLines[k + 1] ? pageLines[k + 1].trim() : '';
+      if (/[.!?][")\]]?$/.test(l) && next && /^[A-Z"]/.test(next) && l.length < 80) {
+        pageText += '\n\n';
+      }
     }
-    allHtml += pageHtml;
+    allText += pageText + '\n\n';
   }
-  return splitTextIntoChapters(allHtml, file.name);
+  // Strip page numbers and figure captions, then collapse 3+ blanks → 2
+  allText = allText
+    .replace(/^\s*\d+\s*$/gm, '')
+    .replace(/^Figure\s+\d+[^\n]*$/gmi, '')
+    .replace(/^(Cover|Title Page|Table of Contents|Start of Content|Landmarks)\s*$/gmi, '')
+    .replace(/\n{3,}/g, '\n\n');
+  // Convert to HTML paragraphs
+  var paras = allText.split(/\n\s*\n+/);
+  var html = '';
+  for (var p = 0; p < paras.length; p++) {
+    var t = paras[p].replace(/\s+/g, ' ').trim();
+    if (t) html += '<p>' + escapeHtml(t) + '</p>';
+  }
+  return splitTextIntoChapters(html, file.name);
 }
 
 async function parseEpub(file){
@@ -599,15 +838,20 @@ async function parseFb2(file){
 }
 
 /* ───────── E-BOOK RENDER ───────── */
-function renderChapter(idx){
+// `keepScroll` lets settings re-application avoid resetting position.
+function renderChapter(idx, keepScroll){
   if (!chapters[idx]) return;
   currentChapter = idx;
   var c = document.getElementById('reader-content');
-  c.innerHTML = chapters[idx].html;
-  c.scrollTop = 0;
+  var spacing = document.getElementById('lh-select').value;
+  c.innerHTML = normalizeBreaks(chapters[idx].html, spacing);
+  // Mark the table-of-contents chapter so its links get underline + pointer
+  var t = (chapters[idx].title || '').trim();
+  c.classList.toggle('is-toc', /^(Contents|Table\s*of\s*Contents|TOC|Sommaire|Indice|Inhalt|Indhold|Inhoud|Tavola\s+dei\s+Contenuti)$/i.test(t));
+  if (!keepScroll) { c.scrollLeft = 0; c.scrollTop = 0; }
   document.getElementById('chapter-select').value = idx;
   updateProgress();
-  if (bookKey) localStorage.setItem('ebr_pos_' + bookKey, JSON.stringify({ch: idx, ts: Date.now()}));
+  saveBookProgress();
 }
 
 function updateProgress(){
@@ -621,6 +865,83 @@ function navChapter(delta){
   var newIdx = currentChapter + delta;
   if (newIdx < 0 || newIdx >= chapters.length) return;
   renderChapter(newIdx);
+}
+
+/* ───────── BOOK PROGRESS PERSISTENCE ───────── */
+function saveBookProgress(){
+  if (!bookKey) return;
+  try {
+    var c = document.getElementById('reader-content');
+    var pageW = c.clientWidth || 1;
+    localStorage.setItem('ebr_pos_' + bookKey, JSON.stringify({
+      ch: currentChapter,
+      pg: Math.round(c.scrollLeft / pageW),
+      sl: c.scrollLeft,
+      st: c.scrollTop,
+      ts: Date.now()
+    }));
+    localStorage.setItem('ebr_book_last', bookKey);
+  } catch(e){}
+}
+
+setInterval(saveBookProgress, 2000);
+window.addEventListener('beforeunload', saveBookProgress);
+window.addEventListener('pagehide', saveBookProgress);
+window.addEventListener('blur', saveBookProgress);
+document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'hidden') saveBookProgress(); });
+
+// Throttled scroll save
+var _bookScrollTimer = null;
+document.addEventListener('DOMContentLoaded', function(){
+  var rc = document.getElementById('reader-content');
+  if (rc) rc.addEventListener('scroll', function(){
+    if (_bookScrollTimer) return;
+    _bookScrollTimer = setTimeout(function(){ saveBookProgress(); _bookScrollTimer = null; }, 500);
+  });
+});
+
+/* ───────── FRONT/BACK MATTER FILTER ─────────
+ * Mirrors /tps/'s heuristic. Front matter is everything before the first
+ * "real" body chapter (Chapter 1, Part I, Book One, or any heading that
+ * doesn't match the front-matter regex). Back matter is everything from
+ * the last non-back-matter chapter onward.
+ */
+function frontMatterRe(){
+  return /^(Cover|Title\s*Page|Half\s*Title|Frontispiece|Imprint|Copyright|Dedication|Epigraph|Contents|Table\s+of\s+Contents|Foreword|Preface|Introduction|Prologue|Note\s+on\s+the\s+Text)\b/i;
+}
+function backMatterRe(){
+  return /^(Notes|End\s*notes|Acknowledg(e)?ments?|Bibliography|References|Appendix(es|ces)?|Index|About\s+the\s+Author|Credits|Permissions|Sources|Glossary|Further\s+Reading|Works\s+Cited|Suggested\s+Reading|Colophon|Copyright|Discussion\s+Questions|Reading\s+Group|Author'?s?\s*Note|Epilogue|Afterword)\b/i;
+}
+function filterMatter(allCh){
+  var include = document.getElementById('matter-select').value === 'include';
+  if (include) return allCh.slice();
+  var fr = frontMatterRe(), br = backMatterRe();
+  var startIdx = 0;
+  for (var i = 0; i < allCh.length; i++) {
+    if (!fr.test(allCh[i].title)) { startIdx = i; break; }
+  }
+  var endIdx = allCh.length;
+  for (var i = allCh.length - 1; i > startIdx; i--) {
+    if (br.test(allCh[i].title)) endIdx = i;
+    else break;
+  }
+  // Always keep at least 1 chapter
+  if (endIdx <= startIdx) return allCh.slice();
+  return allCh.slice(startIdx, endIdx);
+}
+
+// Re-filter chapters when matter setting changes
+function onMatterChange(){
+  if (!allChapters || !allChapters.length) {
+    localStorage.setItem('ebr_settings', JSON.stringify(Object.assign(JSON.parse(localStorage.getItem('ebr_settings')||'{}'), {matter: document.getElementById('matter-select').value})));
+    return;
+  }
+  chapters = filterMatter(allChapters);
+  populateChapterSelect();
+  if (currentChapter >= chapters.length) currentChapter = 0;
+  renderChapter(currentChapter);
+  // Save the setting
+  applySettings();
 }
 
 function populateChapterSelect(){
@@ -637,61 +958,161 @@ function populateChapterSelect(){
   sel.onchange = function(){ renderChapter(parseInt(this.value, 10)); };
 }
 
-function toggleFullscreen(){
-  var target = document.getElementById('fs-target');
-  var inNative = !!(document.fullscreenElement || document.webkitFullscreenElement);
-  var inPseudo = target.classList.contains('pseudo-fs');
-  if (inNative || inPseudo) {
-    if (inNative) {
-      if (document.exitFullscreen) document.exitFullscreen();
-      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    }
-    target.classList.remove('pseudo-fs');
-    document.body.classList.remove('fs-active');
-    return;
+function isInFullscreen(){
+  var t = document.getElementById('fs-target');
+  return !!(document.fullscreenElement || document.webkitFullscreenElement) ||
+         (t && t.classList.contains('pseudo-fs'));
+}
+
+function exitFullscreen(){
+  var t = document.getElementById('fs-target');
+  if (document.fullscreenElement || document.webkitFullscreenElement) {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
   }
-  // Try native fullscreen first; fall back to a CSS-only pseudo-fullscreen
-  // (mobile Safari often refuses requestFullscreen on non-video elements).
-  var req = target.requestFullscreen || target.webkitRequestFullscreen;
+  t.classList.remove('pseudo-fs');
+  document.body.classList.remove('fs-active','fs-no-book','fs-no-audio');
+}
+
+function enterFullscreen(){
+  var t = document.getElementById('fs-target');
+  // Detect mode: ebook-only / audio-only / both
+  var hasBook = chapters.length > 0;
+  var hasAudio = !!(audio && audio.src);
+  document.body.classList.toggle('fs-no-book', !hasBook);
+  document.body.classList.toggle('fs-no-audio', !hasAudio);
+  document.body.classList.add('fs-active');
+  // Try native fullscreen API; fall back to CSS pseudo-fullscreen on mobile Safari
+  var req = t.requestFullscreen || t.webkitRequestFullscreen;
   if (req) {
-    var p = req.call(target);
-    if (p && p.catch) {
-      p.catch(function(){
-        target.classList.add('pseudo-fs');
-        document.body.classList.add('fs-active');
-      });
-    }
+    try {
+      var p = req.call(t);
+      if (p && p.catch) p.catch(function(){ t.classList.add('pseudo-fs'); });
+    } catch(e){ t.classList.add('pseudo-fs'); }
   } else {
-    target.classList.add('pseudo-fs');
-    document.body.classList.add('fs-active');
+    t.classList.add('pseudo-fs');
   }
 }
+
+function toggleFullscreen(){
+  if (isInFullscreen()) exitFullscreen();
+  else enterFullscreen();
+}
+
+// React to native API exit (Esc key or window controls) — strip our classes
+document.addEventListener('fullscreenchange', function(){
+  if (!document.fullscreenElement) {
+    document.getElementById('fs-target').classList.remove('pseudo-fs');
+    document.body.classList.remove('fs-active','fs-no-book','fs-no-audio');
+  }
+});
+document.addEventListener('webkitfullscreenchange', function(){
+  if (!document.webkitFullscreenElement) {
+    document.getElementById('fs-target').classList.remove('pseudo-fs');
+    document.body.classList.remove('fs-active','fs-no-book','fs-no-audio');
+  }
+});
+
+// Esc handler for the CSS pseudo-fullscreen path (no fullscreenchange fires)
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' && document.getElementById('fs-target').classList.contains('pseudo-fs')) {
+    e.preventDefault();
+    exitFullscreen();
+  }
+});
+
+/* ───────── E-BOOK FILE PERSISTENCE ─────────
+ * Mirrors /abp/'s storage pattern: blob in IndexedDB (so multi-MB books survive
+ * page reloads), keyed by content-hash. localStorage tracks the most recent
+ * book for auto-resume on next visit.
+ */
+function openBookDB(){
+  return new Promise(function(resolve, reject){
+    var req = indexedDB.open('ebr_ebooks', 1);
+    req.onupgradeneeded = function(e){
+      var db = e.target.result;
+      if (!db.objectStoreNames.contains('files')) db.createObjectStore('files');
+    };
+    req.onsuccess = function(){ resolve(req.result); };
+    req.onerror = function(){ reject(req.error); };
+  });
+}
+async function storeBookFile(key, blob, meta){
+  var db = await openBookDB();
+  return new Promise(function(resolve, reject){
+    var tx = db.transaction('files','readwrite');
+    tx.objectStore('files').put({blob: blob, meta: meta}, key);
+    tx.oncomplete = function(){ resolve(); };
+    tx.onerror = function(){ reject(tx.error); };
+  });
+}
+async function loadBookFileBlob(key){
+  var db = await openBookDB();
+  return new Promise(function(resolve){
+    var tx = db.transaction('files','readonly');
+    var req = tx.objectStore('files').get(key);
+    req.onsuccess = function(){ resolve(req.result || null); };
+    req.onerror = function(){ resolve(null); };
+  });
+}
+
+var allChapters = [];
 
 document.getElementById('file-input').onchange = async function(){
   var file = this.files[0];
   if (!file) return;
+  await loadEbookFile(file, true);
+};
+
+async function loadEbookFile(file, manual){
   bookFile = file;
   bookKey = await makeBookKey(file);
   document.getElementById('file-info').textContent = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
   document.getElementById('upload-btn').textContent = 'Replace E-Book';
   try {
     await parseBook(file);
+    allChapters = chapters.slice();
+    chapters = filterMatter(allChapters);
     populateChapterSelect();
     var savedPos = JSON.parse(localStorage.getItem('ebr_pos_' + bookKey) || 'null');
     var startCh = (savedPos && savedPos.ch < chapters.length) ? savedPos.ch : 0;
     renderChapter(startCh);
-    document.getElementById('prev-ch-btn').disabled = chapters.length <= 1;
-    document.getElementById('next-ch-btn').disabled = chapters.length <= 1;
+    if (savedPos && (savedPos.sl != null || savedPos.st != null)) {
+      // Restore scroll after layout settles
+      requestAnimationFrame(function(){
+        var c = document.getElementById('reader-content');
+        if (savedPos.sl != null) c.scrollLeft = savedPos.sl;
+        if (savedPos.st != null) c.scrollTop = savedPos.st;
+      });
+    }
+    enableEbookButtons();
     enableEbookShortcuts();
     enableFullscreenIfReady();
     document.getElementById('status').textContent = 'Status: Loaded — ' + chapters.length + ' Chapter' + (chapters.length === 1 ? '' : 's');
+
+    // Persist file (only if uploaded; auto-resumed files are already stored)
+    if (manual && file.size < 200 * 1024 * 1024) {
+      try {
+        var blob = new Blob([file], {type: file.type || 'application/octet-stream'});
+        await storeBookFile(bookKey, blob, {fileName: file.name, fileSize: file.size});
+        localStorage.setItem('ebr_book_last', bookKey);
+      } catch(e){ console.warn('Failed to persist e-book:', e); }
+    }
   } catch(e){ console.error(e); }
-};
+}
 
 async function makeBookKey(file){
   var s = file.name + '|' + file.size;
   var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('').substring(0,16);
+}
+
+function enableEbookButtons(){
+  ['fs-btn','prev-pg-btn','next-pg-btn','font-up-btn','font-down-btn'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.disabled = false;
+  });
+  document.getElementById('prev-ch-btn').disabled = chapters.length <= 1;
+  document.getElementById('next-ch-btn').disabled = chapters.length <= 1;
 }
 
 function enableEbookShortcuts(){
@@ -713,6 +1134,20 @@ function enableFullscreenIfReady(){
   document.getElementById('fs-btn').disabled = !anyLoaded;
   document.getElementById('kbd-fs').disabled = !anyLoaded;
 }
+
+/* ───────── AUTO-RESUME LAST E-BOOK ───────── */
+(async function autoReloadEbook(){
+  try {
+    var lastKey = localStorage.getItem('ebr_book_last');
+    if (!lastKey || bookKey) return;
+    var stored = await loadBookFileBlob(lastKey);
+    if (!stored || !stored.blob) return;
+    if (bookFile) return;  // user has already uploaded something
+    var meta = stored.meta || {};
+    var file = new File([stored.blob], meta.fileName || 'book', {type: stored.blob.type || 'application/octet-stream'});
+    await loadEbookFile(file, false);
+  } catch(e){ console.warn('autoReloadEbook:', e); }
+})();
 
 /* ───────── KEYBOARD SHORTCUTS ───────── */
 document.addEventListener('keydown', function(e){
@@ -742,12 +1177,30 @@ document.addEventListener('keydown', function(e){
   if ((k === '-' || k === '_') && !hasMod) { e.preventDefault(); bumpFontSize(-1); return; }
 });
 
+// Page navigation: scroll one page-spread horizontally (matches the column layout).
+// At end-of-chapter, advance/retreat into the next chapter so paging feels seamless.
 function pageScroll(dir){
-  var inFs = document.fullscreenElement === document.getElementById('fs-target') ||
-             document.getElementById('fs-target').classList.contains('pseudo-fs');
-  var c = inFs ? document.getElementById('reader-pane') : document.getElementById('reader-content');
-  var step = c.clientHeight * 0.85;
-  c.scrollBy({top: dir * step, behavior: 'smooth'});
+  var c = document.getElementById('reader-content');
+  if (!c) return;
+  var step = c.clientWidth;
+  var maxScroll = c.scrollWidth - c.clientWidth;
+  var newScroll = c.scrollLeft + dir * step;
+  if (dir > 0 && c.scrollLeft >= maxScroll - 2) {
+    if (currentChapter < chapters.length - 1) navChapter(1);
+    return;
+  }
+  if (dir < 0 && c.scrollLeft <= 2) {
+    if (currentChapter > 0) {
+      navChapter(-1);
+      // Jump to end of new chapter
+      requestAnimationFrame(function(){
+        var nc = document.getElementById('reader-content');
+        nc.scrollLeft = nc.scrollWidth;
+      });
+    }
+    return;
+  }
+  c.scrollTo({left: Math.max(0, Math.min(maxScroll, newScroll)), behavior: 'smooth'});
 }
 
 function bumpFontSize(dir){
