@@ -489,15 +489,15 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
 
 <div id="book-progress">Read 0:00:00 of 0:00:00 (0%), 0:00:00 Left</div>
 <select id="audio-chapter-select" disabled style="display:none"><option>No Chapters</option></select>
-<div id="cover-wrap"><img id="cover-img" src="" alt="Cover"></div>
 <h2 id="book-title"></h2>
+<div id="cover-wrap"><img id="cover-img" src="" alt="Cover"></div>
+<div id="audio-info">No Audiobook Selected</div>
 <div class="btn-row">
   <button id="audio-upload-btn" onclick="document.getElementById('audio-input').click()">Upload Audiobook File</button>
   <button id="folder-btn" onclick="document.getElementById('folder-input').click()">Upload Audiobook Folder</button>
 </div>
 <input type="file" id="audio-input" accept="audio/*,.m4b,.mp3,.m4a,.ogg,.wav,.mp4,.webm,.aac,.flac,.opus">
 <input type="file" id="folder-input" webkitdirectory>
-<div id="audio-info">No Audiobook Selected</div>
 
 <!-- Clickable keyboard shortcuts (also work via the keyboard) -->
 <div id="shortcuts-hint">
@@ -688,11 +688,111 @@ function isProperTitle(title){
   return true;
 }
 
+/* ───────── CHAPTER LABEL FORMATTING ─────────
+ * Parse a chapter title to recognize "Part N" (book/volume) markers and
+ * "Chapter N" headings. Numbers may be Arabic, Roman, or English words.
+ * Used by both the e-book and audiobook chapter dropdowns to render
+ * "Part 2, Chapter 4 (12 pages)" / "Part 1, Chapter 2 (45:10)" labels.
+ */
+var WORD_TO_INT = {ONE:1,TWO:2,THREE:3,FOUR:4,FIVE:5,SIX:6,SEVEN:7,EIGHT:8,NINE:9,TEN:10,
+  ELEVEN:11,TWELVE:12,THIRTEEN:13,FOURTEEN:14,FIFTEEN:15,SIXTEEN:16,
+  SEVENTEEN:17,EIGHTEEN:18,NINETEEN:19,TWENTY:20,
+  'TWENTY-ONE':21,'TWENTY-TWO':22,'TWENTY-THREE':23,'TWENTY-FOUR':24,'TWENTY-FIVE':25,
+  'TWENTY-SIX':26,'TWENTY-SEVEN':27,'TWENTY-EIGHT':28,'TWENTY-NINE':29,THIRTY:30};
+
+function romanToInt(s){
+  if (!/^[IVXLCDM]+$/i.test(s)) return null;
+  var R = {I:1,V:5,X:10,L:50,C:100,D:500,M:1000};
+  s = s.toUpperCase();
+  var n = 0;
+  for (var i = 0; i < s.length; i++) {
+    var c = R[s[i]], nx = R[s[i+1]];
+    n += (nx && c < nx) ? -c : c;
+  }
+  return n;
+}
+
+function parseNum(token){
+  if (!token) return null;
+  var t = token.trim();
+  if (/^\d+$/.test(t)) return parseInt(t, 10);
+  var roman = romanToInt(t);
+  if (roman) return roman;
+  var w = WORD_TO_INT[t.toUpperCase()];
+  if (w) return w;
+  return null;
+}
+
+function parseChapterTitle(title){
+  // Returns {type: 'part'|'chapter'|'other', num, raw}
+  var t = (title || '').trim();
+  if (!t) return {type: 'other', num: null, raw: t};
+  // Part / Book / Volume
+  var pm = t.match(/^(?:PART|BOOK|VOLUME)\s+([IVXLCDM]+|\d+|[A-Z][A-Z\-]+)\s*[:.]?\s*$/i)
+        || t.match(/^(?:PART|BOOK|VOLUME)\s+([IVXLCDM]+|\d+|[A-Z][A-Z\-]+)\b/i);
+  if (pm) {
+    var n = parseNum(pm[1]);
+    if (n != null) return {type: 'part', num: n, raw: t};
+  }
+  // Chapter
+  var cm = t.match(/^CHAPTER\s+([IVXLCDM]+|\d+|[A-Z][A-Z\-]+)\s*[:.]?\s*$/i)
+        || t.match(/^CHAPTER\s+([IVXLCDM]+|\d+|[A-Z][A-Z\-]+)\b/i);
+  if (cm) {
+    var n = parseNum(cm[1]);
+    if (n != null) return {type: 'chapter', num: n, raw: t};
+  }
+  return {type: 'other', num: null, raw: t};
+}
+
+function truncateLabel(s){
+  var max = window.innerWidth < 600 ? 25 : 40;
+  if (s.length <= max) return s;
+  return s.substring(0, max - 1) + '…';
+}
+
+/* Strip trailing parentheticals that describe the format/edition rather than
+ * the work itself. e.g. "Crime and Punishment (Unabridged)" → "Crime and
+ * Punishment". Loops since a title may have multiple stacked. */
+function cleanTitle(t){
+  if (!t) return '';
+  t = (t + '').trim();
+  var keywords = /\b(?:un)?abridged\b|\baudio(?:book)?\b|\bedition\b|\bnarrat(?:ed|or)\b|\bread\s+by\b|\baudible\b|\b(?:complete|full|deluxe|anniversary|special|collector'?s|limited|original)\b|\bversion\b/i;
+  for (var n = 0; n < 5; n++) {
+    var stripped = t.replace(/\s*\(([^()]*)\)\s*$/, function(m, inner){
+      return keywords.test(inner) ? '' : m;
+    });
+    if (stripped === t) break;
+    t = stripped.trim();
+  }
+  return t;
+}
+
+/* Pull the primary author out of a creator string. Handles patterns like
+ * "Fyodor Dostoevsky, Constance Garnett - translator" → "Fyodor Dostoevsky"
+ * by trimming role-tagged suffixes and taking the first comma-separated
+ * entry. Co-author cases ("King, Straub") will lose the second name — that's
+ * a deliberate trade-off; primary-author display is the more common need. */
+function cleanAuthor(a){
+  if (!a) return '';
+  a = (a + '').trim();
+  // Strip ", X - translator/narrator/etc" tail
+  a = a.replace(/[,;]\s*[^,;]*?[-–—]\s*(?:translator|narrator|reader|illustrator|editor|foreword|introduction|adapted|abridged|edited|preface|annotated)[^,;]*$/i, '');
+  // Strip "(role)" parenthetical
+  a = a.replace(/\s*\((?:translator|narrator|reader|illustrator|editor|foreword|introduction|preface|annotated)\)\s*$/i, '');
+  // Strip free-floating " - role" suffix
+  a = a.replace(/\s+[-–—]\s+(?:translator|narrator|reader|illustrator|editor|foreword|introduction|preface|annotated).*$/i, '');
+  // Take the first comma-separated author
+  a = a.split(/\s*[,;]\s*/)[0];
+  return a.trim();
+}
+
 function applyEbookTitle(){
   var el = document.getElementById('ebook-title');
   if (!el) return;
-  if (isProperTitle(bookMeta.title)) {
-    el.textContent = bookMeta.author ? (bookMeta.title + ' by ' + bookMeta.author) : bookMeta.title;
+  var t = cleanTitle(bookMeta.title);
+  var a = cleanAuthor(bookMeta.author);
+  if (isProperTitle(t)) {
+    el.textContent = a ? (t + ' by ' + a) : t;
     el.style.display = 'block';
   } else {
     el.textContent = '';
@@ -703,8 +803,10 @@ function applyEbookTitle(){
 function applyAudioTitle(){
   var el = document.getElementById('book-title');
   if (!el) return;
-  if (isProperTitle(audioMeta.title)) {
-    el.textContent = audioMeta.author ? (audioMeta.title + ' by ' + audioMeta.author) : audioMeta.title;
+  var t = cleanTitle(audioMeta.title);
+  var a = cleanAuthor(audioMeta.author);
+  if (isProperTitle(t)) {
+    el.textContent = a ? (t + ' by ' + a) : t;
     el.style.display = 'block';
   } else {
     el.textContent = '';
@@ -1074,6 +1176,9 @@ function computePagination(){
   c.scrollLeft = origScrollLeft;
   c.style.visibility = origVis;
   _paginating = false;
+  // Now that we know per-chapter pages, refresh the dropdown so each entry
+  // shows "(N pages)". Preserves the current selection.
+  populateChapterSelect();
   updateProgress();
 }
 
@@ -1220,12 +1325,28 @@ function populateChapterSelect(){
   sel.innerHTML = '';
   if (chapters.length <= 1) { sel.disabled = true; sel.style.display = 'none'; return; }
   sel.style.display = ''; sel.disabled = false;
+  var currentPart = null;
   for (var i = 0; i < chapters.length; i++) {
+    var info = parseChapterTitle(chapters[i].title);
+    var label;
+    if (info.type === 'part') {
+      currentPart = info;
+      label = 'Part ' + info.num;
+    } else if (info.type === 'chapter') {
+      var prefix = currentPart ? ('Part ' + currentPart.num + ', ') : '';
+      label = prefix + 'Chapter ' + info.num;
+    } else {
+      var prefix = currentPart ? ('Part ' + currentPart.num + ', ') : '';
+      label = prefix + chapters[i].title;
+    }
+    var pages = pagesPerChapter[i];
+    if (pages) label += ' (' + pages + ' page' + (pages === 1 ? '' : 's') + ')';
     var opt = document.createElement('option');
     opt.value = i;
-    opt.textContent = (i + 1) + '. ' + chapters[i].title;
+    opt.textContent = truncateLabel(label);
     sel.appendChild(opt);
   }
+  sel.value = currentChapter;
   sel.onchange = function(){ renderChapter(parseInt(this.value, 10)); };
 }
 
@@ -2360,13 +2481,35 @@ function populateAudioChapterDropdown(){
   sel.innerHTML = '';
   if (audioChapters.length === 0) { sel.style.display = 'none'; sel.disabled = true; return; }
   sel.style.display = ''; sel.disabled = false;
+  var currentPart = null;
   audioChapters.forEach(function(ch, i){
+    var raw = (ch.title || '').trim();
+    // Normalize numeric-only chapter titles like "001" → "Chapter 1"
+    if (/^0*\d+$/.test(raw)) raw = 'Chapter ' + parseInt(raw, 10);
+    if (!raw) raw = 'Chapter ' + (i + 1);
+    var info = parseChapterTitle(raw);
+    var label;
+    if (info.type === 'part') {
+      currentPart = info;
+      label = 'Part ' + info.num;
+    } else if (info.type === 'chapter') {
+      var prefix = currentPart ? ('Part ' + currentPart.num + ', ') : '';
+      label = prefix + 'Chapter ' + info.num;
+    } else {
+      var prefix = currentPart ? ('Part ' + currentPart.num + ', ') : '';
+      label = prefix + raw;
+    }
+    var dur = ch.duration;
+    if (dur && !isNaN(dur)) {
+      var durStr = dur >= 3600 ? fmtHMS(dur) : fmtMS(dur);
+      label += ' (' + durStr + ')';
+    }
     var o = document.createElement('option');
     o.value = i;
-    var durStr = ch.duration >= 3600 ? fmtHMS(ch.duration) : fmtMS(ch.duration);
-    o.textContent = truncate(ch.title || ('Chapter ' + (i+1)), 50) + ', ' + durStr;
+    o.textContent = truncateLabel(label);
     sel.appendChild(o);
   });
+  sel.value = currentAudioChapter;
   sel.onchange = function(){ goToAudioChapter(parseInt(this.value, 10)); };
 }
 
