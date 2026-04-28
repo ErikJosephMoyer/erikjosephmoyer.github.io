@@ -88,29 +88,34 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 /* Spacing classes — drive both line-height and block margins.
    Native = file's own spacing. All other modes ALSO normalize empty
    blocks + <br> runs in JS, and override every block element's margin
-   here (with !important to beat EPUB inline styles). */
+   here (with !important to beat EPUB inline styles).
+
+   Sardines = ultra compact (wall of text, paragraphs joined inline by " // ").
+   Compact  = tight stacking (no blank lines between paragraphs/headings). */
 #reader-content.sp-sardines{line-height:1.0}
-#reader-content.sp-sardines h1,
-#reader-content.sp-sardines h2,
-#reader-content.sp-sardines h3,
-#reader-content.sp-sardines h4,
-#reader-content.sp-sardines h5,
-#reader-content.sp-sardines h6,
-#reader-content.sp-sardines p,
-#reader-content.sp-sardines div,
-#reader-content.sp-sardines blockquote,
-#reader-content.sp-sardines ul,
-#reader-content.sp-sardines ol,
-#reader-content.sp-sardines li,
-#reader-content.sp-sardines section,
-#reader-content.sp-sardines article,
-#reader-content.sp-sardines header,
-#reader-content.sp-sardines footer,
-#reader-content.sp-sardines aside,
-#reader-content.sp-sardines pre,
-#reader-content.sp-sardines figure{margin:0 !important;padding-top:0 !important;padding-bottom:0 !important}
-#reader-content.sp-sardines hr{display:none}
-#reader-content.sp-sardines br{display:none}
+#reader-content.sp-sardines p{margin:0 !important;text-indent:0 !important}
+
+#reader-content.sp-compact{line-height:1.0}
+#reader-content.sp-compact h1,
+#reader-content.sp-compact h2,
+#reader-content.sp-compact h3,
+#reader-content.sp-compact h4,
+#reader-content.sp-compact h5,
+#reader-content.sp-compact h6,
+#reader-content.sp-compact p,
+#reader-content.sp-compact div,
+#reader-content.sp-compact blockquote,
+#reader-content.sp-compact ul,
+#reader-content.sp-compact ol,
+#reader-content.sp-compact li,
+#reader-content.sp-compact section,
+#reader-content.sp-compact article,
+#reader-content.sp-compact header,
+#reader-content.sp-compact footer,
+#reader-content.sp-compact aside,
+#reader-content.sp-compact pre,
+#reader-content.sp-compact figure{margin:0 !important;padding-top:0 !important;padding-bottom:0 !important}
+#reader-content.sp-compact hr{display:none}
 
 #reader-content.sp-single{line-height:1.0}
 #reader-content.sp-1-1{line-height:1.1}
@@ -364,6 +369,7 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
     </select></div>
     <div class="setting"><span class="setting-label">Spacing:</span><select id="lh-select" onchange="applySettings()">
       <option value="sardines">Sardines</option>
+      <option value="compact">Compact</option>
       <option value="single" selected>Single</option>
       <option value="1.1">1.1</option>
       <option value="1.5">1.5</option>
@@ -531,9 +537,9 @@ function applySettings(){
   content.style.textAlign = document.getElementById('align-select').value;
 
   // Spacing — drives line-height + paragraph margins via class; also re-renders
-  // current chapter so <br>-run normalization can run with the new mode.
+  // current chapter so <br>-run normalization (and sardines flattening) can run.
   var spacing = document.getElementById('lh-select').value;
-  content.classList.remove('sp-sardines','sp-single','sp-1-1','sp-1-5','sp-double');
+  content.classList.remove('sp-sardines','sp-compact','sp-single','sp-1-1','sp-1-5','sp-double');
   if (spacing !== 'native') content.classList.add('sp-' + spacing.replace('.', '-'));
 
   // Theme
@@ -593,32 +599,63 @@ function loadSettings(){
 loadSettings();
 
 /* ───────── HTML NORMALIZATION ─────────
- * Per the spacing setting, strip empty block elements (<p>, <div>, <section>,
- * etc. that contain only whitespace / &nbsp; / <br>) and collapse runs of
- * <br> tags. Done iteratively because removing a wrapper can expose a newly-
- * empty parent. Tolerates whitespace/tabs/&nbsp; between consecutive tags.
- *
- * Sardines: every empty block stripped + every 2+ <br> run becomes <br>.
- * Other non-native modes: empty blocks collapsed to one + 3+ <br> runs to <br><br>.
+ * Per the spacing setting:
+ *   sardines : flatten the chapter into a single paragraph; every block
+ *              boundary or <br> becomes the inline marker " // ".
+ *              Result is a continuous wall of text with no line breaks.
+ *   compact  : strip empty blocks + collapse <br><br>+ → <br>.
+ *   single+  : strip empty blocks + collapse <br><br><br>+ → <br><br>.
+ *   native   : no changes.
  */
 function normalizeBreaks(html, mode){
   if (mode === 'native') return html;
+  if (mode === 'sardines') return flattenToWall(html);
+
   var brRun3 = /(?:[\s\u00a0]*<br\s*\/?>[\s\u00a0]*){3,}/gi;
   var brRun2 = /(?:[\s\u00a0]*<br\s*\/?>[\s\u00a0]*){2,}/gi;
-  // An empty block holds only whitespace / &nbsp; / <br>s (possibly nested empties)
   var emptyBlock = /<(p|div|section|article|aside|header|footer|figure)([^>]*)>(?:[\s\u00a0]|&nbsp;|<br\s*\/?>|<\/?(?:span|em|strong|i|b|u)[^>]*>)*<\/\1>/gi;
-  // Run iteratively — stripping a wrapper can expose new empties
+  // Iteratively strip empties — removing a wrapper can expose new empty parents
   var prev;
   do { prev = html; html = html.replace(emptyBlock, ''); } while (prev !== html);
-  if (mode === 'sardines') {
+  if (mode === 'compact') {
     html = html.replace(brRun2, '<br>');
   } else {
-    // Single+ modes: keep one empty <p> as a paragraph break, but collapse runs
     html = html.replace(brRun3, '<br><br>');
   }
-  // Drop runs of whitespace between tags (can otherwise confuse paginator)
   html = html.replace(/>\s{2,}</g, '><');
   return html;
+}
+
+/* Walk the parsed HTML, emit text nodes, and emit " // " at every block
+ * boundary or <br>. Skips images. Result: one big paragraph. */
+function flattenToWall(html){
+  var tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  var BLOCK = {p:1,div:1,h1:1,h2:1,h3:1,h4:1,h5:1,h6:1,blockquote:1,li:1,ul:1,ol:1,
+               section:1,article:1,aside:1,header:1,footer:1,figure:1,figcaption:1,pre:1,hr:1,table:1,tr:1};
+  var SKIP = {script:1,style:1,img:1,svg:1,picture:1,video:1,audio:1};
+  var parts = [];
+  function walk(node){
+    if (!node) return;
+    if (node.nodeType === 3) {  // Text
+      parts.push(node.textContent);
+      return;
+    }
+    if (node.nodeType !== 1) return;
+    var tag = node.tagName.toLowerCase();
+    if (SKIP[tag]) return;
+    if (tag === 'br' || tag === 'hr') { parts.push(' // '); return; }
+    var isBlock = !!BLOCK[tag];
+    for (var i = 0; i < node.childNodes.length; i++) walk(node.childNodes[i]);
+    if (isBlock) parts.push(' // ');
+  }
+  for (var i = 0; i < tmp.childNodes.length; i++) walk(tmp.childNodes[i]);
+  var text = parts.join('');
+  // Normalize: collapse whitespace, dedupe successive markers, trim edges
+  text = text.replace(/[\s\u00a0]+/g, ' ');
+  text = text.replace(/(\s*\/\/\s*){2,}/g, ' // ');
+  text = text.replace(/^\s*\/\/\s*/, '').replace(/\s*\/\/\s*$/, '').trim();
+  return '<p>' + escapeHtml(text) + '</p>';
 }
 
 /* ───────── BOOK STATE ───────── */
