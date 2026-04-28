@@ -22,13 +22,6 @@ button:hover{background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
 #upload-btn,#run-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
 #file-info{text-align:center;font-size:14pt;color:white;margin:0 0 8pt}
-select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 8pt}
-select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
-#settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:4pt 16pt;margin:0 0 8pt}
-@media(max-width:600px){#settings-grid{grid-template-columns:1fr}}
-.setting{display:flex;align-items:center;gap:8px}
-.setting-label{white-space:nowrap;font-size:16pt}
-.setting select{flex:1}
 #status{text-align:center;font-size:16pt;color:white;margin:0 0 8pt}
 #preview-area{margin:0 0 8pt;text-align:center}
 #preview-area img,#preview-area canvas{max-width:100%;max-height:280px;border:1px solid #555;border-radius:4px}
@@ -53,56 +46,11 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 
 <div id="preview-area"></div>
 
-<h2>Settings</h2>
-<div id="settings-grid">
-  <div class="setting"><span class="setting-label">Language:</span><select id="lang-select">
-    <option value="eng" selected>English</option>
-    <option value="eng+spa">English + Spanish</option>
-    <option value="eng+fra">English + French</option>
-    <option value="eng+deu">English + German</option>
-    <option value="eng+ita">English + Italian</option>
-    <option value="eng+por">English + Portuguese</option>
-    <option value="eng+rus">English + Russian</option>
-    <option value="eng+chi_sim">English + Chinese (Simp.)</option>
-    <option value="eng+jpn">English + Japanese</option>
-    <option value="eng+kor">English + Korean</option>
-    <option value="eng+ara">English + Arabic</option>
-    <option value="eng+hin">English + Hindi</option>
-    <option value="spa">Spanish</option>
-    <option value="fra">French</option>
-    <option value="deu">German</option>
-    <option value="rus">Russian</option>
-  </select></div>
-
-  <div class="setting"><span class="setting-label">Page Mode:</span><select id="psm-select">
-    <option value="3" selected>Auto (full page)</option>
-    <option value="6">Single block</option>
-    <option value="4">Single column</option>
-    <option value="11">Sparse text</option>
-    <option value="7">Single line</option>
-    <option value="8">Single word</option>
-  </select></div>
-
-  <div class="setting"><span class="setting-label">Preprocess:</span><select id="prep-select">
-    <option value="auto" selected>Auto</option>
-    <option value="none">None</option>
-    <option value="threshold">High contrast</option>
-    <option value="grayscale">Grayscale</option>
-    <option value="invert">Invert (light text)</option>
-  </select></div>
-
-  <div class="setting"><span class="setting-label">Output:</span><select id="format-select">
-    <option value="plain" selected>Plain text</option>
-    <option value="layout">Preserve layout</option>
-    <option value="confidence">With confidence scores</option>
-  </select></div>
-</div>
-
 <button id="run-btn" disabled onclick="runOCR()">Run OCR</button>
 <div id="progress-bar"><div id="progress-fill"></div></div>
 <div id="status">Status: Ready — upload an image or PDF</div>
 
-<textarea id="output" placeholder="Recognized text will appear here…" readonly></textarea>
+<textarea id="output" placeholder="Recognized text will appear here..." readonly></textarea>
 
 <div class="btn-row">
   <button id="copy-btn" disabled onclick="copyText()">Copy</button>
@@ -112,8 +60,8 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 
 <script>
 var inputFile = null;
-var inputType = null; // 'image' or 'pdf'
-var pdfPages = []; // array of canvases
+var inputType = null;
+var pdfPages = [];
 var lastOutput = '';
 
 document.getElementById('file-input').onchange = async function () {
@@ -140,12 +88,11 @@ document.getElementById('file-input').onchange = async function () {
       await pg.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
       pdfPages.push(canvas);
     }
-    // Show first page only as preview
     var thumb = pdfPages[0].toDataURL();
     var img = document.createElement('img');
     img.src = thumb;
     prev.appendChild(img);
-    document.getElementById('status').textContent = 'Status: Ready — ' + pdf.numPages + ' page' + (pdf.numPages > 1 ? 's' : '');
+    document.getElementById('status').textContent = 'Status: Ready (' + pdf.numPages + ' page' + (pdf.numPages > 1 ? 's' : '') + ')';
   } else {
     inputType = 'image';
     var img = document.createElement('img');
@@ -156,48 +103,69 @@ document.getElementById('file-input').onchange = async function () {
   document.getElementById('run-btn').disabled = false;
 };
 
-function preprocessCanvas(srcCanvas, mode) {
-  if (mode === 'none') return srcCanvas;
-  var c = document.createElement('canvas');
-  c.width = srcCanvas.width;
-  c.height = srcCanvas.height;
-  var ctx = c.getContext('2d');
-  ctx.drawImage(srcCanvas, 0, 0);
-  var imgData = ctx.getImageData(0, 0, c.width, c.height);
-  var d = imgData.data;
-  if (mode === 'grayscale' || mode === 'threshold' || mode === 'auto') {
-    for (var i = 0; i < d.length; i += 4) {
-      var g = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
-      d[i] = d[i + 1] = d[i + 2] = g;
+/* ───────── PREPROCESSING ─────────
+ * Modern Tesseract LSTM handles grayscale natively — heavy binarization
+ * and icon-masking actually destroys thin character strokes ('l', 'i')
+ * and ends up worse than just feeding clean grayscale.
+ *
+ *  1. Sample corners → detect background brightness.
+ *  2. Convert to grayscale.
+ *  3. Invert if bg is dark (Tesseract trained on dark-text-on-light).
+ *  4. Upscale to ~2x or until long side ≥ 1800px (LSTM loves DPI).
+ *
+ * Trust Tesseract's own noise tolerance + the post-processor for icon junk.
+ */
+function preprocess(srcCanvas) {
+  var W = srcCanvas.width, H = srcCanvas.height;
+  var ctx = srcCanvas.getContext('2d');
+  var d = ctx.getImageData(0, 0, W, H);
+  var data = d.data;
+
+  // Sample corner regions to detect background brightness
+  function avgRegionLum(x, y, w, h) {
+    var sum = 0, n = 0;
+    for (var yy = y; yy < Math.min(y + h, H); yy++) {
+      for (var xx = x; xx < Math.min(x + w, W); xx++) {
+        var i = (yy * W + xx) * 4;
+        sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        n++;
+      }
     }
+    return n > 0 ? sum / n : 0;
   }
-  if (mode === 'threshold') {
-    // Otsu's method (simplified): pick threshold, binarize
-    var hist = new Array(256).fill(0);
-    for (var i = 0; i < d.length; i += 4) hist[Math.round(d[i])]++;
-    var total = c.width * c.height;
-    var sum = 0; for (var t = 0; t < 256; t++) sum += t * hist[t];
-    var sumB = 0, wB = 0, max = 0, threshold = 127;
-    for (var t = 0; t < 256; t++) {
-      wB += hist[t]; if (wB === 0) continue;
-      var wF = total - wB; if (wF === 0) break;
-      sumB += t * hist[t];
-      var mB = sumB / wB, mF = (sum - sumB) / wF;
-      var between = wB * wF * (mB - mF) * (mB - mF);
-      if (between > max) { max = between; threshold = t; }
-    }
-    for (var i = 0; i < d.length; i += 4) {
-      var v = d[i] >= threshold ? 255 : 0;
-      d[i] = d[i + 1] = d[i + 2] = v;
-    }
+  var bgLum = (
+    avgRegionLum(0, 0, 16, 16) +
+    avgRegionLum(W - 16, 0, 16, 16) +
+    avgRegionLum(0, H - 16, 16, 16) +
+    avgRegionLum(W - 16, H - 16, 16, 16)
+  ) / 4;
+  var darkBg = bgLum < 128;
+
+  // Grayscale + optional inversion
+  for (var i = 0; i < data.length; i += 4) {
+    var lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    if (darkBg) lum = 255 - lum;
+    data[i] = data[i + 1] = data[i + 2] = lum;
   }
-  if (mode === 'invert') {
-    for (var i = 0; i < d.length; i += 4) {
-      d[i] = 255 - d[i]; d[i + 1] = 255 - d[i + 1]; d[i + 2] = 255 - d[i + 2];
-    }
+
+  var work = document.createElement('canvas');
+  work.width = W; work.height = H;
+  work.getContext('2d').putImageData(d, 0, 0);
+
+  // Upscale small images
+  var maxDim = Math.max(W, H);
+  if (maxDim < 1800) {
+    var scale = Math.min(3, 1800 / maxDim);
+    var up = document.createElement('canvas');
+    up.width = Math.round(W * scale);
+    up.height = Math.round(H * scale);
+    var upCtx = up.getContext('2d');
+    upCtx.imageSmoothingEnabled = true;
+    upCtx.imageSmoothingQuality = 'high';
+    upCtx.drawImage(work, 0, 0, up.width, up.height);
+    return up;
   }
-  ctx.putImageData(imgData, 0, 0);
-  return c;
+  return work;
 }
 
 function imageToCanvas(file) {
@@ -205,7 +173,8 @@ function imageToCanvas(file) {
     var img = new Image();
     img.onload = function () {
       var c = document.createElement('canvas');
-      c.width = img.naturalWidth; c.height = img.naturalHeight;
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
       c.getContext('2d').drawImage(img, 0, 0);
       resolve(c);
     };
@@ -214,15 +183,69 @@ function imageToCanvas(file) {
   });
 }
 
+/* ───────── POST-PROCESSING ─────────
+ * Clean up common Tesseract artifacts:
+ *  - Drop short leading "junk" tokens (icon mis-reads).
+ *  - Restore common file extensions where a small period got dropped.
+ *  - Normalize l/I confusion before known suffixes.
+ *  - Trim and collapse whitespace.
+ */
+function postProcess(text) {
+  var lines = text.split('\n').map(function (l) { return l.replace(/\s+/g, ' ').trim(); });
+  var out = [];
+  var EXT_LIST = ['xlsx','docx','pptx','xls','doc','ppt','pdf','txt','csv','tsv','json','md','xml','html','png','jpg','jpeg','gif','mp3','mp4','wav','m4a','m4b','epub','zip','rar'];
+  var commonShort = /^(I|A|An|At|To|Of|In|On|It|Is|As|Be|By|Do|Or|My|Up|Us|We|No|So|If|Go|He|She|The|And|For|Are|But|Not|You|All|Can|Has|Had|Was|Who|How|Why|Out|Now|See|Two|One|New|Way|Use|Get|Yes|Per|Any|Did)$/i;
+
+  for (var li = 0; li < lines.length; li++) {
+    var line = lines[li];
+    if (!line) { out.push(''); continue; }
+
+    // Strip leading 1-3 letter "junk" token followed by a much longer real word
+    var m = line.match(/^([A-Za-z]{1,3})\s+(\S{4,}.*)$/);
+    if (m && !commonShort.test(m[1])) {
+      // If first token is 1-3 capital letters with no real-word feel, drop it
+      // (avoids removing legit short words like "An", "The", "USA")
+      if (m[1].length <= 2 && /[A-Z]/.test(m[1]) && !/^(US|UK|DC|CA|NY|TX|FL|UV|AI|ML|PR|CV|HR|HQ|VP|GM|TV|FM|AM|EU|UN)$/i.test(m[1])) {
+        line = m[2];
+      } else if (m[1].length === 3 && /^[A-Z]+$/.test(m[1]) && !/^(USA|FBI|CIA|DOJ|NYC|CEO|CFO|CTO|MBA|PhD|MFA|EMS|EMT)$/i.test(m[1])) {
+        line = m[2];
+      }
+    }
+
+    // Restore missing period before known extensions
+    line = line.replace(new RegExp('([a-zA-Z0-9_])(' + EXT_LIST.join('|') + ')\\b', 'g'),
+      function (full, prev, ext) { return prev + '.' + ext; });
+
+    // Fix .xIsx / .xlsx variants → .xlsx (Tesseract often confuses I/l)
+    line = line.replace(/\.x[Il1]sx\b/gi, '.xlsx');
+    line = line.replace(/\.d[o0]cx?\b/gi, function (m) { return m.toLowerCase().replace(/0/g, 'o'); });
+    // Collapse "filename .ext" → "filename.ext" (stray space before extension)
+    line = line.replace(new RegExp('(\\S)\\s+\\.(' + EXT_LIST.join('|') + ')\\b', 'g'), '$1.$2');
+
+    out.push(line);
+  }
+
+  // Collapse 3+ blank lines into 2
+  var collapsed = [];
+  var blanks = 0;
+  for (var i = 0; i < out.length; i++) {
+    if (out[i] === '') { blanks++; if (blanks <= 2) collapsed.push(''); }
+    else { blanks = 0; collapsed.push(out[i]); }
+  }
+  return collapsed.join('\n').trim();
+}
+
+/* ───────── OCR RUN ─────────
+ * Higher-accuracy 'best' Tesseract model. Run with PSM 6 (single uniform block)
+ * AND PSM 4 (single column variable text), pick whichever has higher mean
+ * word confidence with a small bonus for word count.
+ */
 async function runOCR() {
   if (!inputFile) return;
   document.getElementById('run-btn').disabled = true;
   document.getElementById('output').value = '';
   lastOutput = '';
-  var lang = document.getElementById('lang-select').value;
-  var psm = parseInt(document.getElementById('psm-select').value, 10);
-  var prepMode = document.getElementById('prep-select').value;
-  var format = document.getElementById('format-select').value;
+  document.getElementById('progress-fill').style.width = '0%';
 
   var canvases;
   try {
@@ -234,88 +257,75 @@ async function runOCR() {
     return;
   }
 
-  document.getElementById('status').textContent = 'Status: Loading OCR engine (' + lang + ')...';
-  var worker = await Tesseract.createWorker(lang, 1, {
-    logger: function (m) {
-      if (m.status === 'recognizing text' && typeof m.progress === 'number') {
-        document.getElementById('progress-fill').style.width = Math.round(m.progress * 100) + '%';
+  document.getElementById('status').textContent = 'Status: Loading high-accuracy OCR model (one-time, may take a moment)...';
+  var worker;
+  try {
+    worker = await Tesseract.createWorker('eng', 1, {
+      langPath: 'https://tessdata.projectnaptha.com/4.0.0_best',
+      logger: function (m) {
+        if (m.status === 'recognizing text' && typeof m.progress === 'number') {
+          document.getElementById('progress-fill').style.width = Math.round(m.progress * 100) + '%';
+        }
       }
-    }
-  });
-  await worker.setParameters({ tessedit_pageseg_mode: String(psm) });
+    });
+  } catch (e) {
+    // Fall back to default fast model
+    worker = await Tesseract.createWorker('eng', 1, {
+      logger: function (m) {
+        if (m.status === 'recognizing text' && typeof m.progress === 'number') {
+          document.getElementById('progress-fill').style.width = Math.round(m.progress * 100) + '%';
+        }
+      }
+    });
+  }
 
-  var results = [];
+  var allResults = [];
   for (var p = 0; p < canvases.length; p++) {
-    var preprocessed = preprocessCanvas(canvases[p], prepMode === 'auto' ? 'grayscale' : prepMode);
-    document.getElementById('status').textContent = 'Status: Recognizing page ' + (p + 1) + '/' + canvases.length + '...';
-    document.getElementById('progress-fill').style.width = '0%';
-    var res = await worker.recognize(preprocessed);
-    results.push(res);
-    // Live update output as we go
-    var partial = formatResults(results, format, canvases.length > 1);
+    document.getElementById('status').textContent = 'Status: Preprocessing page ' + (p + 1) + '/' + canvases.length + '...';
+    var pre = preprocess(canvases[p]);
+
+    var attempts = [];
+    var PSMS = ['6', '4'];
+    for (var ps = 0; ps < PSMS.length; ps++) {
+      document.getElementById('status').textContent = 'Status: Recognizing page ' + (p + 1) + '/' + canvases.length + ' (pass ' + (ps + 1) + '/' + PSMS.length + ')...';
+      document.getElementById('progress-fill').style.width = '0%';
+      await worker.setParameters({ tessedit_pageseg_mode: PSMS[ps], preserve_interword_spaces: '1' });
+      var res = await worker.recognize(pre);
+      var words = (res.data && res.data.words) || [];
+      var meanConf = 0;
+      if (words.length) {
+        var sum = 0;
+        for (var w = 0; w < words.length; w++) sum += words[w].confidence;
+        meanConf = sum / words.length;
+      }
+      attempts.push({ text: (res.data.text || '').trim(), conf: meanConf, words: words.length });
+    }
+    attempts.sort(function (a, b) { return (b.conf + b.words * 0.05) - (a.conf + a.words * 0.05); });
+    allResults.push(attempts[0]);
+
+    var partial = allResults.map(function (r, i) {
+      return canvases.length > 1 ? '\n=== Page ' + (i + 1) + ' ===\n\n' + postProcess(r.text) : postProcess(r.text);
+    }).join('\n').trim();
     document.getElementById('output').value = partial;
   }
   await worker.terminate();
 
-  lastOutput = formatResults(results, format, canvases.length > 1);
+  lastOutput = allResults.map(function (r, i) {
+    return canvases.length > 1 ? '\n=== Page ' + (i + 1) + ' ===\n\n' + postProcess(r.text) : postProcess(r.text);
+  }).join('\n').trim();
   document.getElementById('output').value = lastOutput;
   document.getElementById('progress-fill').style.width = '100%';
 
-  // Compute average confidence
-  var avgConf = 0, totalWords = 0;
-  for (var i = 0; i < results.length; i++) {
-    var words = (results[i].data && results[i].data.words) || [];
-    for (var j = 0; j < words.length; j++) {
-      avgConf += words[j].confidence; totalWords++;
-    }
-  }
-  avgConf = totalWords > 0 ? Math.round(avgConf / totalWords) : 0;
+  var meanConf = 0;
+  for (var i = 0; i < allResults.length; i++) meanConf += allResults[i].conf;
+  meanConf = allResults.length > 0 ? Math.round(meanConf / allResults.length) : 0;
   var wordCount = lastOutput.split(/\s+/).filter(function (w) { return w.length > 0; }).length;
 
-  document.getElementById('status').textContent = 'Status: Done — ' + wordCount + ' words, ' + avgConf + '% confidence';
+  document.getElementById('status').textContent = 'Status: Done — ' + wordCount + ' words, ' + meanConf + '% confidence';
   document.getElementById('copy-btn').disabled = false;
   document.getElementById('dl-btn').disabled = false;
   document.getElementById('clear-btn').disabled = false;
   document.getElementById('run-btn').disabled = false;
-}
-
-function formatResults(results, format, multi) {
-  var parts = [];
-  for (var i = 0; i < results.length; i++) {
-    var pageHeader = multi ? '\n=== Page ' + (i + 1) + ' ===\n\n' : '';
-    var data = results[i].data;
-    if (format === 'plain') {
-      parts.push(pageHeader + (data.text || '').trim());
-    } else if (format === 'layout') {
-      // Use Tesseract's structured paragraphs
-      var blocks = data.blocks || [];
-      var out = [];
-      for (var b = 0; b < blocks.length; b++) {
-        var paras = blocks[b].paragraphs || [];
-        for (var pi = 0; pi < paras.length; pi++) {
-          var lines = paras[pi].lines || [];
-          var paraText = lines.map(function (l) { return l.text.trim(); }).join('\n');
-          if (paraText.length > 0) out.push(paraText);
-        }
-      }
-      parts.push(pageHeader + out.join('\n\n'));
-    } else if (format === 'confidence') {
-      var words = data.words || [];
-      var lines = [];
-      var curLine = [];
-      var lastY = null;
-      for (var w = 0; w < words.length; w++) {
-        var word = words[w];
-        var y = word.bbox ? word.bbox.y0 : 0;
-        if (lastY !== null && Math.abs(lastY - y) > 8) { lines.push(curLine.join(' ')); curLine = []; }
-        curLine.push(word.text + '(' + Math.round(word.confidence) + ')');
-        lastY = y;
-      }
-      if (curLine.length) lines.push(curLine.join(' '));
-      parts.push(pageHeader + lines.join('\n'));
-    }
-  }
-  return parts.join(multi ? '\n\n' : '\n').trim();
 }
 
 function copyText() {
