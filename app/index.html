@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#2a2a2a">
-<title>Erik's Tools</title>
+<title>Erik's Media Tools</title>
 <link rel="icon" href="/images/Favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="/images/Favicon-192.png">
 <link rel="manifest" href="/manifest.json">
@@ -13,88 +13,40 @@
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px;min-height:100vh}
-h1{font-size:32pt;font-weight:400;text-align:center;line-height:1;margin:0 0 4pt}
-h2{font-size:18pt;font-weight:400;text-align:center;line-height:1.1;margin:0 0 16pt}
-a,a:visited{color:white;text-decoration:none}
-.tool-grid{display:grid;grid-template-columns:1fr;gap:12pt;margin:16pt 0}
-.tool-card{display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:14px;transition:background 0.15s}
-.tool-card:hover,.tool-card:active{background:rgba(255,255,255,0.12)}
-.tool-card img{width:64px;height:64px;border-radius:10px;margin-right:14px;object-fit:contain;background:#fff;flex-shrink:0}
-.tool-card-text .name{font-size:18pt;font-weight:500}
-.tool-card-text .desc{font-size:13pt;color:#bbb;margin-top:2px}
-img.banner{width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%}
-.footer-links{text-align:center;margin:24pt 0 8pt;font-size:14pt;color:#bbb}
-.footer-links a{color:#bbb;text-decoration:underline}
-@media(max-width:600px){
-  .tool-card img{width:56px;height:56px}
-  .tool-card-text .name{font-size:16pt}
-  .tool-card-text .desc{font-size:12pt}
-}
+body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
+h1,h2,h3{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 0 16pt}
+h1{font-size:36pt;text-align:center}
+h2{font-size:28pt;text-align:center;margin:8pt 0 16pt}
+h3{font-size:20pt;text-align:center;margin:0 0 8pt}
+p{margin:0 0 8pt}
+a,a:visited{color:white;text-decoration:underline;cursor:pointer}
+a:hover{color:#ccc}
+.entry{display:flex;align-items:flex-start;margin-bottom:16pt}
+.entry img{width:100px;height:100px;border-radius:8px;margin-right:16px;object-fit:cover;background:#fff;display:block}
+.entry-text{flex:1}
+.entry-text p{margin:0}
+.entry-text .role{font-weight:600}
+img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:15px}
 </style>
 </head>
 <body>
+<img src="/images/Favicon.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+<h1>Erik Moyer</h1>
+<h3>Erik's Media Tools</h3>
+<br>
 
-<img src="/images/Favicon.png" alt="EM" class="banner">
-<h1>Erik's Tools</h1>
-<h2>A Suite of Web Utilities</h2>
+<div class="entry"><a href="/ocr/"><img src="/images/Favicon.png" alt="Decipherer"></a><div class="entry-text"><p class="role"><a href="/ocr/" style="color:#fff">The Decipherer</a></p><p>Optical Character Recognition Tool</p><p><em>See With Your Eyes</em></p></div></div>
+<div class="entry"><a href="/abp/"><img src="/images/Audiobooker.png" alt="Audiobook Player"></a><div class="entry-text"><p class="role"><a href="/abp/" style="color:#fff">The Jibberjabberer</a></p><p>Audiobook Player</p><p><em>Hear With Your Ears</em></p></div></div>
+<div class="entry"><a href="/tps/"><img src="/images/Typesetter.PNG" alt="Typesetter"></a><div class="entry-text"><p class="role"><a href="/tps/" style="color:#fff">The Prettifier</a></p><p>Typesetting Tool</p><p><em>Read With Your Eyes</em></p></div></div>
+<div class="entry"><a href="/tts/"><img src="/images/TextToSpeecher.png" alt="Text-to-Speech"></a><div class="entry-text"><p class="role"><a href="/tts/" style="color:#fff">The Rhetoricizer</a></p><p>Text-to-Speech Tool</p><p><em>Read With Your Ears</em></p></div></div>
+<div class="entry"><a href="/stt/"><img src="/images/SpeechToTexter.png" alt="Speech-to-Text"></a><div class="entry-text"><p class="role"><a href="/stt/" style="color:#fff">The Textualizer</a></p><p>Speech-to-Text Tool</p><p><em>Write With Your Mouth</em></p></div></div>
+<div class="entry"><a href="/msc/"><img src="/images/Favicon.png" alt="Tonalizer"></a><div class="entry-text"><p class="role"><a href="/msc/" style="color:#fff">The Tonalizer</a></p><p>Music Decoder</p><p><em>See With Your Ears</em></p></div></div>
+<div class="entry"><a href="/fcv/"><img src="/images/Converter.PNG" alt="File Converter"></a><div class="entry-text"><p class="role"><a href="/fcv/" style="color:#fff">The Transmogrifier</a></p><p>File Converter</p><p><em>Knead With Your Hands</em></p></div></div>
 
-<div class="tool-grid">
-  <a href="/abp/" class="tool-card">
-    <img src="/images/Audiobooker.png" alt="">
-    <div class="tool-card-text">
-      <div class="name">The Jibberjabberer</div>
-      <div class="desc"><em>Hear With Your Ears</em> — Audiobook Player</div>
-    </div>
-  </a>
-  <a href="/fcv/" class="tool-card">
-    <img src="/images/Converter.PNG" alt="">
-    <div class="tool-card-text">
-      <div class="name">The Transmogrifier</div>
-      <div class="desc"><em>Knead With Your Hands</em> — File Converter</div>
-    </div>
-  </a>
-  <a href="/msc/" class="tool-card">
-    <img src="/images/Favicon.png" alt="">
-    <div class="tool-card-text">
-      <div class="name">The Tonalizer</div>
-      <div class="desc"><em>See With Your Ears</em> — Music Decoder</div>
-    </div>
-  </a>
-  <a href="/ocr/" class="tool-card">
-    <img src="/images/Favicon.png" alt="">
-    <div class="tool-card-text">
-      <div class="name">The Decipherer</div>
-      <div class="desc"><em>See With Your Eyes</em> — OCR Tool</div>
-    </div>
-  </a>
-  <a href="/stt/" class="tool-card">
-    <img src="/images/SpeechToTexter.png" alt="">
-    <div class="tool-card-text">
-      <div class="name">The Textualizer</div>
-      <div class="desc"><em>Write With Your Mouth</em> — Speech-to-Text</div>
-    </div>
-  </a>
-  <a href="/tts/" class="tool-card">
-    <img src="/images/TextToSpeecher.png" alt="">
-    <div class="tool-card-text">
-      <div class="name">The Rhetoricizer</div>
-      <div class="desc"><em>Read With Your Ears</em> — Text-to-Speech</div>
-    </div>
-  </a>
-  <a href="/tps/" class="tool-card">
-    <img src="/images/Typesetter.PNG" alt="">
-    <div class="tool-card-text">
-      <div class="name">The Prettifier</div>
-      <div class="desc"><em>Read With Your Eyes</em> — Typesetter</div>
-    </div>
-  </a>
-</div>
-
-<div class="footer-links">
-  <a href="/">Writing Portfolio</a> &nbsp;|&nbsp; <a href="/tech/">Tech Portfolio</a>
-</div>
-
+<br>
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a></div>
+<br>
+<img src="/images/Logophile.png" alt="EM">
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
