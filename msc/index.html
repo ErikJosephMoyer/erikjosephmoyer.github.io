@@ -239,14 +239,15 @@ function identifyKey(pcVector){
 /* ───────── INPUT METHODS ───────── */
 var selectedNotes = {}; // pitch class → true
 
-// Notes tab: 12 buttons
+// Notes tab: 12 buttons (sharp/flat enharmonic for accidentals)
+var NOTE_LABELS = ['C','C#/Db','D','D#/Eb','E','F','F#/Gb','G','G#/Ab','A','A#/Bb','B'];
 (function(){
   var c = document.getElementById('note-buttons');
   for(var i=0;i<12;i++){
     var b = document.createElement('button');
     b.className = 'note-btn';
     b.dataset.pc = i;
-    b.textContent = NOTES[i];
+    b.textContent = NOTE_LABELS[i];
     b.onclick = function(){
       var pc = parseInt(this.dataset.pc,10);
       if(selectedNotes[pc]){ delete selectedNotes[pc]; this.classList.remove('selected'); }
