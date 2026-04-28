@@ -16,7 +16,7 @@
   "shortcuts": [
     {"name": "Audiobooker", "url": "/abp/", "icons": [{"src": "/images/Audiobooker.png", "sizes": "100x100"}]},
     {"name": "Converter", "url": "/fcv/", "icons": [{"src": "/images/Converter.PNG", "sizes": "100x100"}]},
-    {"name": "Bibliomancer", "url": "/ebr/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
+    {"name": "Bibliocaster", "url": "/ebr/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
     {"name": "Decipherer", "url": "/ocr/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
     {"name": "Tonalizer", "url": "/msc/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
     {"name": "Speech-to-Texter", "url": "/stt/", "icons": [{"src": "/images/SpeechToTexter.png", "sizes": "100x100"}]},
