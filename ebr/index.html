@@ -57,14 +57,17 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 .view-single #reader-content{columns:1;column-rule:none}
 @media(max-width:800px){.view-double #reader-content{columns:1;column-rule:none}}
 #reader-content.hidden{display:none}
-#reader-content p{margin:0 0 1em;break-inside:avoid-column;orphans:2;widows:2}
-#reader-content h1,#reader-content h2,#reader-content h3,#reader-content h4{margin:1em 0 0.5em;font-weight:600;line-height:1.2;break-after:avoid}
+/* No break-inside / orphans / widows constraints — pages must fill to the
+   bottom. Splitting paragraphs across columns is fine; whole paragraphs
+   should never be pushed forward leaving a gap. Only images stay whole. */
+#reader-content p{margin:0 0 1em;orphans:1;widows:1}
+#reader-content h1,#reader-content h2,#reader-content h3,#reader-content h4{margin:1em 0 0.5em;font-weight:600;line-height:1.2}
 #reader-content h1{font-size:1.6em;text-align:left;border:none;padding:0}
 #reader-content h2{font-size:1.4em;text-align:left}
 #reader-content h3{font-size:1.2em;text-align:left;border:none;padding:0}
 #reader-content em{font-style:italic}
 #reader-content strong{font-weight:600}
-#reader-content blockquote{margin:1em 0;padding-left:1em;border-left:3px solid #888;color:#bbb;break-inside:avoid-column}
+#reader-content blockquote{margin:1em 0;padding-left:1em;border-left:3px solid #888;color:#bbb}
 #reader-content img{max-width:100%;max-height:90%;height:auto;display:block;margin:1em auto;border-radius:4px;break-inside:avoid-column}
 /* Links inherit text color (no blue). Underline + pointer only inside the
    table-of-contents chapter. Body links look like regular text. */
@@ -72,7 +75,7 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #reader-content.is-toc a{text-decoration:underline;cursor:pointer}
 #reader-content.is-toc a:hover{cursor:pointer}
 #reader-content ul,#reader-content ol{margin:0 0 1em 1.5em}
-#reader-content li{margin-bottom:0.3em;break-inside:avoid-column}
+#reader-content li{margin-bottom:0.3em}
 
 /* Theme variants */
 #reader-content.theme-dark{background:#2a2a2a;color:#fff}
@@ -184,24 +187,44 @@ body.fs-active #progress-text,
 body.fs-active #shortcuts-hint,
 body.fs-active .btn-row{display:none !important}
 
-/* Compact controls in fullscreen */
+/* Compact controls in fullscreen — all chrome text shares the same size */
 body.fs-active #chapter-select,
-body.fs-active #audio-chapter-select{margin:0;padding:4px 10px;font-size:13pt;flex:0 0 auto;height:36px;line-height:1}
-body.fs-active #settings-toggle{margin:0;padding:4px 10px;flex:0 0 auto;height:32px}
-body.fs-active #settings-toggle span{font-size:13pt}
-body.fs-active #settings-panel{position:absolute;top:48px;left:8px;right:8px;z-index:10005;max-height:60vh;overflow-y:auto;background:#2a2a2a;border:1px solid #888}
+body.fs-active #audio-chapter-select{margin:0;padding:4px 10px;flex:0 0 auto;height:36px;line-height:1}
+body.fs-active #settings-toggle{margin:0;padding:4px 10px;flex:0 0 auto;height:32px;position:relative;z-index:10001}
+body.fs-active #settings-panel{flex:0 0 auto;max-height:40vh;overflow-y:auto;margin:0}
 body.fs-active #ebook-btn-row,
 body.fs-active #all-btn-row{margin:0;flex:0 0 auto}
 body.fs-active #ebook-btn-row button,
 body.fs-active #all-btn-row button{height:38px}
 body.fs-active #reader-pane{flex:1 1 auto;min-height:0;height:auto !important;max-height:none !important;left:0 !important;transform:none !important;width:100% !important;max-width:100% !important;border:none}
-body.fs-active #book-progress{font-size:12pt;margin:0;flex:0 0 auto;display:block}
+body.fs-active #book-progress{margin:0;flex:0 0 auto;display:block}
 body.fs-active #cover-wrap{margin:2px auto;width:60px;height:60px;flex:0 0 auto}
-body.fs-active #book-title{font-size:13pt;margin:0;flex:0 0 auto;text-align:center}
+body.fs-active #book-title{margin:0;flex:0 0 auto;text-align:center}
 body.fs-active #audio-pane{flex:0 0 auto;background:transparent;border:none;padding:0}
 body.fs-active #audio-pane.hidden{display:none}
 body.fs-active #ch-bar{height:10px}
-body.fs-active #time-row{font-size:11pt;margin:0 0 4pt}
+body.fs-active #time-row{margin:0 0 4pt}
+
+/* Uniform 13pt across every chrome text element in fullscreen — except
+   the reader content itself, which keeps the user's chosen font size. */
+body.fs-active #chapter-select,
+body.fs-active #audio-chapter-select,
+body.fs-active #settings-toggle,
+body.fs-active #settings-toggle span,
+body.fs-active #settings-panel,
+body.fs-active .setting-label,
+body.fs-active .setting select,
+body.fs-active #progress-text,
+body.fs-active #book-progress,
+body.fs-active #book-title,
+body.fs-active #time-row,
+body.fs-active #cur-time,
+body.fs-active #tot-time,
+body.fs-active #all-btn-row .btn-label,
+body.fs-active #ebook-btn-row .btn-label,
+body.fs-active #shortcuts-hint,
+body.fs-active .kbd-btn,
+body.fs-active .kbd-row span{font-size:13pt !important}
 
 /* ── Mode: e-book only (no audio) ── */
 body.fs-active.fs-no-audio #book-progress,
@@ -1368,6 +1391,14 @@ function exitFullscreen(){
 
 function enterFullscreen(){
   var t = document.getElementById('fs-target');
+  // Close the settings panel before transitioning so it doesn't stay open
+  // in a layout where the toggle could be obscured.
+  var sp = document.getElementById('settings-panel');
+  var sa = document.getElementById('settings-arrow');
+  if (sp && sp.classList.contains('open')) {
+    sp.classList.remove('open');
+    if (sa) sa.textContent = '▼';
+  }
   // Detect mode: ebook-only / audio-only / both
   var hasBook = chapters.length > 0;
   var hasAudio = !!(audio && audio.src);
