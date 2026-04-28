@@ -146,7 +146,7 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #chapter-select,#audio-chapter-select{margin:0 0 8pt}
 #progress-bar{width:100%;height:6px;background:#444;border-radius:3px;overflow:hidden;margin:0 0 8pt}
 #progress-fill{height:100%;background:#fff;width:0%;transition:width 0.2s}
-#progress-text{text-align:center;font-size:13pt;color:#aaa;margin:0 0 8pt}
+#progress-text{text-align:center;font-size:16pt;color:#fff;margin:0 0 8pt}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    IN-APP FULLSCREEN MODE
@@ -257,7 +257,7 @@ body.fs-active:not(.fs-no-book):not(.fs-no-audio) #book-title{display:none}
 /* Audio player section */
 #cover-wrap{width:33%;max-width:231px;aspect-ratio:1;overflow:hidden;margin:8pt auto;display:none}
 #cover-img{width:100%;height:100%;object-fit:cover;object-position:center}
-#book-title{display:none;font-size:18pt;font-weight:400;text-align:center;margin:0 0 8pt}
+#book-title,#ebook-title{display:none;font-size:18pt;font-weight:400;text-align:center;margin:0 0 8pt}
 #book-progress{text-align:center;font-size:16pt;color:#fff;margin:0 0 8pt;display:none}
 
 #ch-bar{width:100%;height:16px;background:#555;cursor:pointer;margin:0 0 4px;position:relative;border-radius:3px;overflow:hidden}
@@ -342,6 +342,7 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
 <div id="file-info">No E-Book Selected</div>
 
 <select id="chapter-select" disabled style="display:none"><option>No Chapters</option></select>
+<h2 id="ebook-title"></h2>
 
 <div id="settings-toggle" onclick="toggleSettings()">
   <span style="font-size:14pt">Reader Settings</span>
@@ -669,12 +670,55 @@ var bookFile = null;
 var bookKey = null;
 var chapters = [];
 var currentChapter = 0;
+var bookMeta = {title: '', author: ''};
+var audioMeta = {title: '', author: ''};
+
+/* ───────── TITLE DISPLAY HELPERS ─────────
+ * Show "TITLE by AUTHOR" (or just "TITLE") only if the metadata is a
+ * legitimate title — never a filename, file extension, snake_case glob,
+ * or generic placeholder. If only an author is known, hide entirely.
+ */
+function isProperTitle(title){
+  if (!title) return false;
+  title = (title + '').trim();
+  if (title.length < 2) return false;
+  if (/\.(epub|pdf|mobi|azw3?|kfx|fb2|docx?|html?|txt|md|rtf|m4b|mp3|m4a|ogg|wav|aac|flac|opus)\s*$/i.test(title)) return false;
+  if (/^[a-z0-9]+(?:[_-][a-z0-9]+){2,}$/i.test(title)) return false;  // file_like_pattern
+  if (/^(untitled|document|book|epub|pdf|new\s+document|print\s+document|chapter\s*\d+)$/i.test(title)) return false;
+  return true;
+}
+
+function applyEbookTitle(){
+  var el = document.getElementById('ebook-title');
+  if (!el) return;
+  if (isProperTitle(bookMeta.title)) {
+    el.textContent = bookMeta.author ? (bookMeta.title + ' by ' + bookMeta.author) : bookMeta.title;
+    el.style.display = 'block';
+  } else {
+    el.textContent = '';
+    el.style.display = 'none';
+  }
+}
+
+function applyAudioTitle(){
+  var el = document.getElementById('book-title');
+  if (!el) return;
+  if (isProperTitle(audioMeta.title)) {
+    el.textContent = audioMeta.author ? (audioMeta.title + ' by ' + audioMeta.author) : audioMeta.title;
+    el.style.display = 'block';
+  } else {
+    el.textContent = '';
+    el.style.display = 'none';
+  }
+}
 
 /* ───────── E-BOOK PARSERS ───────── */
 async function parseBook(file){
   var ext = file.name.split('.').pop().toLowerCase();
   document.getElementById('status').textContent = 'Status: Reading ' + ext.toUpperCase() + '...';
   var name = file.name;
+  // Reset metadata; EPUB/PDF parsers will re-populate if metadata is present.
+  bookMeta = {title: '', author: ''};
 
   // Title-detection helpers (used by EPUB chapter naming)
   // A "garbage" label is one that's empty or matches an auto-generated pattern
@@ -774,6 +818,15 @@ async function parsePdf(file){
   var pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
   var pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
+
+  // PDF metadata (Title / Author from the document's info dict)
+  try {
+    var meta = await pdf.getMetadata();
+    var info = (meta && meta.info) || {};
+    bookMeta.title = (info.Title || '').trim();
+    bookMeta.author = (info.Author || '').trim();
+  } catch(e){ bookMeta.title = ''; bookMeta.author = ''; }
+
   var allText = '';
   for (var i = 1; i <= pdf.numPages; i++) {
     document.getElementById('status').textContent = 'Status: Loading PDF Page ' + i + ' / ' + pdf.numPages + '...';
@@ -830,6 +883,15 @@ async function parseEpub(file){
   var opfDir = opfPath.substring(0, opfPath.lastIndexOf('/') + 1);
   var opfStr = await zip.file(opfPath).async('string');
   var opfDoc = dp.parseFromString(opfStr, 'text/xml');
+
+  // EPUB metadata (Dublin Core) — populates bookMeta for the title display
+  var dcTitle = opfDoc.getElementsByTagName('dc:title')[0]
+              || opfDoc.getElementsByTagNameNS('http://purl.org/dc/elements/1.1/', 'title')[0];
+  var dcCreator = opfDoc.getElementsByTagName('dc:creator')[0]
+                || opfDoc.getElementsByTagNameNS('http://purl.org/dc/elements/1.1/', 'creator')[0];
+  bookMeta.title = dcTitle ? (dcTitle.textContent || '').trim() : '';
+  bookMeta.author = dcCreator ? (dcCreator.textContent || '').trim() : '';
+
   var manifest = {};
   var items = opfDoc.getElementsByTagName('item');
   for (var i = 0; i < items.length; i++) manifest[items[i].getAttribute('id')] = items[i].getAttribute('href');
@@ -1101,12 +1163,11 @@ var _snapTimer = null;
     _snapTimer = setTimeout(function(){
       var w = rc.clientWidth;
       if (!w) return;
+      // Round to whichever page is closer (Math.round picks nearest).
       var page = Math.round(rc.scrollLeft / w);
       var target = page * w;
-      if (Math.abs(rc.scrollLeft - target) > 1) {
-        rc.scrollTo({left: target, behavior: 'smooth'});
-      }
-    }, 180);
+      if (Math.abs(rc.scrollLeft - target) > 1) snapScroll(rc, target);
+    }, 120);
   });
 })();
 
@@ -1287,6 +1348,7 @@ async function loadEbookFile(file, manual){
     allChapters = chapters.slice();
     chapters = filterMatter(allChapters);
     document.body.classList.add('book-loaded');
+    applyEbookTitle();
     populateChapterSelect();
     var savedPos = JSON.parse(localStorage.getItem('ebr_pos_' + bookKey) || 'null');
     var startCh = (savedPos && savedPos.ch < chapters.length) ? savedPos.ch : 0;
@@ -1397,7 +1459,25 @@ document.addEventListener('keydown', function(e){
   if ((k === '-' || k === '_') && !hasMod) { e.preventDefault(); bumpFontSize(-1); return; }
 });
 
-// Page navigation: scroll one page-spread horizontally (matches the column layout).
+// Custom scroll animation — snappier than the browser's smooth scroll.
+// Ease-out cubic over 130ms feels like a page-flip, not a glide.
+function snapScroll(el, target){
+  var start = el.scrollLeft;
+  var change = target - start;
+  if (Math.abs(change) < 1) { el.scrollLeft = target; return; }
+  var startTime = performance.now();
+  var duration = 130;
+  function step(now){
+    var t = Math.min(1, (now - startTime) / duration);
+    var ease = 1 - Math.pow(1 - t, 3);  // ease-out cubic
+    el.scrollLeft = start + change * ease;
+    if (t < 1) requestAnimationFrame(step);
+    else el.scrollLeft = target;  // pin exactly
+  }
+  requestAnimationFrame(step);
+}
+
+// Page navigation: snap one page-spread horizontally (matches the column layout).
 // At end-of-chapter, advance/retreat into the next chapter so paging feels seamless.
 function pageScroll(dir){
   var c = document.getElementById('reader-content');
@@ -1420,7 +1500,7 @@ function pageScroll(dir){
     }
     return;
   }
-  c.scrollTo({left: Math.max(0, Math.min(maxScroll, newScroll)), behavior: 'smooth'});
+  snapScroll(c, Math.max(0, Math.min(maxScroll, newScroll)));
 }
 
 function bumpFontSize(dir){
@@ -1716,9 +1796,11 @@ document.getElementById('cover-input').onchange = async function(){
 
 function resetAudioUI(){
   audioChapters = []; hasCover = false; currentAudioChapter = 0;
+  audioMeta = {title: '', author: ''};
   document.getElementById('cover-wrap').style.display = 'none';
-  document.getElementById('cover-upload-btn').textContent = 'Upload Cover';
+  document.getElementById('cover-upload-btn').textContent = 'Upload Cover Image';
   document.getElementById('book-title').style.display = 'none';
+  document.getElementById('book-title').textContent = '';
   document.getElementById('book-progress').style.display = 'none';
 }
 
@@ -2054,7 +2136,7 @@ function parseID3Metadata(file){
       var ver = buf[3];
       var tagSize = ((buf[6]&0x7f)<<21)|((buf[7]&0x7f)<<14)|((buf[8]&0x7f)<<7)|(buf[9]&0x7f);
       var pos = 10, end = Math.min(10 + tagSize, buf.length);
-      var title = '', album = '';
+      var title = '', album = '', artist = '';
       var parsedChapters = [];
       while (pos < end - 10) {
         var fid = String.fromCharCode(buf[pos], buf[pos+1], buf[pos+2], buf[pos+3]);
@@ -2067,6 +2149,9 @@ function parseID3Metadata(file){
         pos += 10 + fsize;
         if (fid === 'TIT2') title = decodeID3Text(fdata);
         if (fid === 'TALB') album = decodeID3Text(fdata);
+        if (fid === 'TPE1' || fid === 'TPE2' || fid === 'TCOM') {
+          if (!artist) artist = decodeID3Text(fdata);
+        }
         if (fid === 'APIC' && !hasCover) {
           var i = 1, mime = '';
           while (i < fdata.length && fdata[i] !== 0) mime += String.fromCharCode(fdata[i++]);
@@ -2111,11 +2196,9 @@ function parseID3Metadata(file){
           }
         }
       }
-      var bookTitle = album || title || '';
-      if (bookTitle) {
-        document.getElementById('book-title').textContent = bookTitle;
-        document.getElementById('book-title').style.display = 'block';
-      }
+      audioMeta.title = (album || title || '').trim();
+      audioMeta.author = (artist || '').trim();
+      applyAudioTitle();
       if (parsedChapters.length > 0 && !multiFileMode) {
         parsedChapters.sort(function(a,b){return a.startTime - b.startTime;});
         audioChapters = parsedChapters;
@@ -2140,7 +2223,7 @@ async function parseM4BMetadata(file){
     if (moovStart < 0) return;
     var moovBuf = new Uint8Array(await readSlice(file, moovStart, Math.min(moovSize, 16 * 1024 * 1024)));
     var mv = new DataView(moovBuf.buffer);
-    var title = '', album = '';
+    var title = '', album = '', artist = '';
     var chapTimescale = 0, chapDurations = [], chapOffsets = [], chapSizes = [];
     function getType(p){return String.fromCharCode(moovBuf[p+4], moovBuf[p+5], moovBuf[p+6], moovBuf[p+7]);}
     var traks = [];
@@ -2195,10 +2278,10 @@ async function parseM4BMetadata(file){
       while (pp < end - 8) {
         var sz2 = mv.getUint32(pp), tp2 = getType(pp);
         if (sz2 < 8 || pp + sz2 > end) break;
-        if (['udta','meta','ilst','©nam','©alb','covr'].indexOf(tp2) >= 0) {
+        if (['udta','meta','ilst','©nam','©alb','©ART','covr'].indexOf(tp2) >= 0) {
           scanMeta(tp2 === 'meta' ? pp + 12 : pp + 8, pp + sz2);
         }
-        if (tp2 === '©nam' || tp2 === '©alb') {
+        if (tp2 === '©nam' || tp2 === '©alb' || tp2 === '©ART') {
           var di = pp + 8;
           while (di < pp + sz2 - 8) {
             var ds = mv.getUint32(di), dt = getType(di);
@@ -2206,6 +2289,7 @@ async function parseM4BMetadata(file){
               var txt = new TextDecoder('utf-8').decode(moovBuf.slice(di + 16, di + ds));
               if (tp2 === '©nam') title = txt;
               if (tp2 === '©alb') album = txt;
+              if (tp2 === '©ART') artist = txt;
             }
             if (ds < 8) break;
             di += ds;
@@ -2231,11 +2315,9 @@ async function parseM4BMetadata(file){
       }
     }
     scanMeta(8, moovBuf.length);
-    var bookTitle = album || title || '';
-    if (bookTitle) {
-      document.getElementById('book-title').textContent = bookTitle;
-      document.getElementById('book-title').style.display = 'block';
-    }
+    audioMeta.title = (album || title || '').trim();
+    audioMeta.author = (artist || '').trim();
+    applyAudioTitle();
     if (chapDurations.length > 0 && chapTimescale > 0) {
       audioChapters = [];
       var cumTime = 0;
