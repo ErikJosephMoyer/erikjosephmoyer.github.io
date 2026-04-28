@@ -1085,15 +1085,30 @@ window.addEventListener('pagehide', saveBookProgress);
 window.addEventListener('blur', saveBookProgress);
 document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'hidden') saveBookProgress(); });
 
-// Throttled scroll save + progress refresh
+// Throttled scroll save + progress refresh + page-boundary snap.
+// The reader can never settle between pages: after any scroll motion stops
+// (programmatic, wheel, trackpad, drag, touch), we snap to the nearest
+// clientWidth multiple. Aligned positions are a no-op.
 var _bookScrollTimer = null;
+var _snapTimer = null;
 (function attachReaderScroll(){
   var rc = document.getElementById('reader-content');
   if (!rc) { setTimeout(attachReaderScroll, 50); return; }
   rc.addEventListener('scroll', function(){
     updateProgress();
-    if (_bookScrollTimer) return;
-    _bookScrollTimer = setTimeout(function(){ saveBookProgress(); _bookScrollTimer = null; }, 500);
+    if (!_bookScrollTimer) {
+      _bookScrollTimer = setTimeout(function(){ saveBookProgress(); _bookScrollTimer = null; }, 500);
+    }
+    if (_snapTimer) clearTimeout(_snapTimer);
+    _snapTimer = setTimeout(function(){
+      var w = rc.clientWidth;
+      if (!w) return;
+      var page = Math.round(rc.scrollLeft / w);
+      var target = page * w;
+      if (Math.abs(rc.scrollLeft - target) > 1) {
+        rc.scrollTo({left: target, behavior: 'smooth'});
+      }
+    }, 180);
   });
 })();
 
