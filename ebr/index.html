@@ -24,6 +24,7 @@ button:hover{background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
 select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 8pt}
 select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
+#font-select option{font-family:inherit}
 .btn-row{display:flex;gap:8px;margin:0 0 8pt;flex-wrap:wrap}
 .btn-row button{flex:1;min-width:120px}
 #upload-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
@@ -38,15 +39,17 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:6pt 12pt}
 @media(max-width:600px){#settings-grid{grid-template-columns:1fr}}
 .setting{display:flex;align-items:center;gap:8px}
-.setting-label{white-space:nowrap;font-size:14pt;color:#bbb;min-width:80px}
+.setting-label{white-space:nowrap;font-size:14pt;color:#bbb;min-width:90px}
 .setting select{flex:1;margin:0;font-size:14pt;padding:4px 8px}
 
-/* Reader pane */
-#reader-pane{border:1px solid #555;border-radius:6px;padding:0;margin:0 0 8pt;background:rgba(255,255,255,0.02);min-height:100px}
-#reader-content{padding:24px;max-height:none;overflow-y:auto;line-height:1.5}
+/* Reader pane — wider on desktop (2x viewport-relative width up to 1400px) */
+#reader-pane{border:1px solid #555;border-radius:6px;padding:0;margin:0 0 8pt;background:rgba(255,255,255,0.02);min-height:100px;position:relative;left:50%;transform:translateX(-50%);width:min(96vw,1400px);max-width:96vw}
+@media(max-width:800px){#reader-pane{width:100%;max-width:100%;left:0;transform:none}}
+#reader-content{padding:24px;max-height:none;overflow-y:auto;line-height:1.5;columns:2;column-gap:48px;column-rule:1px solid #444}
+@media(max-width:800px){#reader-content{columns:1;column-rule:none}}
 #reader-content.hidden{display:none}
-#reader-content p{margin:0 0 1em}
-#reader-content h1,#reader-content h2,#reader-content h3,#reader-content h4{margin:1em 0 0.5em;font-weight:600;line-height:1.2}
+#reader-content p{margin:0 0 1em;break-inside:avoid-column;orphans:2;widows:2}
+#reader-content h1,#reader-content h2,#reader-content h3,#reader-content h4{margin:1em 0 0.5em;font-weight:600;line-height:1.2;break-after:avoid}
 #reader-content h1{font-size:1.6em;text-align:left;border:none;padding:0}
 #reader-content h2{font-size:1.4em;text-align:left}
 #reader-content h3{font-size:1.2em;text-align:left;border:none;padding:0}
@@ -56,7 +59,7 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #reader-content img{max-width:100%;height:auto;display:block;margin:1em auto;border-radius:4px}
 #reader-content a{color:#88ccff;text-decoration:underline}
 #reader-content ul,#reader-content ol{margin:0 0 1em 1.5em}
-#reader-content li{margin-bottom:0.3em}
+#reader-content li{margin-bottom:0.3em;break-inside:avoid-column}
 
 /* Theme variants */
 #reader-content.theme-dark{background:#2a2a2a;color:#fff}
@@ -68,28 +71,29 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #reader-content.theme-dark a{color:#88ccff}
 #reader-content.theme-sepia a{color:#7a4f12}
 #reader-content.theme-light a{color:#0066cc}
+#reader-content.theme-sepia,#reader-content.theme-light{column-rule-color:#bbb}
 
 #chapter-select,#audio-chapter-select{margin:0 0 8pt}
 #progress-bar{width:100%;height:6px;background:#444;border-radius:3px;overflow:hidden;margin:0 0 8pt}
 #progress-fill{height:100%;background:#fff;width:0%;transition:width 0.2s}
 #progress-text{text-align:center;font-size:13pt;color:#aaa;margin:0 0 8pt}
 
-/* Fullscreen */
-#reader-pane:fullscreen{background:#2a2a2a;padding:24px;overflow-y:auto;display:flex;flex-direction:column}
-#reader-pane:fullscreen #reader-content{max-height:none;flex:1}
-#reader-pane:-webkit-full-screen{background:#2a2a2a;padding:24px;overflow-y:auto;display:flex;flex-direction:column}
+/* Fullscreen — works for native API and CSS pseudo-fullscreen (mobile fallback) */
+#fs-target:fullscreen,#fs-target:-webkit-full-screen,#fs-target.pseudo-fs{background:#2a2a2a;padding:20px;overflow-y:auto;display:block}
+#fs-target.pseudo-fs{position:fixed;inset:0;z-index:9999}
+#fs-target:fullscreen #reader-pane,#fs-target:-webkit-full-screen #reader-pane,#fs-target.pseudo-fs #reader-pane{width:100%;max-width:100%;left:0;transform:none}
 
 /* Audio player section */
 #cover-wrap{width:33%;max-width:231px;aspect-ratio:1;overflow:hidden;margin:8pt auto;display:none}
 #cover-img{width:100%;height:100%;object-fit:cover;object-position:center}
 #book-title{display:none;font-size:18pt;font-weight:400;text-align:center;margin:0 0 8pt}
-#book-progress{text-align:center;font-size:14pt;color:#fff;margin:0 0 8pt;display:none}
+#book-progress{text-align:center;font-size:16pt;color:#fff;margin:0 0 8pt;display:none}
 
 #ch-bar{width:100%;height:16px;background:#555;cursor:pointer;margin:0 0 4px;position:relative;border-radius:3px;overflow:hidden}
 #ch-fill{height:100%;background:#fff;width:0%;pointer-events:none}
 #time-row{display:flex;justify-content:space-between;font-size:14pt;color:#fff;margin:0 0 8pt}
 
-/* All-buttons row (speed | pitch | prev | back | play | fwd | next | mute | boost) */
+/* All-buttons row */
 #all-btn-row{display:flex;gap:4px;margin:0 0 8pt;flex-wrap:wrap}
 #all-btn-row button{flex:1;min-width:0;height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:#fff;overflow:hidden}
 #all-btn-row #abp-skipb-btn,#all-btn-row #abp-skipf-btn{flex:2}
@@ -109,23 +113,31 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 
 @media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
 
-#shortcuts-hint{font-size:12pt;color:#888;text-align:center;margin:8pt 0;line-height:1.6}
-#shortcuts-hint kbd{display:inline-block;background:#444;color:#fff;border:1px solid #666;border-radius:3px;padding:1px 5px;font-family:'EB Garamond',serif;font-size:11pt}
+/* Clickable keyboard-shortcut hint buttons */
+#shortcuts-hint{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin:16pt auto;max-width:600px;font-size:12pt;color:#888}
+.kbd-row{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.kbd-btn{display:inline-block;background:#444;color:#fff;border:1px solid #666;border-radius:3px;padding:2px 8px;font:11pt 'EB Garamond',serif;cursor:pointer;white-space:nowrap;height:auto;min-height:0}
+.kbd-btn:hover:not(:disabled){background:#666}
+.kbd-btn:disabled{background:#2a2a2a;color:#666;cursor:default;border-color:#444}
+.kbd-row span{color:#aaa;font-size:12pt}
+.kbd-sep{color:#666}
 </style>
 </head>
 <body>
 <img src="/images/Favicon.png" alt="EBR" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Ingurgitator</h1>
-<h2><em>Read With Your Cranium</em>:<span class="sub-break"> </span>An E-Book Reader</h2>
+<h2><em>Read With Your Cranium</em>:<span class="sub-break"> </span>A Book Player</h2>
+
+<div id="fs-target">
 
 <!-- ━━━━━━━━━━━━━━━━ E-BOOK READER ━━━━━━━━━━━━━━━━ -->
 <h3>E-Book</h3>
 
 <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload E-Book</button>
 <input type="file" id="file-input" accept=".txt,.md,.markdown,.html,.htm,.rtf,.epub,.pdf,.doc,.docx,.azw,.azw3,.mobi,.kfx,.fb2">
-<div id="file-info">No file selected</div>
+<div id="file-info">No File Selected</div>
 
-<select id="chapter-select" disabled style="display:none"><option>No chapters</option></select>
+<select id="chapter-select" disabled style="display:none"><option>No Chapters</option></select>
 
 <div id="settings-toggle" onclick="toggleSettings()">
   <span style="font-size:14pt">Reader Settings</span>
@@ -134,14 +146,16 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 <div id="settings-panel">
   <div id="settings-grid">
     <div class="setting"><span class="setting-label">Font:</span><select id="font-select" onchange="applySettings()">
-      <option value="'EB Garamond',serif">EB Garamond</option>
-      <option value="Georgia,serif">Georgia</option>
-      <option value="'Times New Roman',serif">Times New Roman</option>
-      <option value="Garamond,serif">Garamond</option>
-      <option value="Calibri,sans-serif">Calibri</option>
-      <option value="Helvetica,sans-serif">Helvetica</option>
-      <option value="Arial,sans-serif">Arial</option>
-      <option value="Verdana,sans-serif">Verdana</option>
+      <option value="Arial,sans-serif" style="font-family:Arial">Arial</option>
+      <option value="'Arial Narrow',sans-serif" style="font-family:'Arial Narrow'">Arial Narrow</option>
+      <option value="Calibri,sans-serif" style="font-family:Calibri">Calibri</option>
+      <option value="'Cascadia Code',monospace" style="font-family:'Cascadia Code',monospace">Cascadia Code</option>
+      <option value="'EB Garamond',serif" selected style="font-family:'EB Garamond'">EB Garamond</option>
+      <option value="Garamond,serif" style="font-family:Garamond">Garamond</option>
+      <option value="Georgia,serif" style="font-family:Georgia">Georgia</option>
+      <option value="Helvetica,sans-serif" style="font-family:Helvetica">Helvetica</option>
+      <option value="'Times New Roman',serif" style="font-family:'Times New Roman'">Times New Roman</option>
+      <option value="Verdana,sans-serif" style="font-family:Verdana">Verdana</option>
     </select></div>
     <div class="setting"><span class="setting-label">Size:</span><select id="size-select" onchange="applySettings()">
       <option value="12">12pt</option>
@@ -170,19 +184,19 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
       <option value="60">Spacious</option>
     </select></div>
     <div class="setting"><span class="setting-label">Alignment:</span><select id="align-select" onchange="applySettings()">
-      <option value="left" selected>Left</option>
-      <option value="justify">Justified</option>
+      <option value="left">Left</option>
+      <option value="justify" selected>Justified</option>
     </select></div>
   </div>
 </div>
 
 <div class="btn-row">
-  <button id="fs-btn" onclick="toggleFullscreen()" disabled>Fullscreen</button>
-  <button id="prev-ch-btn" onclick="navChapter(-1)" disabled>◀ Prev Chapter</button>
-  <button id="next-ch-btn" onclick="navChapter(1)" disabled>Next Chapter ▶</button>
+  <button id="fs-btn" onclick="toggleFullscreen()" disabled title="Fullscreen (F)">Fullscreen</button>
+  <button id="prev-ch-btn" onclick="navChapter(-1)" disabled title="Previous Chapter (Shift+Left)">◀ Prev Chapter</button>
+  <button id="next-ch-btn" onclick="navChapter(1)" disabled title="Next Chapter (Shift+Right)">Next Chapter ▶</button>
 </div>
 
-<div id="status">Status: Ready — upload an e-book file</div>
+<div id="status">Status: Ready — Upload an E-Book File</div>
 <div id="progress-bar"><div id="progress-fill"></div></div>
 <div id="progress-text"></div>
 
@@ -202,9 +216,9 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 <input type="file" id="folder-input" webkitdirectory>
 <input type="file" id="cover-input" accept="image/*">
 
-<div id="audio-info">No audiobook selected</div>
+<div id="audio-info">No Audiobook Selected</div>
 
-<select id="audio-chapter-select" disabled style="display:none"><option>No chapters</option></select>
+<select id="audio-chapter-select" disabled style="display:none"><option>No Chapters</option></select>
 
 <div id="book-progress">Read 0:00:00 of 0:00:00 (0%), 0:00:00 Left</div>
 
@@ -216,46 +230,55 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
   <div id="time-row"><span id="cur-time">0:00</span><span id="tot-time">0:00</span></div>
 
   <div id="all-btn-row">
-    <button id="abp-speed-btn" class="modifier" title="Speed" disabled onclick="cycleSpeed()">
+    <button id="abp-speed-btn" class="modifier" title="Speed (S)" disabled onclick="cycleSpeed()">
       <span id="speed-label" class="btn-label">1x</span>
     </button>
-    <button id="abp-pitch-btn" class="modifier" title="Pitch" disabled onclick="cyclePitch()">
+    <button id="abp-pitch-btn" class="modifier" title="Pitch (P)" disabled onclick="cyclePitch()">
       <span id="pitch-label" class="btn-label">0</span>
     </button>
-    <button id="abp-prev-btn" class="transport" title="Previous Chapter" disabled onclick="audioPrevChapter()">
+    <button id="abp-prev-btn" class="transport" title="Previous Chapter (Shift+Up)" disabled onclick="audioPrevChapter()">
       <svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16"/><polygon points="20,4 9,12 20,20"/></svg>
     </button>
-    <button id="abp-skipb-btn" class="transport" title="Back 10s" disabled onclick="audioSkip(-10)">
+    <button id="abp-skipb-btn" class="transport" title="Back 10s (Up)" disabled onclick="audioSkip(-10)">
       <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
     </button>
-    <button id="abp-play-btn" class="transport" title="Play" disabled onclick="audioToggle()">
+    <button id="abp-play-btn" class="transport" title="Play / Pause (Space)" disabled onclick="audioToggle()">
       <svg id="play-icon" viewBox="0 0 24 24"><polygon points="8,5 19,12 8,19"/></svg>
       <svg id="pause-icon" viewBox="0 0 24 24" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
     </button>
-    <button id="abp-skipf-btn" class="transport" title="Forward 10s" disabled onclick="audioSkip(10)">
+    <button id="abp-skipf-btn" class="transport" title="Forward 10s (Down)" disabled onclick="audioSkip(10)">
       <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/></svg>
     </button>
-    <button id="abp-next-btn" class="transport" title="Next Chapter" disabled onclick="audioNextChapter()">
+    <button id="abp-next-btn" class="transport" title="Next Chapter (Shift+Down)" disabled onclick="audioNextChapter()">
       <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20"/><rect x="17" y="4" width="3" height="16"/></svg>
     </button>
-    <button id="abp-mute-btn" class="modifier" title="Mute" disabled onclick="toggleMute()">
+    <button id="abp-mute-btn" class="modifier" title="Mute (M)" disabled onclick="toggleMute()">
       <svg id="unmuted-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
       <svg id="muted-icon" viewBox="0 0 24 24" style="display:none"><path d="M3 9v6h4l5 5V4L7 9H3z"/></svg>
     </button>
-    <button id="abp-boost-btn" class="modifier" title="Volume Boost" disabled onclick="cycleBoost()">
+    <button id="abp-boost-btn" class="modifier" title="Volume Boost (V)" disabled onclick="cycleBoost()">
       <span id="boost-label" class="btn-label">0</span>
     </button>
     <div class="mob-break"></div>
   </div>
 </div>
 
+<!-- Clickable keyboard shortcuts (also work via the keyboard) -->
 <div id="shortcuts-hint">
-  <kbd>F</kbd> fullscreen &nbsp;
-  <kbd>←</kbd>/<kbd>→</kbd> page &nbsp;
-  <kbd>Shift</kbd>+<kbd>←</kbd>/<kbd>→</kbd> chapter &nbsp;
-  <kbd>+</kbd>/<kbd>−</kbd> font size &nbsp;
-  <kbd>Alt</kbd>+<kbd>Space</kbd> play/pause
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-pgprev" onclick="pageScroll(-1)" disabled title="Previous Page">←</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-pgnext" onclick="pageScroll(1)" disabled title="Next Page">→</button> <span>Page</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-chprev" onclick="navChapter(-1)" disabled title="Previous E-Book Chapter">Shift+←</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-chnext" onclick="navChapter(1)" disabled title="Next E-Book Chapter">Shift+→</button> <span>E-Book Chapter</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-play" onclick="audioToggle()" disabled title="Play / Pause">Space</button> <span>Play / Pause</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-skipb" onclick="audioSkip(-10)" disabled title="Back 10s">↑</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-skipf" onclick="audioSkip(10)" disabled title="Forward 10s">↓</button> <span>Skip 10s</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-audprev" onclick="audioPrevChapter()" disabled title="Previous Audiobook Chapter">Shift+↑</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-audnext" onclick="audioNextChapter()" disabled title="Next Audiobook Chapter">Shift+↓</button> <span>Audiobook Chapter</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-fs" onclick="toggleFullscreen()" disabled title="Fullscreen">F</button> <span>Fullscreen</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-mute" onclick="toggleMute()" disabled title="Mute">M</button> <span>Mute</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-pitch" onclick="cyclePitch()" disabled title="Pitch">P</button> <span>Pitch</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-speed" onclick="cycleSpeed()" disabled title="Speed">S</button> <span>Speed</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-boost" onclick="cycleBoost()" disabled title="Volume Boost">V</button> <span>Volume Boost</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-fontup" onclick="bumpFontSize(1)" disabled title="Increase Font Size">+</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-fontdown" onclick="bumpFontSize(-1)" disabled title="Decrease Font Size">−</button> <span>Font Size</span></span>
 </div>
+
+</div><!-- /#fs-target -->
 
 <!-- Footer -->
 <div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/abp/" style="color:#fff">Audiobooker</a> | <a href="/fcv/" style="color:#fff">Converter</a> | <a href="/tts/" style="color:#fff">Narrator</a> | <a href="/ocr/" style="color:#fff">Scanner</a> | <a href="/msc/" style="color:#fff">Tonalizer</a> | <a href="/stt/" style="color:#fff">Transcriber</a> | <a href="/tps/" style="color:#fff">Typesetter</a></div>
@@ -317,6 +340,11 @@ async function parseBook(file){
   var ext = file.name.split('.').pop().toLowerCase();
   document.getElementById('status').textContent = 'Status: Reading ' + ext.toUpperCase() + '...';
   var name = file.name;
+
+  // Title-detection helpers (used by EPUB chapter naming)
+  // A "garbage" label is one that's empty or matches an auto-generated pattern
+  // (text00001, ch003, oebps_xyz, .xhtml suffix, etc.) — common in poorly-built EPUBs.
+  // When the toc.ncx label is garbage, prefer the body's first heading.
   try {
     if (ext === 'txt' || ext === 'md' || ext === 'markdown' || ext === 'rtf') {
       var text = await file.text();
@@ -340,11 +368,11 @@ async function parseBook(file){
     } else if (ext === 'fb2') {
       chapters = await parseFb2(file);
     } else if (ext === 'azw' || ext === 'azw3' || ext === 'mobi' || ext === 'kfx') {
-      throw new Error('Amazon ' + ext.toUpperCase() + ' files use proprietary encoding. Please convert to EPUB or PDF first using a tool like Calibre, then upload here.');
+      throw new Error('Amazon ' + ext.toUpperCase() + ' Files Use Proprietary Encoding. Please Convert to EPUB or PDF First Using a Tool Like Calibre, Then Upload Here.');
     } else {
-      throw new Error('Unsupported format: .' + ext);
+      throw new Error('Unsupported Format: .' + ext);
     }
-    if (chapters.length === 0) throw new Error('No readable content found in this file');
+    if (chapters.length === 0) throw new Error('No Readable Content Found in This File');
   } catch (e) {
     document.getElementById('status').textContent = 'Status: Error — ' + e.message;
     throw e;
@@ -406,7 +434,7 @@ async function parsePdf(file){
   var pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
   var allHtml = '';
   for (var i = 1; i <= pdf.numPages; i++) {
-    document.getElementById('status').textContent = 'Status: Loading PDF page ' + i + '/' + pdf.numPages + '...';
+    document.getElementById('status').textContent = 'Status: Loading PDF Page ' + i + ' / ' + pdf.numPages + '...';
     var pg = await pdf.getPage(i);
     var ct = await pg.getTextContent();
     var pageLines = [], curLine = '', prevY = null;
@@ -497,13 +525,37 @@ async function parseEpub(file){
         }
       } catch(e){}
     }
+    // Title detection: prefer the first body heading, falling back to NCX label
+    // (NCX labels are often auto-generated garbage like "text00003" — see isGarbageLabel)
+    var bodyHeadingEl = body.querySelector('h1, h2, h3, h4');
+    var bodyHeading = bodyHeadingEl ? bodyHeadingEl.textContent.replace(/\s+/g, ' ').trim() : '';
+    var ncxLabel = (tocMap[href] || tocMap[href.split('/').pop()] || '').replace(/\s+/g, ' ').trim();
+    var title;
+    if (bodyHeading && bodyHeading.length > 0 && bodyHeading.length < 200) {
+      title = bodyHeading;
+    } else if (ncxLabel && !isGarbageLabel(ncxLabel)) {
+      title = ncxLabel;
+    } else {
+      title = 'Chapter ' + (out.length + 1);
+    }
     var html = body.innerHTML;
-    var title = tocMap[href] || tocMap[href.split('/').pop()] || ('Chapter ' + (out.length + 1));
     var hasImage = !!body.querySelector('img, image');
     if (html.replace(/<[^>]+>/g, '').trim().length < 30 && !hasImage) continue;
     out.push({title: title, html: html});
   }
   return out;
+}
+
+function isGarbageLabel(s){
+  if (!s) return true;
+  s = s.trim();
+  if (!s) return true;
+  if (/^[a-z]+\s*\d+$/i.test(s)) return true;     // "text00001", "ch 03"
+  if (/^\d+\.?$/.test(s)) return true;            // "3", "001"
+  if (/\.x?html?$/i.test(s)) return true;         // ends in .html / .xhtml
+  if (/^(oebps|item|spread|page|content)/i.test(s)) return true;  // common autogen prefixes
+  if (/^id\d+$/i.test(s)) return true;            // "id123"
+  return false;
 }
 
 function resolveZipPath(p){
@@ -586,13 +638,32 @@ function populateChapterSelect(){
 }
 
 function toggleFullscreen(){
-  var pane = document.getElementById('reader-pane');
-  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-    if (pane.requestFullscreen) pane.requestFullscreen();
-    else if (pane.webkitRequestFullscreen) pane.webkitRequestFullscreen();
+  var target = document.getElementById('fs-target');
+  var inNative = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  var inPseudo = target.classList.contains('pseudo-fs');
+  if (inNative || inPseudo) {
+    if (inNative) {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+    target.classList.remove('pseudo-fs');
+    document.body.classList.remove('fs-active');
+    return;
+  }
+  // Try native fullscreen first; fall back to a CSS-only pseudo-fullscreen
+  // (mobile Safari often refuses requestFullscreen on non-video elements).
+  var req = target.requestFullscreen || target.webkitRequestFullscreen;
+  if (req) {
+    var p = req.call(target);
+    if (p && p.catch) {
+      p.catch(function(){
+        target.classList.add('pseudo-fs');
+        document.body.classList.add('fs-active');
+      });
+    }
   } else {
-    if (document.exitFullscreen) document.exitFullscreen();
-    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    target.classList.add('pseudo-fs');
+    document.body.classList.add('fs-active');
   }
 }
 
@@ -609,10 +680,11 @@ document.getElementById('file-input').onchange = async function(){
     var savedPos = JSON.parse(localStorage.getItem('ebr_pos_' + bookKey) || 'null');
     var startCh = (savedPos && savedPos.ch < chapters.length) ? savedPos.ch : 0;
     renderChapter(startCh);
-    document.getElementById('fs-btn').disabled = false;
     document.getElementById('prev-ch-btn').disabled = chapters.length <= 1;
     document.getElementById('next-ch-btn').disabled = chapters.length <= 1;
-    document.getElementById('status').textContent = 'Status: Loaded — ' + chapters.length + ' chapter' + (chapters.length === 1 ? '' : 's');
+    enableEbookShortcuts();
+    enableFullscreenIfReady();
+    document.getElementById('status').textContent = 'Status: Loaded — ' + chapters.length + ' Chapter' + (chapters.length === 1 ? '' : 's');
   } catch(e){ console.error(e); }
 };
 
@@ -622,27 +694,58 @@ async function makeBookKey(file){
   return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('').substring(0,16);
 }
 
+function enableEbookShortcuts(){
+  ['kbd-pgprev','kbd-pgnext','kbd-fontup','kbd-fontdown'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.disabled = false;
+  });
+  document.getElementById('kbd-chprev').disabled = chapters.length <= 1;
+  document.getElementById('kbd-chnext').disabled = chapters.length <= 1;
+}
+
+function enableAudioShortcuts(){
+  ['kbd-play','kbd-skipb','kbd-skipf','kbd-audprev','kbd-audnext','kbd-mute','kbd-pitch','kbd-speed','kbd-boost'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.disabled = false;
+  });
+}
+
+function enableFullscreenIfReady(){
+  var anyLoaded = chapters.length > 0 || (audio && audio.src);
+  document.getElementById('fs-btn').disabled = !anyLoaded;
+  document.getElementById('kbd-fs').disabled = !anyLoaded;
+}
+
 /* ───────── KEYBOARD SHORTCUTS ───────── */
 document.addEventListener('keydown', function(e){
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
-  if (e.key === ' ' && e.altKey && audio && audio.src) { e.preventDefault(); audioToggle(); return; }
-  if (e.key === 'ArrowLeft' && e.altKey && audio && audio.src) { e.preventDefault(); audioSkip(-10); return; }
-  if (e.key === 'ArrowRight' && e.altKey && audio && audio.src) { e.preventDefault(); audioSkip(10); return; }
-  if (e.key === 'ArrowLeft' && (e.shiftKey || e.ctrlKey || e.metaKey)) { e.preventDefault(); navChapter(-1); }
-  else if (e.key === 'ArrowRight' && (e.shiftKey || e.ctrlKey || e.metaKey)) { e.preventDefault(); navChapter(1); }
-  else if (e.key === 'ArrowLeft') { e.preventDefault(); pageScroll(-1); }
-  else if (e.key === 'ArrowRight') { e.preventDefault(); pageScroll(1); }
-  else if (e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); pageScroll(1); }
-  else if (e.key === 'PageUp') { e.preventDefault(); pageScroll(-1); }
-  else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFullscreen(); }
-  else if (e.key === '+' || e.key === '=') { e.preventDefault(); bumpFontSize(1); }
-  else if (e.key === '-' || e.key === '_') { e.preventDefault(); bumpFontSize(-1); }
+  var k = e.key, hasMod = e.ctrlKey || e.metaKey || e.altKey;
+  // Audiobook controls
+  if (k === ' ' && audio && audio.src && !hasMod) { e.preventDefault(); audioToggle(); return; }
+  if (k === 'ArrowUp' && e.shiftKey && audio && audio.src) { e.preventDefault(); audioPrevChapter(); return; }
+  if (k === 'ArrowDown' && e.shiftKey && audio && audio.src) { e.preventDefault(); audioNextChapter(); return; }
+  if (k === 'ArrowUp' && audio && audio.src && !hasMod) { e.preventDefault(); audioSkip(-10); return; }
+  if (k === 'ArrowDown' && audio && audio.src && !hasMod) { e.preventDefault(); audioSkip(10); return; }
+  // E-book controls
+  if (k === 'ArrowLeft' && e.shiftKey) { e.preventDefault(); navChapter(-1); return; }
+  if (k === 'ArrowRight' && e.shiftKey) { e.preventDefault(); navChapter(1); return; }
+  if (k === 'ArrowLeft' && !hasMod) { e.preventDefault(); pageScroll(-1); return; }
+  if (k === 'ArrowRight' && !hasMod) { e.preventDefault(); pageScroll(1); return; }
+  if (k === 'PageDown' && !hasMod) { e.preventDefault(); pageScroll(1); return; }
+  if (k === 'PageUp' && !hasMod) { e.preventDefault(); pageScroll(-1); return; }
+  // Letter shortcuts (case-insensitive)
+  var lk = k.toLowerCase();
+  if (lk === 'f' && !hasMod) { e.preventDefault(); toggleFullscreen(); return; }
+  if (lk === 'm' && !hasMod && audio && audio.src) { e.preventDefault(); toggleMute(); return; }
+  if (lk === 'p' && !hasMod && audio && audio.src) { e.preventDefault(); cyclePitch(); return; }
+  if (lk === 's' && !hasMod && audio && audio.src) { e.preventDefault(); cycleSpeed(); return; }
+  if (lk === 'v' && !hasMod && audio && audio.src) { e.preventDefault(); cycleBoost(); return; }
+  if ((k === '+' || k === '=') && !hasMod) { e.preventDefault(); bumpFontSize(1); return; }
+  if ((k === '-' || k === '_') && !hasMod) { e.preventDefault(); bumpFontSize(-1); return; }
 });
 
 function pageScroll(dir){
-  var c = document.fullscreenElement === document.getElementById('reader-pane')
-    ? document.getElementById('reader-pane')
-    : document.getElementById('reader-content');
+  var inFs = document.fullscreenElement === document.getElementById('fs-target') ||
+             document.getElementById('fs-target').classList.contains('pseudo-fs');
+  var c = inFs ? document.getElementById('reader-pane') : document.getElementById('reader-content');
   var step = c.clientHeight * 0.85;
   c.scrollBy({top: dir * step, behavior: 'smooth'});
 }
@@ -992,6 +1095,8 @@ function enableAudioPlayer(){
   ['abp-speed-btn','abp-pitch-btn','abp-prev-btn','abp-skipb-btn','abp-play-btn','abp-skipf-btn','abp-next-btn','abp-mute-btn','abp-boost-btn'].forEach(function(id){
     document.getElementById(id).disabled = false;
   });
+  enableAudioShortcuts();
+  enableFullscreenIfReady();
 }
 
 /* ───────── PLAYBACK CONTROL ───────── */
