@@ -85,18 +85,52 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #reader-content.theme-sepia,#reader-content.theme-light{column-rule-color:#bbb}
 #reader-content.theme-midnight{column-rule-color:#222}
 
-/* Spacing classes — drive both line-height and paragraph margins.
-   Native = file's own spacing (no overrides). All other modes also normalize <br> runs in JS. */
+/* Spacing classes — drive both line-height and block margins.
+   Native = file's own spacing. All other modes ALSO normalize empty
+   blocks + <br> runs in JS, and override every block element's margin
+   here (with !important to beat EPUB inline styles). */
 #reader-content.sp-sardines{line-height:1.0}
-#reader-content.sp-sardines p{margin:0}
+#reader-content.sp-sardines h1,
+#reader-content.sp-sardines h2,
+#reader-content.sp-sardines h3,
+#reader-content.sp-sardines h4,
+#reader-content.sp-sardines h5,
+#reader-content.sp-sardines h6,
+#reader-content.sp-sardines p,
+#reader-content.sp-sardines div,
+#reader-content.sp-sardines blockquote,
+#reader-content.sp-sardines ul,
+#reader-content.sp-sardines ol,
+#reader-content.sp-sardines li,
+#reader-content.sp-sardines section,
+#reader-content.sp-sardines article,
+#reader-content.sp-sardines header,
+#reader-content.sp-sardines footer,
+#reader-content.sp-sardines aside,
+#reader-content.sp-sardines pre,
+#reader-content.sp-sardines figure{margin:0 !important;padding-top:0 !important;padding-bottom:0 !important}
+#reader-content.sp-sardines hr{display:none}
+#reader-content.sp-sardines br{display:none}
+
 #reader-content.sp-single{line-height:1.0}
-#reader-content.sp-single p{margin:0 0 1em}
 #reader-content.sp-1-1{line-height:1.1}
-#reader-content.sp-1-1 p{margin:0 0 1em}
 #reader-content.sp-1-5{line-height:1.5}
-#reader-content.sp-1-5 p{margin:0 0 1em}
 #reader-content.sp-double{line-height:2.0}
-#reader-content.sp-double p{margin:0 0 1em}
+#reader-content.sp-single h1,#reader-content.sp-1-1 h1,#reader-content.sp-1-5 h1,#reader-content.sp-double h1,
+#reader-content.sp-single h2,#reader-content.sp-1-1 h2,#reader-content.sp-1-5 h2,#reader-content.sp-double h2,
+#reader-content.sp-single h3,#reader-content.sp-1-1 h3,#reader-content.sp-1-5 h3,#reader-content.sp-double h3,
+#reader-content.sp-single h4,#reader-content.sp-1-1 h4,#reader-content.sp-1-5 h4,#reader-content.sp-double h4,
+#reader-content.sp-single h5,#reader-content.sp-1-1 h5,#reader-content.sp-1-5 h5,#reader-content.sp-double h5,
+#reader-content.sp-single h6,#reader-content.sp-1-1 h6,#reader-content.sp-1-5 h6,#reader-content.sp-double h6,
+#reader-content.sp-single p,#reader-content.sp-1-1 p,#reader-content.sp-1-5 p,#reader-content.sp-double p,
+#reader-content.sp-single blockquote,#reader-content.sp-1-1 blockquote,#reader-content.sp-1-5 blockquote,#reader-content.sp-double blockquote{
+  margin:0 0 1em !important;padding-top:0 !important;padding-bottom:0 !important
+}
+#reader-content.sp-single div,#reader-content.sp-1-1 div,#reader-content.sp-1-5 div,#reader-content.sp-double div,
+#reader-content.sp-single section,#reader-content.sp-1-1 section,#reader-content.sp-1-5 section,#reader-content.sp-double section,
+#reader-content.sp-single article,#reader-content.sp-1-1 article,#reader-content.sp-1-5 article,#reader-content.sp-double article{
+  margin:0 !important;padding-top:0 !important;padding-bottom:0 !important
+}
 
 /* Indent classes */
 #reader-content.indent-yes p{text-indent:1.5em}
@@ -291,10 +325,12 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
 <div id="fs-target">
 
 <!-- ━━━━━━━━━━━━━━━━ E-BOOK READER ━━━━━━━━━━━━━━━━ -->
-<h3>E-Book</h3>
-
-<button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload E-Book</button>
+<div class="btn-row">
+  <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload E-Book</button>
+  <button id="cover-upload-btn" onclick="document.getElementById('cover-input').click()">Upload Cover Image</button>
+</div>
 <input type="file" id="file-input" accept=".txt,.md,.markdown,.html,.htm,.rtf,.epub,.pdf,.doc,.docx,.azw,.azw3,.mobi,.kfx,.fb2">
+<input type="file" id="cover-input" accept="image/*">
 <div id="file-info">No File Selected</div>
 
 <select id="chapter-select" disabled style="display:none"><option>No Chapters</option></select>
@@ -401,16 +437,12 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
 </div>
 
 <!-- ━━━━━━━━━━━━━━━━ AUDIOBOOK PLAYER ━━━━━━━━━━━━━━━━ -->
-<h3>Audiobook</h3>
-
 <div class="btn-row">
-  <button id="audio-upload-btn" onclick="document.getElementById('audio-input').click()">Upload File</button>
-  <button id="folder-btn" onclick="document.getElementById('folder-input').click()">Upload Folder</button>
-  <button id="cover-upload-btn" onclick="document.getElementById('cover-input').click()">Upload Cover</button>
+  <button id="audio-upload-btn" onclick="document.getElementById('audio-input').click()">Upload Audiobook File</button>
+  <button id="folder-btn" onclick="document.getElementById('folder-input').click()">Upload Audiobook Folder</button>
 </div>
 <input type="file" id="audio-input" accept="audio/*,.m4b,.mp3,.m4a,.ogg,.wav,.mp4,.webm,.aac,.flac,.opus">
 <input type="file" id="folder-input" webkitdirectory>
-<input type="file" id="cover-input" accept="image/*">
 
 <div id="audio-info">No Audiobook Selected</div>
 
@@ -561,23 +593,31 @@ function loadSettings(){
 loadSettings();
 
 /* ───────── HTML NORMALIZATION ─────────
- * Per the spacing setting, collapse runs of <br> tags so we never see more
- * than one blank line between paragraphs (or zero, for sardines mode).
- * Tolerates whitespace/tabs/&nbsp; between consecutive <br>s.
+ * Per the spacing setting, strip empty block elements (<p>, <div>, <section>,
+ * etc. that contain only whitespace / &nbsp; / <br>) and collapse runs of
+ * <br> tags. Done iteratively because removing a wrapper can expose a newly-
+ * empty parent. Tolerates whitespace/tabs/&nbsp; between consecutive tags.
+ *
+ * Sardines: every empty block stripped + every 2+ <br> run becomes <br>.
+ * Other non-native modes: empty blocks collapsed to one + 3+ <br> runs to <br><br>.
  */
 function normalizeBreaks(html, mode){
   if (mode === 'native') return html;
   var brRun3 = /(?:[\s\u00a0]*<br\s*\/?>[\s\u00a0]*){3,}/gi;
   var brRun2 = /(?:[\s\u00a0]*<br\s*\/?>[\s\u00a0]*){2,}/gi;
-  var emptyP = /<p[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi;
+  // An empty block holds only whitespace / &nbsp; / <br>s (possibly nested empties)
+  var emptyBlock = /<(p|div|section|article|aside|header|footer|figure)([^>]*)>(?:[\s\u00a0]|&nbsp;|<br\s*\/?>|<\/?(?:span|em|strong|i|b|u)[^>]*>)*<\/\1>/gi;
+  // Run iteratively — stripping a wrapper can expose new empties
+  var prev;
+  do { prev = html; html = html.replace(emptyBlock, ''); } while (prev !== html);
   if (mode === 'sardines') {
     html = html.replace(brRun2, '<br>');
-    html = html.replace(emptyP, '');
   } else {
+    // Single+ modes: keep one empty <p> as a paragraph break, but collapse runs
     html = html.replace(brRun3, '<br><br>');
-    // Collapse multiple consecutive empty paragraphs to one
-    html = html.replace(/(<p[^>]*>(?:\s|&nbsp;)*<\/p>\s*){2,}/gi, '<p></p>');
   }
+  // Drop runs of whitespace between tags (can otherwise confuse paginator)
+  html = html.replace(/>\s{2,}</g, '><');
   return html;
 }
 
