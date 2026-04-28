@@ -430,6 +430,13 @@ function showAnalysis(pcs){
 }
 
 /* ───────── TAB SWITCHING ───────── */
+/* Hash routing: each tab has a stable URL fragment so users can share a
+ * direct link like /msc/#aud and land on the Audio tab. setTab() updates
+ * the hash, and on page load we read the hash to choose the initial tab.
+ */
+var HASH_FROM_TAB = {notes:'#nts', audio:'#aud', piano:'#pno', guitar:'#ftb', tab:'#gtt'};
+var TAB_FROM_HASH = {'#nts':'notes', '#aud':'audio', '#pno':'piano', '#ftb':'guitar', '#gtt':'tab'};
+
 function setTab(name){
   document.querySelectorAll('.tab').forEach(function(t,i){
     var names = ['notes','audio','piano','guitar','tab'];
@@ -438,7 +445,22 @@ function setTab(name){
   document.querySelectorAll('.tab-content').forEach(function(c){
     c.classList.toggle('active', c.id === 'tab-'+name);
   });
+  var newHash = HASH_FROM_TAB[name];
+  if (newHash && window.location.hash !== newHash) {
+    history.replaceState(null, '', newHash);
+  }
 }
+
+/* On load, honor the hash if present */
+(function(){
+  var t = TAB_FROM_HASH[window.location.hash];
+  if (t) setTab(t);
+})();
+/* Respond to back/forward navigation between tabs */
+window.addEventListener('hashchange', function(){
+  var t = TAB_FROM_HASH[window.location.hash];
+  if (t) setTab(t);
+});
 
 /* ───────── AUDIO ANALYSIS ───────── */
 var audioBuffer = null;
