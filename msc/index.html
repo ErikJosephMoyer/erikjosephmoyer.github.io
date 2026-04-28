@@ -124,6 +124,7 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 </div>
 
 <div id="tab-audio" class="tab-content">
+  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt;text-align:center">Upload audio file to identify the song, artist, key, tempo, time signature, chords, and progressions:</p>
   <button id="upload-btn" onclick="document.getElementById('audio-upload').click()">Upload Audio</button>
   <input type="file" id="audio-upload" accept="audio/*">
   <div id="audio-info">No file selected</div>
@@ -432,9 +433,11 @@ function setTab(name){
 
 /* ───────── AUDIO ANALYSIS ───────── */
 var audioBuffer = null;
+var uploadedAudioFile = null;
 document.getElementById('audio-upload').onchange = async function(){
   var f = this.files[0];
   if(!f) return;
+  uploadedAudioFile = f;
   document.getElementById('audio-info').textContent = f.name + ' (' + Math.round(f.size/1024) + ' KB)';
   var url = URL.createObjectURL(f);
   var player = document.getElementById('audio-player');
@@ -551,11 +554,77 @@ function detectBPM(channelData, sampleRate){
   return Math.round(bpm);
 }
 
+/* Backend endpoint for full server-side analysis (librosa + Shazam).
+ * Set this to whatever URL your HF Space exposes after deployment.
+ * Until deployed, requests fall back to the lightweight client-side analyzer. */
+var MSC_API = 'https://erikmoyer-msc-tool.hf.space';
+
 async function analyzeAudio(){
-  if(!audioBuffer) return;
+  if(!uploadedAudioFile && !audioBuffer) return;
   document.getElementById('analyze-audio-btn').disabled = true;
   document.getElementById('status').textContent = 'Status: Analyzing audio...';
-  // Use mono mix of channel 0 (or downmix if stereo)
+
+  // Try backend first (full librosa + Shazam analysis)
+  if(uploadedAudioFile){
+    try {
+      var fd = new FormData();
+      fd.append('file', uploadedAudioFile);
+      var resp = await fetch(MSC_API + '/api/analyze', { method: 'POST', body: fd });
+      if(resp.ok){
+        var data = await resp.json();
+        renderBackendResult(data);
+        document.getElementById('analyze-audio-btn').disabled = false;
+        return;
+      }
+    } catch(e){
+      console.warn('MSC backend unreachable, falling back to client-side:', e);
+    }
+  }
+
+  // Fallback: lightweight client-side analyzer (less accurate)
+  await analyzeAudioClientSide();
+  document.getElementById('analyze-audio-btn').disabled = false;
+}
+
+function renderBackendResult(d){
+  var html = '';
+  html += '<div class="label">Song:</div>';
+  if(d.song && d.song.title){
+    html += '<div class="value">'+escHtml(d.song.title)+' by '+escHtml(d.song.artist)+'</div>';
+  } else {
+    html += '<div class="value">No match found</div>';
+  }
+  html += '<div class="label" style="margin-top:8pt">Key:</div>';
+  var keyTxt = d.key || '?';
+  if(d.key_change) keyTxt += ', key change to ' + d.key_change;
+  html += '<div class="value">'+escHtml(keyTxt)+'</div>';
+  html += '<div class="label" style="margin-top:8pt">Tempo:</div>';
+  var tempoTxt = (d.tempo || '?') + ' BPM';
+  if(d.tempo_change) tempoTxt += ', tempo change to ' + d.tempo_change + ' BPM';
+  html += '<div class="value">'+escHtml(tempoTxt)+'</div>';
+  html += '<div class="label" style="margin-top:8pt">Time signature:</div>';
+  var tsTxt = d.time_sig || '4/4';
+  if(d.time_sig_change) tsTxt += ', time signature change to ' + d.time_sig_change;
+  html += '<div class="value">'+escHtml(tsTxt)+'</div>';
+  if(d.parts && d.parts.length){
+    html += '<div class="label" style="margin-top:8pt">Chord progression:</div>';
+    html += '<div id="progression">';
+    d.parts.forEach(function(p){
+      html += '<div><strong>'+escHtml(p.label)+':</strong> '+escHtml(p.chords)+'</div>';
+    });
+    html += '</div>';
+  }
+  document.getElementById('result').innerHTML = html;
+  document.getElementById('status').textContent = 'Status: Done';
+}
+
+function escHtml(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function analyzeAudioClientSide(){
+  if(!audioBuffer) return;
+  document.getElementById('status').textContent = 'Status: Analyzing locally (backend unavailable)...';
   var data;
   if(audioBuffer.numberOfChannels >= 2){
     var l = audioBuffer.getChannelData(0), r = audioBuffer.getChannelData(1);
@@ -565,11 +634,8 @@ async function analyzeAudio(){
   var sr = audioBuffer.sampleRate;
   var dur = audioBuffer.duration;
 
-  // Overall key: compute chromagram for whole track
-  document.getElementById('status').textContent = 'Status: Computing chromagram...';
   var fullChroma = new Array(12).fill(0);
-  var step = 0.5; // sec between samples
-  var taken = 0;
+  var step = 0.5, taken = 0;
   for(var t=0; t<dur-1; t+=step){
     var c = chromagramFromBuffer(data, sr, t, 1.0);
     if(c){ for(var i=0;i<12;i++) fullChroma[i] += c[i]; taken++; await new Promise(function(r){setTimeout(r,0);}); }
@@ -577,57 +643,41 @@ async function analyzeAudio(){
   if(taken > 0) for(var i=0;i<12;i++) fullChroma[i] /= taken;
   var keys = identifyKey(fullChroma);
 
-  // Chord progression: segment audio into ~2-second windows
-  document.getElementById('status').textContent = 'Status: Detecting chord progression...';
   var chordSeq = [];
   var segLen = 2.0;
   for(var t=0; t<dur; t+=segLen){
     var c = chromagramFromBuffer(data, sr, t, segLen);
     if(!c) continue;
-    // Identify chord by max correlation against templates
-    var bestScore = -Infinity, bestName = '?', bestRoot = -1;
+    var bestScore = -Infinity, bestName = '?';
     for(var root=0;root<12;root++){
       for(var ti=0;ti<CHORD_TEMPLATES.length;ti++){
         var tpl = CHORD_TEMPLATES[ti];
-        // Build template chroma vector
         var tplVec = new Array(12).fill(0);
         tpl.intervals.forEach(function(iv){tplVec[(root+iv)%12] = 1;});
         var corr = correlate(c, tplVec);
-        if(corr > bestScore){ bestScore = corr; bestName = NOTES[root]+tpl.suf; bestRoot = root; }
+        if(corr > bestScore){ bestScore = corr; bestName = NOTES[root]+tpl.suf; }
       }
     }
     chordSeq.push(bestName);
     await new Promise(function(r){setTimeout(r,0);});
   }
-  // Collapse consecutive same chords
   var collapsed = [];
   for(var i=0;i<chordSeq.length;i++){
     if(i === 0 || chordSeq[i] !== chordSeq[i-1]) collapsed.push({chord:chordSeq[i], count:1});
     else collapsed[collapsed.length-1].count++;
   }
-
-  // BPM
-  document.getElementById('status').textContent = 'Status: Detecting tempo...';
   var bpm = detectBPM(data, sr);
 
-  // Time signature is hard without more analysis — most pop is 4/4. Use simple heuristic:
-  // Assume 4/4 unless BPM puts us in waltz territory and chord changes align differently.
-  var timeSig = '4/4 (assumed)';
-
-  // Render results
-  var html = '<div class="label">Likely key:</div><div class="value">'+keys[0].key+'</div>';
-  var alt = keys.slice(1,4).map(function(k){return k.key+' ('+k.score.toFixed(2)+')';}).join(', ');
-  html += '<div class="alts">other candidates: '+alt+'</div>';
+  var html = '<div class="label">Song:</div><div class="value">No match found</div>';
+  html += '<div class="label" style="margin-top:8pt">Key:</div><div class="value">'+keys[0].key+'</div>';
   html += '<div class="label" style="margin-top:8pt">Tempo:</div><div class="value">'+(bpm>0?bpm+' BPM':'(undetermined)')+'</div>';
-  html += '<div class="label" style="margin-top:8pt">Time signature:</div><div class="value">'+timeSig+'</div>';
-  html += '<div class="label" style="margin-top:8pt">Chord progression (each step ≈ '+segLen.toFixed(1)+'s):</div>';
-  html += '<div id="progression">';
-  collapsed.forEach(function(c){ html += c.chord + (c.count > 1 ? ' ×'+c.count : '') + ' '; });
+  html += '<div class="label" style="margin-top:8pt">Time signature:</div><div class="value">4/4</div>';
+  html += '<div class="label" style="margin-top:8pt">Chord progression:</div>';
+  html += '<div id="progression"><strong>Progression:</strong> ';
+  collapsed.forEach(function(c){ html += c.chord + (c.count > 1 ? ' '+c.chord : '') + ' '; });
   html += '</div>';
-  html += '<div class="alts" style="margin-top:6pt">Note: audio chord detection is approximate. For best results, use clean recordings with strong harmonic content.</div>';
   document.getElementById('result').innerHTML = html;
-  document.getElementById('status').textContent = 'Status: Done';
-  document.getElementById('analyze-audio-btn').disabled = false;
+  document.getElementById('status').textContent = 'Status: Done (client-side)';
 }
 </script>
 <div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/abp/" style="color:#fff">Audiobooker</a> | <a href="/fcv/" style="color:#fff">Converter</a> | <a href="/tts/" style="color:#fff">Narrator</a> | <a href="/ocr/" style="color:#fff">Scanner</a> | <a href="/stt/" style="color:#fff">Transcriber</a> | <a href="/tps/" style="color:#fff">Typesetter</a></div>
