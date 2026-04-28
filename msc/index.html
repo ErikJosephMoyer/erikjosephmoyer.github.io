@@ -38,14 +38,14 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #progression{font:14pt/1.5 'EB Garamond',Georgia,serif;white-space:pre-wrap;word-break:break-word}
 #piano{display:flex;justify-content:center;margin:0 0 8pt;user-select:none;overflow-x:auto}
 .key{position:relative;cursor:pointer}
-.key-white{width:36px;height:130px;background:#fff;border:1px solid #888;display:inline-block;flex-shrink:0;color:#444;font:11pt 'EB Garamond',Georgia,serif;text-align:center;padding-top:108px}
-.key-black{width:22px;height:80px;background:#2a2a2a;border:1px solid #fff;color:#fff;font:9pt 'EB Garamond',Georgia,serif;text-align:center;padding-top:60px;margin-left:-12px;margin-right:-12px;z-index:2;flex-shrink:0;position:relative}
+.key-white{width:36px;height:130px;background:#fff;border:1px solid #888;display:inline-block;flex-shrink:0;color:#444;font:11pt Georgia,serif;text-align:center;padding-top:108px}
+.key-black{width:22px;height:80px;background:#2a2a2a;border:1px solid #fff;color:#fff;font:9pt Georgia,serif;text-align:center;padding-top:60px;margin-left:-12px;margin-right:-12px;z-index:2;flex-shrink:0;position:relative}
 .key.selected.key-white{background:#88ccff;color:#000}
 .key.selected.key-black{background:#3377cc;color:#fff}
-#guitar{margin:0 0 8pt;padding:6px;background:rgba(255,255,255,0.04);border:1px solid #555;border-radius:6px;font:13pt 'EB Garamond',Georgia,serif}
+#guitar{margin:0 0 8pt;padding:6px;background:rgba(255,255,255,0.04);border:1px solid #555;border-radius:6px;font:13pt Georgia,serif}
 .gstring{display:flex;align-items:center;gap:0;margin:2px 0}
-.gstring-name{width:30px;color:#aaa;text-align:right;padding-right:6px;font:14pt 'EB Garamond',Georgia,serif}
-.fret{flex:1;min-width:30px;height:30px;border-right:1px solid #555;cursor:pointer;text-align:center;line-height:28px;color:#888;font-size:11pt;background:transparent;transition:none}
+.gstring-name{width:30px;color:#aaa;text-align:right;padding-right:6px;font:14pt Georgia,serif}
+.fret{flex:1;min-width:30px;height:30px;border-right:1px solid #555;cursor:pointer;text-align:center;line-height:28px;color:#888;font:11pt Georgia,serif;background:transparent;transition:none}
 .fret.selected{background:#88ccff;color:#000;font-weight:600}
 .fret:hover{background:rgba(255,255,255,0.1)}
 .tab-input{display:flex;gap:4px;margin:0 0 8pt}
@@ -117,6 +117,7 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
     <div class="tab-input-row"><label>A</label><input type="text" id="tab-A" maxlength="2" placeholder=""></div>
     <div class="tab-input-row"><label>E</label><input type="text" id="tab-E" maxlength="2" placeholder=""></div>
   </div>
+  <br>
   <div class="btn-row">
     <button onclick="clearTab()">Clear</button>
     <button onclick="analyzeTab()">Analyze</button>
@@ -124,7 +125,7 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 </div>
 
 <div id="tab-audio" class="tab-content">
-  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt;text-align:center">Upload audio file to identify the song, artist, key, tempo, time signature, chords, and progressions:</p>
+  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt;text-align:center">Upload audio file to identify the song, artist, key, tempo, time signature, and chords:</p>
   <button id="upload-btn" onclick="document.getElementById('audio-upload').click()">Upload Audio</button>
   <input type="file" id="audio-upload" accept="audio/*">
   <div id="audio-info">No file selected</div>
