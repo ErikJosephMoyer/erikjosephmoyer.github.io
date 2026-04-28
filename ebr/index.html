@@ -26,7 +26,7 @@ select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:1
 select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #font-select option{font-family:inherit}
 .btn-row{display:flex;gap:8px;margin:0 0 8pt;flex-wrap:wrap}
-.btn-row button{flex:1;min-width:120px}
+.btn-row button{flex:1;min-width:120px;height:42px;padding:0 14px}
 #upload-btn{display:block;margin:0 auto 8pt;min-width:180px;max-width:250px}
 #file-info,#audio-info,#status{text-align:center;font-size:14pt;color:#fff;margin:0 0 8pt}
 #file-input,#audio-input,#folder-input,#cover-input{display:none}
@@ -272,8 +272,11 @@ body.fs-active:not(.fs-no-book):not(.fs-no-audio) #book-title{display:none}
 #ebook-btn-row button:disabled svg{fill:#888}
 #ebook-btn-row .btn-label{font:13pt 'EB Garamond',serif;color:#2a2a2a}
 #ebook-btn-row button:disabled .btn-label{color:#888}
-/* Font-size buttons use sans-serif so the A+/A− glyphs read crisply */
-#font-up-btn .btn-label,#font-down-btn .btn-label{font-family:Helvetica,Arial,sans-serif;font-weight:700;font-size:14pt}
+/* Font-size buttons stay serif (EB Garamond, bold). A+ larger than A− to
+   convey the magnitude shift. font-family inherits from .btn-label. */
+#font-up-btn .btn-label,#font-down-btn .btn-label{font-weight:700}
+#font-up-btn .btn-label{font-size:18pt}
+#font-down-btn .btn-label{font-size:12pt}
 
 /* All-buttons row */
 #all-btn-row{display:flex;gap:4px;margin:0 0 8pt;flex-wrap:wrap}
@@ -331,12 +334,12 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
 
 <!-- ━━━━━━━━━━━━━━━━ E-BOOK READER ━━━━━━━━━━━━━━━━ -->
 <div class="btn-row">
-  <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload E-Book</button>
+  <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload E-Book File</button>
   <button id="cover-upload-btn" onclick="document.getElementById('cover-input').click()">Upload Cover Image</button>
 </div>
 <input type="file" id="file-input" accept=".txt,.md,.markdown,.html,.htm,.rtf,.epub,.pdf,.doc,.docx,.azw,.azw3,.mobi,.kfx,.fb2">
 <input type="file" id="cover-input" accept="image/*">
-<div id="file-info">No File Selected</div>
+<div id="file-info">No E-Book Selected</div>
 
 <select id="chapter-select" disabled style="display:none"><option>No Chapters</option></select>
 
@@ -651,10 +654,15 @@ function flattenToWall(html){
   }
   for (var i = 0; i < tmp.childNodes.length; i++) walk(tmp.childNodes[i]);
   var text = parts.join('');
-  // Normalize: collapse whitespace, dedupe successive markers, trim edges
+  // Normalize whitespace first
   text = text.replace(/[\s\u00a0]+/g, ' ');
-  text = text.replace(/(\s*\/\/\s*){2,}/g, ' // ');
-  text = text.replace(/^\s*\/\/\s*/, '').replace(/\s*\/\/\s*$/, '').trim();
+  // Bulletproof marker dedupe: split on any " // " run (consecutive markers
+  // with optional whitespace between), drop empty segments, rejoin with one
+  // " // ". Avoids the regex /g re-scan trap where 3+ markers can leave a
+  // residual pair after a single replacement pass.
+  var segments = text.split(/(?:\s*\/\/\s*)+/);
+  segments = segments.filter(function(s){ return s.trim().length > 0; });
+  text = segments.join(' // ').trim();
   return '<p>' + escapeHtml(text) + '</p>';
 }
 
@@ -1260,7 +1268,7 @@ async function loadEbookFile(file, manual){
   bookFile = file;
   bookKey = await makeBookKey(file);
   document.getElementById('file-info').textContent = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
-  document.getElementById('upload-btn').textContent = 'Replace E-Book';
+  document.getElementById('upload-btn').textContent = 'Replace E-Book File';
   try {
     await parseBook(file);
     allChapters = chapters.slice();
