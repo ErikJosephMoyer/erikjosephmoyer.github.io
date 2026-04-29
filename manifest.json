@@ -1,7 +1,7 @@
 {
   "name": "Erik's Tools",
   "short_name": "EM Tools",
-  "description": "Audiobooker, Converter, Speech-to-Texter, Text-to-Speecher, and Typesetter",
+  "description": "Audiobooker, Converter, Dictator, Musicker, Narrator, Reader, Scanner, Translator, Typesetter — and the all-in-one Suite.",
   "start_url": "/app/",
   "scope": "/",
   "display": "standalone",
@@ -14,15 +14,15 @@
     {"src": "/images/Favicon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
   ],
   "shortcuts": [
-    {"name": "Alphomegenator", "url": "/emt/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
-    {"name": "Audiobooker", "url": "/abp/", "icons": [{"src": "/images/Audiobooker.png", "sizes": "100x100"}]},
-    {"name": "Converter", "url": "/fcv/", "icons": [{"src": "/images/Converter.PNG", "sizes": "100x100"}]},
-    {"name": "Bibliocaster", "url": "/ebr/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
-    {"name": "Decipherer", "url": "/ocr/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
-    {"name": "Tonalizer", "url": "/msc/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
-    {"name": "Speech-to-Texter", "url": "/stt/", "icons": [{"src": "/images/SpeechToTexter.png", "sizes": "100x100"}]},
-    {"name": "Linguifier", "url": "/tlt/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
-    {"name": "Text-to-Speecher", "url": "/tts/", "icons": [{"src": "/images/TextToSpeecher.png", "sizes": "100x100"}]},
-    {"name": "Typesetter", "url": "/tps/", "icons": [{"src": "/images/Typesetter.PNG", "sizes": "100x100"}]}
+    {"name": "Suite", "url": "/suite/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
+    {"name": "Audiobooker", "url": "/audiobooker/", "icons": [{"src": "/images/Audiobooker.png", "sizes": "100x100"}]},
+    {"name": "Converter", "url": "/converter/", "icons": [{"src": "/images/Converter.PNG", "sizes": "100x100"}]},
+    {"name": "Dictator", "url": "/dictator/", "icons": [{"src": "/images/SpeechToTexter.png", "sizes": "100x100"}]},
+    {"name": "Musicker", "url": "/musicker/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
+    {"name": "Narrator", "url": "/narrator/", "icons": [{"src": "/images/TextToSpeecher.png", "sizes": "100x100"}]},
+    {"name": "Reader", "url": "/reader/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
+    {"name": "Scanner", "url": "/scanner/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
+    {"name": "Translator", "url": "/translator/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
+    {"name": "Typesetter", "url": "/typesetter/", "icons": [{"src": "/images/Typesetter.PNG", "sizes": "100x100"}]}
   ]
 }

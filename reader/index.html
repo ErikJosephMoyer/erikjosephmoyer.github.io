@@ -618,7 +618,7 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
 </div><!-- /#fs-target -->
 
 <!-- Footer -->
-<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/emt/" style="color:#fff">Alphomegenator</a> | <a href="/abp/" style="color:#fff">Audiobooker</a> | <a href="/fcv/" style="color:#fff">Converter</a> | <a href="/tts/" style="color:#fff">Narrator</a> | <a href="/ebr/" style="color:#fff">Reader</a> | <a href="/ocr/" style="color:#fff">Scanner</a> | <a href="/msc/" style="color:#fff">Tonalizer</a> | <a href="/stt/" style="color:#fff">Transcriber</a> | <a href="/tlt/" style="color:#fff">Translator</a> | <a href="/tps/" style="color:#fff">Typesetter</a></div>
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> | <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
 <br>
 <img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 
@@ -1065,10 +1065,10 @@ function splitTextIntoChapters(html, name){
 }
 
 async function parsePdf(file){
-  // Mirrors /tps/'s PDF reconstruction: per-page line collection, then a
+  // Mirrors /typesetter/'s PDF reconstruction: per-page line collection, then a
   // sentence-terminator heuristic to identify paragraph breaks. The
   // y-gap-only approach was under-detecting (whole book as one paragraph);
-  // /tps/'s combined approach correctly identifies paragraphs in real prose.
+  // /typesetter/'s combined approach correctly identifies paragraphs in real prose.
   var pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
   var pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
@@ -1081,7 +1081,7 @@ async function parsePdf(file){
     bookMeta.author = (info.Author || '').trim();
   } catch(e){ bookMeta.title = ''; bookMeta.author = ''; }
 
-  // Per-page reconstruction (verbatim /tps/ algorithm, lines 137-167):
+  // Per-page reconstruction (verbatim /typesetter/ algorithm, lines 137-167):
   // group items into lines by Y-coord/hasEOL; join lines with a space;
   // emit paragraph break (\n\n) when current line ends in sentence-
   // terminator + next line starts capitalized + current line < 80 chars.
@@ -1698,7 +1698,7 @@ function attachSwipe(rc){
 })();
 
 /* ───────── FRONT/BACK MATTER FILTER ─────────
- * Mirrors /tps/'s heuristic. Front matter is everything before the first
+ * Mirrors /typesetter/'s heuristic. Front matter is everything before the first
  * "real" body chapter (Chapter 1, Part I, Book One, or any heading that
  * doesn't match the front-matter regex). Back matter is everything from
  * the last non-back-matter chapter onward.
@@ -1900,7 +1900,7 @@ document.addEventListener('keydown', function(e){
 });
 
 /* ───────── E-BOOK FILE PERSISTENCE ─────────
- * Mirrors /abp/'s storage pattern: blob in IndexedDB (so multi-MB books survive
+ * Mirrors /audiobooker/'s storage pattern: blob in IndexedDB (so multi-MB books survive
  * page reloads), keyed by content-hash. localStorage tracks the most recent
  * book for auto-resume on next visit.
  */
@@ -2146,7 +2146,7 @@ function bumpFontSize(dir){
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   AUDIOBOOK PLAYER (port of /abp/ functionality)
+   AUDIOBOOK PLAYER (port of /audiobooker/ functionality)
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 var audio = new Audio();
 var audioCtx = null, sourceNode = null, gainNode = null;

@@ -1,18 +1,18 @@
 // Service worker for Erik's Tools PWA
 // Bump CACHE_VERSION to invalidate old caches when shipping updates.
-const CACHE_VERSION = 'em-tools-v30';
+const CACHE_VERSION = 'em-tools-v31';
 const APP_SHELL = [
   '/app/',
-  '/abp/',
-  '/ebr/',
-  '/emt/',
-  '/fcv/',
-  '/ocr/',
-  '/msc/',
-  '/stt/',
-  '/tlt/',
-  '/tts/',
-  '/tps/',
+  '/audiobooker/',
+  '/converter/',
+  '/dictator/',
+  '/musicker/',
+  '/narrator/',
+  '/reader/',
+  '/scanner/',
+  '/suite/',
+  '/translator/',
+  '/typesetter/',
   '/manifest.json',
   '/images/Favicon.png',
   '/images/Favicon-192.png',

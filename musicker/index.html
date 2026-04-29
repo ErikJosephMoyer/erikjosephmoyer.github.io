@@ -434,7 +434,7 @@ function showAnalysis(pcs){
 
 /* ───────── TAB SWITCHING ───────── */
 /* Hash routing: each tab has a stable URL fragment so users can share a
- * direct link like /msc/#aud and land on the Audio tab. setTab() updates
+ * direct link like /musicker/#aud and land on the Audio tab. setTab() updates
  * the hash, and on page load we read the hash to choose the initial tab.
  */
 var HASH_FROM_TAB = {notes:'#nts', audio:'#aud', piano:'#pno', guitar:'#ftb', tab:'#gtt'};
@@ -714,7 +714,7 @@ async function analyzeAudioClientSide(){
   document.getElementById('status').textContent = 'Status: Done (client-side)';
 }
 </script>
-<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/emt/" style="color:#fff">Alphomegenator</a> | <a href="/abp/" style="color:#fff">Audiobooker</a> | <a href="/fcv/" style="color:#fff">Converter</a> | <a href="/tts/" style="color:#fff">Narrator</a> | <a href="/ebr/" style="color:#fff">Reader</a> | <a href="/ocr/" style="color:#fff">Scanner</a> | <a href="/msc/" style="color:#fff">Tonalizer</a> | <a href="/stt/" style="color:#fff">Transcriber</a> | <a href="/tlt/" style="color:#fff">Translator</a> | <a href="/tps/" style="color:#fff">Typesetter</a></div>
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> | <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
 <br>
 <img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>
