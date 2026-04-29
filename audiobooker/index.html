@@ -378,7 +378,7 @@ document.getElementById('folder-input').onchange = async function(){
   const imgExts = ['.jpg','.jpeg','.png','.webp','.bmp'];
   const imgFile = files.find(f => imgExts.some(ext => f.name.toLowerCase().endsWith(ext)));
   if(imgFile){
-    document.getElementById('cover-img').src = URL.createObjectURL(imgFile);
+    setBlobSrc(document.getElementById('cover-img'), imgFile);
     document.getElementById('cover-wrap').style.display = 'block';
     document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
     hasCover = true;
@@ -416,7 +416,20 @@ function getAudioDuration(url){
     setTimeout(() => resolve(0), 5000);
   });
 }
+// Helper: assign a blob URL to an element, freeing the previous one.
+// Without this every cover-replace / book-replace leaks a Blob URL until
+// the page is closed.
+function setBlobSrc(el, blob){
+  if (el._blobUrl) { try { URL.revokeObjectURL(el._blobUrl); } catch(e){} }
+  el._blobUrl = URL.createObjectURL(blob);
+  el.src = el._blobUrl;
+}
+
 function resetUI(){
+  // Free all per-chapter blob URLs from the previous book before clearing
+  for (const c of chapters) {
+    if (c && c.fileUrl) { try { URL.revokeObjectURL(c.fileUrl); } catch(e){} }
+  }
   chapters = []; hasCover = false; currentChapter = 0;
   document.getElementById('cover-wrap').style.display = 'none';
   document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
@@ -564,7 +577,7 @@ function parseM4BMetadata(file){
             while(di<p+sz-8){const ds=mv.getUint32(di);const dt=getType(di);
               if(dt==='data'&&ds>16){const img=moovBuf.slice(di+16,di+ds);
                 const mime=(img[0]===0xFF&&img[1]===0xD8)?'image/jpeg':'image/png';
-                document.getElementById('cover-img').src=URL.createObjectURL(new Blob([img],{type:mime}));
+                setBlobSrc(document.getElementById('cover-img'), new Blob([img],{type:mime}));
                 document.getElementById('cover-wrap').style.display='block';
                 document.getElementById('cover-upload-btn').textContent='Replace Cover';hasCover=true;}
               if(ds<8)break;di+=ds;}
@@ -653,7 +666,7 @@ function parseID3Metadata(file){
         if(i<fdata.length){
           const imgBytes = fdata.slice(i);
           const blob = new Blob([imgBytes], {type:mime||'image/jpeg'});
-          document.getElementById('cover-img').src = URL.createObjectURL(blob);
+          setBlobSrc(document.getElementById('cover-img'), blob);
           document.getElementById('cover-wrap').style.display = 'block';
           document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
           hasCover = true;
@@ -718,7 +731,7 @@ function decodeID3Text(data){
 }
 document.getElementById('cover-input').onchange = async function(){
   const f = this.files[0]; if(!f) return;
-  document.getElementById('cover-img').src = URL.createObjectURL(f);
+  setBlobSrc(document.getElementById('cover-img'), f);
   document.getElementById('cover-wrap').style.display = 'block';
   document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
   hasCover = true;
@@ -1135,7 +1148,7 @@ document.addEventListener('keydown',(e)=>{
     if(!hasCover){
       const savedCover = await loadCover(lastKey);
       if(savedCover && savedCover.blob){
-        document.getElementById('cover-img').src = URL.createObjectURL(savedCover.blob);
+        setBlobSrc(document.getElementById('cover-img'), savedCover.blob);
         document.getElementById('cover-wrap').style.display = 'block';
         document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
         hasCover = true;

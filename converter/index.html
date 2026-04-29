@@ -217,6 +217,9 @@ async function convert(){
       a.href = URL.createObjectURL(result.blob);
       a.download = name;
       a.click();
+      // Free the blob URL after the download click — without this every
+      // conversion leaks one blob's worth of memory.
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 100);
       var mb = result.blob.size/1048576;
       var mbStr = mb<0.05?'0.1MB':mb<0.5?mb.toFixed(1)+'MB':Math.round(mb)+'MB';
       document.getElementById('status').textContent = 'Status: Done, '+mbStr;
@@ -333,6 +336,8 @@ async function convertImage(file, fromExt, toExt){
   }
   return new Promise(function(resolve, reject){
     var img = new Image();
+    var srcUrl = URL.createObjectURL(imgFile);
+    function cleanup(){ try { URL.revokeObjectURL(srcUrl); } catch(e){} }
     img.onload = function(){
       var canvas = document.createElement('canvas');
       canvas.width = img.naturalWidth;
@@ -345,12 +350,13 @@ async function convertImage(file, fromExt, toExt){
       var quality = toExt==='jpg' ? 0.92 : undefined;
 
       canvas.toBlob(function(blob){
+        cleanup();
         if(blob) resolve({blob:blob});
         else reject(new Error('Conversion failed'));
       }, mime, quality);
     };
-    img.onerror = function(){reject(new Error('Could not load image'));};
-    img.src = URL.createObjectURL(imgFile);
+    img.onerror = function(){ cleanup(); reject(new Error('Could not load image')); };
+    img.src = srcUrl;
   });
 }
 

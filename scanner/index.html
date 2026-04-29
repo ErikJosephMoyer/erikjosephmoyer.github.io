@@ -94,12 +94,18 @@ document.getElementById('file-input').onchange = async function () {
     var thumb = pdfPages[0].toDataURL();
     var img = document.createElement('img');
     img.src = thumb;
+    img.alt = 'Document preview (page 1)';
     prev.appendChild(img);
     document.getElementById('status').textContent = 'Status: Ready (' + pdf.numPages + ' page' + (pdf.numPages > 1 ? 's' : '') + ')';
   } else {
     inputType = 'image';
     var img = document.createElement('img');
-    img.src = URL.createObjectURL(inputFile);
+    var prevUrl = URL.createObjectURL(inputFile);
+    img.src = prevUrl;
+    img.alt = 'Image preview';
+    // Free the URL after the image has decoded; the rendered <img> retains
+    // pixels via the layout tree without needing the blob alive.
+    img.onload = function(){ try { URL.revokeObjectURL(prevUrl); } catch(e){} };
     prev.appendChild(img);
     document.getElementById('status').textContent = 'Status: Ready';
   }
@@ -179,9 +185,10 @@ function imageToCanvas(file) {
       c.width = img.naturalWidth;
       c.height = img.naturalHeight;
       c.getContext('2d').drawImage(img, 0, 0);
+      try { URL.revokeObjectURL(img.src); } catch(e){}
       resolve(c);
     };
-    img.onerror = reject;
+    img.onerror = function(e){ try { URL.revokeObjectURL(img.src); } catch(_){} reject(e); };
     img.src = URL.createObjectURL(file);
   });
 }
@@ -342,6 +349,7 @@ function downloadTxt() {
   a.href = URL.createObjectURL(blob);
   a.download = name + '.txt';
   a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 100);
 }
 function clearAll() {
   inputFile = null; inputType = null; pdfPages = []; lastOutput = '';

@@ -2426,6 +2426,15 @@ document.getElementById('cover-input').onchange = async function(){
 };
 
 function resetAudioUI(){
+  // Free per-chapter blob URLs from the previous audio book before clearing
+  for (var ci = 0; ci < audioChapters.length; ci++) {
+    var c = audioChapters[ci];
+    if (c && c.fileUrl) { try { URL.revokeObjectURL(c.fileUrl); } catch(e){} }
+  }
+  // Free the single-file audio URL on the player too
+  if (audio && audio.src && audio.src.indexOf('blob:') === 0) {
+    try { URL.revokeObjectURL(audio.src); } catch(e){}
+  }
   audioChapters = []; hasCover = false; currentAudioChapter = 0;
   audioMeta = {title: '', author: ''};
   document.getElementById('cover-wrap').style.display = 'none';
