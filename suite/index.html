@@ -106,10 +106,13 @@ summary .tagline{font-size:16pt;color:#fff;font-style:italic;margin-left:12px}
 function expandAll(){ document.querySelectorAll('details').forEach(function(d){ d.open = true; }); }
 function collapseAll(){ document.querySelectorAll('details').forEach(function(d){ d.open = false; }); }
 
-// If a hash is in the URL on load, expand and scroll to that section
+// If a hash is in the URL on load, expand and scroll to that section.
+// Malformed hashes (e.g. /suite/#javascript:foo) throw SyntaxError from
+// querySelector — wrap in try so the page still renders cleanly.
 window.addEventListener('load', function(){
   if (location.hash) {
-    var el = document.querySelector(location.hash);
+    var el = null;
+    try { el = document.querySelector(location.hash); } catch(e){}
     if (el && el.tagName === 'DETAILS') {
       el.open = true;
       setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'start'}); }, 100);

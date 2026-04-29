@@ -426,9 +426,14 @@ function setBlobSrc(el, blob){
 }
 
 function resetUI(){
-  // Free all per-chapter blob URLs from the previous book before clearing
+  // Free all per-chapter blob URLs from the previous book before clearing.
+  // Also free the single-file audio.src URL (autoReload in single-file mode
+  // assigns directly to audio.src without storing in chapters[]).
   for (const c of chapters) {
     if (c && c.fileUrl) { try { URL.revokeObjectURL(c.fileUrl); } catch(e){} }
+  }
+  if (audio && audio.src && audio.src.indexOf('blob:') === 0) {
+    try { URL.revokeObjectURL(audio.src); } catch(e){}
   }
   chapters = []; hasCover = false; currentChapter = 0;
   document.getElementById('cover-wrap').style.display = 'none';
