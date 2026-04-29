@@ -80,23 +80,31 @@ document.getElementById('file-input').onchange = async function () {
   if (ext === 'pdf') {
     inputType = 'pdf';
     document.getElementById('status').textContent = 'Status: Rendering PDF pages...';
-    var pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
-    var pdf = await pdfjsLib.getDocument({ data: await inputFile.arrayBuffer() }).promise;
-    for (var i = 1; i <= pdf.numPages; i++) {
-      var pg = await pdf.getPage(i);
-      var vp = pg.getViewport({ scale: 2 });
-      var canvas = document.createElement('canvas');
-      canvas.width = vp.width; canvas.height = vp.height;
-      await pg.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-      pdfPages.push(canvas);
+    try {
+      var pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
+      var pdf = await pdfjsLib.getDocument({ data: await inputFile.arrayBuffer() }).promise;
+      for (var i = 1; i <= pdf.numPages; i++) {
+        var pg = await pdf.getPage(i);
+        var vp = pg.getViewport({ scale: 2 });
+        var canvas = document.createElement('canvas');
+        canvas.width = vp.width; canvas.height = vp.height;
+        await pg.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+        pdfPages.push(canvas);
+      }
+      var thumb = pdfPages[0].toDataURL();
+      var img = document.createElement('img');
+      img.src = thumb;
+      img.alt = 'Document preview (page 1)';
+      prev.appendChild(img);
+      document.getElementById('status').textContent = 'Status: Ready (' + pdf.numPages + ' page' + (pdf.numPages > 1 ? 's' : '') + ')';
+    } catch (err) {
+      document.getElementById('status').textContent = 'Status: Could not read PDF — ' + (err && err.message || err);
+      inputFile = null; inputType = null; pdfPages = [];
+      document.getElementById('file-info').textContent = 'No file selected';
+      document.getElementById('upload-btn').textContent = 'Upload Image or PDF';
+      return;
     }
-    var thumb = pdfPages[0].toDataURL();
-    var img = document.createElement('img');
-    img.src = thumb;
-    img.alt = 'Document preview (page 1)';
-    prev.appendChild(img);
-    document.getElementById('status').textContent = 'Status: Ready (' + pdf.numPages + ' page' + (pdf.numPages > 1 ? 's' : '') + ')';
   } else {
     inputType = 'image';
     var img = document.createElement('img');
@@ -279,63 +287,78 @@ async function runOCR() {
       }
     });
   } catch (e) {
-    // Fall back to default fast model
-    worker = await Tesseract.createWorker('eng', 1, {
-      logger: function (m) {
-        if (m.status === 'recognizing text' && typeof m.progress === 'number') {
-          document.getElementById('progress-fill').style.width = Math.round(m.progress * 100) + '%';
+    // Fall back to default fast model. If THIS also fails, surface the
+    // error to the user instead of leaving them with a stuck disabled button.
+    try {
+      worker = await Tesseract.createWorker('eng', 1, {
+        logger: function (m) {
+          if (m.status === 'recognizing text' && typeof m.progress === 'number') {
+            document.getElementById('progress-fill').style.width = Math.round(m.progress * 100) + '%';
+          }
         }
-      }
-    });
+      });
+    } catch (e2) {
+      document.getElementById('status').textContent = 'Status: Could not load OCR model — ' + (e2 && e2.message || e2);
+      document.getElementById('run-btn').disabled = false;
+      return;
+    }
   }
 
-  var allResults = [];
-  for (var p = 0; p < canvases.length; p++) {
-    document.getElementById('status').textContent = 'Status: Preprocessing page ' + (p + 1) + '/' + canvases.length + '...';
-    var pre = preprocess(canvases[p]);
+  // Wrap the recognize loop in try/finally so the worker is ALWAYS terminated
+  // even on malformed input or a network blip mid-page. Without this, every
+  // failed run leaks one Tesseract worker (~15-30MB).
+  try {
+    var allResults = [];
+    for (var p = 0; p < canvases.length; p++) {
+      document.getElementById('status').textContent = 'Status: Preprocessing page ' + (p + 1) + '/' + canvases.length + '...';
+      var pre = preprocess(canvases[p]);
 
-    var attempts = [];
-    var PSMS = ['6', '4'];
-    for (var ps = 0; ps < PSMS.length; ps++) {
-      document.getElementById('status').textContent = 'Status: Recognizing page ' + (p + 1) + '/' + canvases.length + ' (pass ' + (ps + 1) + '/' + PSMS.length + ')...';
-      document.getElementById('progress-fill').style.width = '0%';
-      await worker.setParameters({ tessedit_pageseg_mode: PSMS[ps], preserve_interword_spaces: '1' });
-      var res = await worker.recognize(pre);
-      var words = (res.data && res.data.words) || [];
-      var meanConf = 0;
-      if (words.length) {
-        var sum = 0;
-        for (var w = 0; w < words.length; w++) sum += words[w].confidence;
-        meanConf = sum / words.length;
+      var attempts = [];
+      var PSMS = ['6', '4'];
+      for (var ps = 0; ps < PSMS.length; ps++) {
+        document.getElementById('status').textContent = 'Status: Recognizing page ' + (p + 1) + '/' + canvases.length + ' (pass ' + (ps + 1) + '/' + PSMS.length + ')...';
+        document.getElementById('progress-fill').style.width = '0%';
+        await worker.setParameters({ tessedit_pageseg_mode: PSMS[ps], preserve_interword_spaces: '1' });
+        var res = await worker.recognize(pre);
+        var words = (res.data && res.data.words) || [];
+        var meanConf = 0;
+        if (words.length) {
+          var sum = 0;
+          for (var w = 0; w < words.length; w++) sum += words[w].confidence;
+          meanConf = sum / words.length;
+        }
+        attempts.push({ text: (res.data.text || '').trim(), conf: meanConf, words: words.length });
       }
-      attempts.push({ text: (res.data.text || '').trim(), conf: meanConf, words: words.length });
-    }
-    attempts.sort(function (a, b) { return (b.conf + b.words * 0.05) - (a.conf + a.words * 0.05); });
-    allResults.push(attempts[0]);
+      attempts.sort(function (a, b) { return (b.conf + b.words * 0.05) - (a.conf + a.words * 0.05); });
+      allResults.push(attempts[0]);
 
-    var partial = allResults.map(function (r, i) {
+      var partial = allResults.map(function (r, i) {
+        return canvases.length > 1 ? '\n=== Page ' + (i + 1) + ' ===\n\n' + postProcess(r.text) : postProcess(r.text);
+      }).join('\n').trim();
+      document.getElementById('output').value = partial;
+    }
+
+    lastOutput = allResults.map(function (r, i) {
       return canvases.length > 1 ? '\n=== Page ' + (i + 1) + ' ===\n\n' + postProcess(r.text) : postProcess(r.text);
     }).join('\n').trim();
-    document.getElementById('output').value = partial;
+    document.getElementById('output').value = lastOutput;
+    document.getElementById('progress-fill').style.width = '100%';
+
+    var meanConfTotal = 0;
+    for (var i = 0; i < allResults.length; i++) meanConfTotal += allResults[i].conf;
+    meanConfTotal = allResults.length > 0 ? Math.round(meanConfTotal / allResults.length) : 0;
+    var wordCount = lastOutput.split(/\s+/).filter(function (w) { return w.length > 0; }).length;
+
+    document.getElementById('status').textContent = 'Status: Done — ' + wordCount + ' words, ' + meanConfTotal + '% confidence';
+    document.getElementById('copy-btn').disabled = false;
+    document.getElementById('dl-btn').disabled = false;
+    document.getElementById('clear-btn').disabled = false;
+  } catch (e) {
+    document.getElementById('status').textContent = 'Status: OCR failed — ' + (e && e.message || e);
+  } finally {
+    try { await worker.terminate(); } catch(_) {}
+    document.getElementById('run-btn').disabled = false;
   }
-  await worker.terminate();
-
-  lastOutput = allResults.map(function (r, i) {
-    return canvases.length > 1 ? '\n=== Page ' + (i + 1) + ' ===\n\n' + postProcess(r.text) : postProcess(r.text);
-  }).join('\n').trim();
-  document.getElementById('output').value = lastOutput;
-  document.getElementById('progress-fill').style.width = '100%';
-
-  var meanConf = 0;
-  for (var i = 0; i < allResults.length; i++) meanConf += allResults[i].conf;
-  meanConf = allResults.length > 0 ? Math.round(meanConf / allResults.length) : 0;
-  var wordCount = lastOutput.split(/\s+/).filter(function (w) { return w.length > 0; }).length;
-
-  document.getElementById('status').textContent = 'Status: Done — ' + wordCount + ' words, ' + meanConf + '% confidence';
-  document.getElementById('copy-btn').disabled = false;
-  document.getElementById('dl-btn').disabled = false;
-  document.getElementById('clear-btn').disabled = false;
-  document.getElementById('run-btn').disabled = false;
 }
 
 function copyText() {

@@ -120,6 +120,10 @@ document.getElementById('file-input').onchange = async function(){
 };
 
 async function generate(){
+  // Cancel any in-flight job so the previous poll loop stops chatting
+  // about the prior generation. Without this, rapid double-clicks of
+  // Generate would interleave two pollProgress timers updating status.
+  jobId = null;
   var text = document.getElementById('text-input').value.trim();
   if(!text){ document.getElementById('status').textContent='Status: No text entered'; return; }
   var voice = document.getElementById('voice-select').value;
@@ -134,22 +138,33 @@ async function generate(){
     form.append('source_name', sourceName);
     var r = await fetch(API+'/api/generate', {method:'POST', body:form});
     var d = await r.json();
+    if (!d || !d.job_id) {
+      document.getElementById('status').textContent = 'Status: Server returned no job id';
+      document.getElementById('gen-btn').disabled = false;
+      return;
+    }
     jobId = d.job_id;
     downloadUrl = API+'/api/audio/'+jobId;
-    pollProgress(jobId);
+    pollProgress(jobId, 0);
   } catch(e) {
     document.getElementById('status').textContent = 'Status: Error connecting to server';
     document.getElementById('gen-btn').disabled = false;
   }
 }
-async function pollProgress(jid){
+// Max consecutive network errors before giving up. At 5s per retry that's
+// ~50s before the user gets told to try again, which is reasonable for
+// a flaky free Hugging Face Space waking from sleep.
+var MAX_POLL_ERRORS = 10;
+async function pollProgress(jid, errCount){
+  // If a newer Generate has started, abandon this stale poll loop.
+  if (jid !== jobId) return;
   try {
     var r = await fetch(API+'/api/status/'+jid);
     var d = await r.json();
     if(d.status==='generating'){
       var pct = d.total>0 ? Math.round(d.progress/d.total*100) : 0;
       document.getElementById('status').textContent = 'Status: Generating, chunk '+d.progress+'/'+d.total+' ('+pct+'%)';
-      setTimeout(function(){pollProgress(jid);}, 2000);
+      setTimeout(function(){pollProgress(jid, 0);}, 2000);
     } else if(d.status==='done'){
       downloadName = d.filename;
       document.getElementById('status').textContent = 'Status: Done, '+d.words+' words, '+d.mb;
@@ -164,7 +179,13 @@ async function pollProgress(jid){
       document.getElementById('gen-btn').disabled = false;
     }
   } catch(e){
-    setTimeout(function(){pollProgress(jid);}, 5000);
+    if (errCount >= MAX_POLL_ERRORS) {
+      document.getElementById('status').textContent = 'Status: Lost connection to server — try Generate again';
+      document.getElementById('gen-btn').disabled = false;
+      jobId = null;
+      return;
+    }
+    setTimeout(function(){pollProgress(jid, errCount + 1);}, 5000);
   }
 }
 function enablePlayer(){

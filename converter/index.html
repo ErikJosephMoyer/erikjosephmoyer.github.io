@@ -136,6 +136,13 @@ function populateOutputDropdown(filterType, excludeExt){
   var cur=sel.value;
   sel.innerHTML='<option value="" disabled selected style="color:#666">Select output format</option>';
   var outputs=filterType?(outputMap[filterType]||[]):allOutputs;
+  // jpg as output only makes sense from PDF (renders page 1 as image).
+  // From other text inputs (txt / docx / epub) the convertText function has
+  // no jpg path, so the conversion silently failed. Filter it out so the
+  // user never sees an option that doesn't work.
+  if (excludeExt && excludeExt !== 'pdf') {
+    outputs = outputs.filter(function(o){ return o !== 'jpg'; });
+  }
   outputs.filter(function(o){return o!==excludeExt;}).forEach(function(o){
     var opt=document.createElement('option');
     opt.value=o;
@@ -361,6 +368,36 @@ async function convertImage(file, fromExt, toExt){
 }
 
 // === DATA CONVERSIONS ===
+// Proper CSV/TSV parser. Handles quoted fields, embedded delimiters,
+// embedded newlines, and "" escapes. Returns array-of-arrays.
+function parseDelimited(text, delim){
+  var rows = [];
+  var row = [];
+  var cell = '';
+  var inQuotes = false;
+  for (var i = 0; i < text.length; i++) {
+    var c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i+1] === '"') { cell += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        cell += c;
+      }
+    } else {
+      if (c === '"' && cell === '') { inQuotes = true; }
+      else if (c === delim) { row.push(cell); cell = ''; }
+      else if (c === '\r') { /* skip; handled with \n */ }
+      else if (c === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
+      else { cell += c; }
+    }
+  }
+  if (cell !== '' || row.length > 0) { row.push(cell); rows.push(row); }
+  // Drop trailing empty rows
+  while (rows.length && rows[rows.length-1].length === 1 && rows[rows.length-1][0] === '') rows.pop();
+  return rows;
+}
+
 async function convertData(file, fromExt, toExt){
   var data = null; // array of arrays (rows)
   var headers = null;
@@ -369,15 +406,18 @@ async function convertData(file, fromExt, toExt){
   if(fromExt==='csv'||fromExt==='tsv'||fromExt==='txt'){
     var text = await file.text();
     var delim = fromExt==='tsv'||fromExt==='txt' ? '\t' : ',';
-    var lines = text.trim().split('\n');
-    data = lines.map(function(l){return l.split(delim);});
+    // Proper CSV/TSV parser that respects quoted values containing the
+    // delimiter, embedded newlines, and "" escapes. The previous
+    // .split(delim) split inside quotes and corrupted such rows.
+    data = parseDelimited(text, delim);
     if(data.length>0) headers = data[0];
   } else if(fromExt==='json'){
     var text = await file.text();
     var parsed = JSON.parse(text);
     if(Array.isArray(parsed)&&parsed.length>0&&typeof parsed[0]==='object'){
       headers = Object.keys(parsed[0]);
-      data = [headers].concat(parsed.map(function(row){return headers.map(function(h){return row[h]||'';});}));
+      // Preserve falsy values like 0 and false; only treat null/undefined as ''
+      data = [headers].concat(parsed.map(function(row){return headers.map(function(h){return row[h] == null ? '' : row[h];});}));
     } else {
       data = [['key','value']];
       for(var k in parsed) data.push([k, JSON.stringify(parsed[k])]);
@@ -409,18 +449,18 @@ async function convertData(file, fromExt, toExt){
   // Convert output
   if(toExt==='csv'){
     var csv = data.map(function(row){return row.map(function(c){
-      var s=String(c||''); return s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0 ? '"'+s.replace(/"/g,'""')+'"' : s;
+      var s=String(c == null ? '' : c); return s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0 ? '"'+s.replace(/"/g,'""')+'"' : s;
     }).join(',');}).join('\n');
     return {blob: new Blob([csv],{type:'text/csv'})};
   } else if(toExt==='tsv'){
-    var tsv = data.map(function(row){return row.map(function(c){return String(c||'');}).join('\t');}).join('\n');
+    var tsv = data.map(function(row){return row.map(function(c){return String(c == null ? '' : c);}).join('\t');}).join('\n');
     return {blob: new Blob([tsv],{type:'text/tab-separated-values'})};
   } else if(toExt==='json'){
     if(headers){
       var jsonArr = [];
       for(var i=1;i<data.length;i++){
         var obj={};
-        for(var j=0;j<headers.length;j++) obj[headers[j]]=data[i][j]||'';
+        for(var j=0;j<headers.length;j++) obj[headers[j]]=(data[i][j] == null ? '' : data[i][j]);
         jsonArr.push(obj);
       }
       return {blob: new Blob([JSON.stringify(jsonArr,null,2)],{type:'application/json'})};
@@ -438,7 +478,7 @@ async function convertData(file, fromExt, toExt){
       xml += '  <row>\n';
       for(var j=0;j<(headers||data[0]).length;j++){
         var tag = (headers||data[0])[j].replace(/[^a-zA-Z0-9]/g,'_');
-        xml += '    <'+tag+'>'+(data[i][j]||'')+'</'+tag+'>\n';
+        xml += '    <'+tag+'>'+((data[i][j] == null ? '' : data[i][j]))+'</'+tag+'>\n';
       }
       xml += '  </row>\n';
     }
@@ -449,7 +489,7 @@ async function convertData(file, fromExt, toExt){
     var md = '| '+headers.join(' | ')+' |\n';
     md += '| '+headers.map(function(){return '---';}).join(' | ')+' |\n';
     for(var i=1;i<data.length;i++){
-      md += '| '+data[i].map(function(c){return String(c||'');}).join(' | ')+' |\n';
+      md += '| '+data[i].map(function(c){return String(c == null ? '' : c);}).join(' | ')+' |\n';
     }
     return {blob: new Blob([md],{type:'text/markdown'})};
   }
