@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="/images/Favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/images/Favicon-192.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#2a2a2a">
+<title>Erik's Alphomegenator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
+h1{font-size:28pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
+h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
+h3{font-size:18pt;font-weight:500;margin:0;line-height:1}
+a,a:visited{color:#fff;text-decoration:underline;cursor:pointer;font-weight:normal}
+a:hover{color:#ccc}
+button{background:#fff;color:#2a2a2a;border:none;font:14pt 'EB Garamond',serif;cursor:pointer;padding:6px 14px;white-space:nowrap;border-radius:4px}
+button:hover{background:#ccc}
+.controls{display:flex;gap:8px;justify-content:center;margin:0 0 12pt;flex-wrap:wrap}
+.toc{text-align:center;font-size:13pt;color:#bbb;margin:0 0 16pt;line-height:1.6}
+.toc a{margin:0 4px}
+details{border:1px solid #555;border-radius:6px;margin:0 0 16pt;background:rgba(255,255,255,0.02)}
+summary{cursor:pointer;padding:10px 14px;list-style:none;display:flex;align-items:center;justify-content:space-between;border-radius:6px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'\25BC';font-size:12pt;color:#888;transition:transform 0.2s}
+details[open] summary::after{transform:rotate(180deg)}
+summary h3{font-size:18pt;font-weight:500;margin:0;text-align:left}
+summary .tagline{font-size:13pt;color:#bbb;font-style:italic;margin-left:12px}
+.tool-frame{width:100%;border:none;background:#2a2a2a;display:block}
+@media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}summary .tagline{display:none}}
+</style>
+</head>
+<body>
+<img src="/images/Favicon.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+<h1>Erik's Alphomegenator</h1>
+<h2><em>The Alpha &amp; Omega</em>:<span class="sub-break"> </span>An All-in-One Media Suite</h2>
+
+<div class="controls">
+  <button onclick="expandAll()">Expand All</button>
+  <button onclick="collapseAll()">Collapse All</button>
+</div>
+
+<div class="toc">
+  <a href="#abp">Audiobooker</a> |
+  <a href="#ebr">Bibliocaster</a> |
+  <a href="#fcv">Converter</a> |
+  <a href="#tts">Narrator</a> |
+  <a href="#ocr">Scanner</a> |
+  <a href="#msc">Tonalizer</a> |
+  <a href="#stt">Transcriber</a> |
+  <a href="#tps">Typesetter</a>
+</div>
+
+<details open id="abp">
+  <summary><h3>The Jibberjabberer</h3><span class="tagline">Audiobook Player</span></summary>
+  <iframe class="tool-frame" src="/abp/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
+</details>
+
+<details open id="ebr">
+  <summary><h3>The Bibliocaster</h3><span class="tagline">E-Book/Audiobook Readio</span></summary>
+  <iframe class="tool-frame" src="/ebr/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
+</details>
+
+<details open id="fcv">
+  <summary><h3>The Transmogrifier</h3><span class="tagline">File Converter</span></summary>
+  <iframe class="tool-frame" src="/fcv/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
+</details>
+
+<details open id="tts">
+  <summary><h3>The Rhetoricizer</h3><span class="tagline">Text-to-Speecher</span></summary>
+  <iframe class="tool-frame" src="/tts/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; microphone"></iframe>
+</details>
+
+<details open id="ocr">
+  <summary><h3>The Decipherer</h3><span class="tagline">Optical Character Recognizer</span></summary>
+  <iframe class="tool-frame" src="/ocr/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; camera"></iframe>
+</details>
+
+<details open id="msc">
+  <summary><h3>The Tonalizer</h3><span class="tagline">Music Decoder</span></summary>
+  <iframe class="tool-frame" src="/msc/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; microphone"></iframe>
+</details>
+
+<details open id="stt">
+  <summary><h3>The Textualizer</h3><span class="tagline">Speech-to-Texter</span></summary>
+  <iframe class="tool-frame" src="/stt/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; microphone"></iframe>
+</details>
+
+<details open id="tps">
+  <summary><h3>The Prettifier</h3><span class="tagline">Typesetter</span></summary>
+  <iframe class="tool-frame" src="/tps/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
+</details>
+
+<!-- Footer (matches every other page; full link bar) -->
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/emt/" style="color:#fff">Alphomegenator</a> | <a href="/abp/" style="color:#fff">Audiobooker</a> | <a href="/fcv/" style="color:#fff">Converter</a> | <a href="/tts/" style="color:#fff">Narrator</a> | <a href="/ebr/" style="color:#fff">Reader</a> | <a href="/ocr/" style="color:#fff">Scanner</a> | <a href="/msc/" style="color:#fff">Tonalizer</a> | <a href="/stt/" style="color:#fff">Transcriber</a> | <a href="/tps/" style="color:#fff">Typesetter</a></div>
+<br>
+<img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+
+<script>
+function expandAll(){ document.querySelectorAll('details').forEach(function(d){ d.open = true; }); }
+function collapseAll(){ document.querySelectorAll('details').forEach(function(d){ d.open = false; }); }
+
+// If a hash is in the URL on load, expand and scroll to that section
+window.addEventListener('load', function(){
+  if (location.hash) {
+    var el = document.querySelector(location.hash);
+    if (el && el.tagName === 'DETAILS') {
+      el.open = true;
+      setTimeout(function(){ el.scrollIntoView({behavior:'smooth', block:'start'}); }, 100);
+    }
+  }
+});
+</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>
+</body>
+</html>

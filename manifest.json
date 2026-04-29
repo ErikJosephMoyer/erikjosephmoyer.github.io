@@ -14,6 +14,7 @@
     {"src": "/images/Favicon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
   ],
   "shortcuts": [
+    {"name": "Alphomegenator", "url": "/emt/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
     {"name": "Audiobooker", "url": "/abp/", "icons": [{"src": "/images/Audiobooker.png", "sizes": "100x100"}]},
     {"name": "Converter", "url": "/fcv/", "icons": [{"src": "/images/Converter.PNG", "sizes": "100x100"}]},
     {"name": "Bibliocaster", "url": "/ebr/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
