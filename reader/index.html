@@ -34,10 +34,11 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #file-info,#audio-info,#status{text-align:center;font-size:14pt;color:#fff;margin:0 0 8pt}
 #file-input,#audio-input,#folder-input,#cover-input{display:none}
 
-/* Settings panel (collapsible) */
-#settings-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid #555;border-radius:6px;padding:6px 10px;margin:0 0 8pt}
-#settings-toggle:hover{background:rgba(255,255,255,0.08)}
-#settings-panel{display:none;border:1px solid #555;border-radius:6px;padding:10px;margin:0 0 8pt;background:rgba(255,255,255,0.04)}
+/* Settings panel (collapsible) — matches canonical chapter-select dropdown
+ * style: transparent background, 1px white border, no fill. */
+#settings-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:transparent;border:1px solid #fff;border-radius:4px;padding:6px 10px;margin:0 0 8pt}
+#settings-toggle:hover{background:rgba(255,255,255,0.04)}
+#settings-panel{display:none;border:1px solid #fff;border-radius:4px;padding:10px;margin:0 0 8pt;background:transparent}
 #settings-panel.open{display:block}
 #settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:6pt 12pt}
 @media(max-width:600px){#settings-grid{grid-template-columns:1fr}}
@@ -618,7 +619,7 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
 </div><!-- /#fs-target -->
 
 <!-- Footer -->
-<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> | <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
 <br>
 <img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 
