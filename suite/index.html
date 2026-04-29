@@ -22,68 +22,35 @@ h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:
 h3{font-size:18pt;font-weight:500;margin:0;line-height:1}
 a,a:visited{color:#fff;text-decoration:underline;cursor:pointer;font-weight:normal}
 a:hover{color:#ccc}
-button{background:#fff;color:#2a2a2a;border:none;font:14pt 'EB Garamond',serif;cursor:pointer;padding:6px 14px;white-space:nowrap;border-radius:4px}
+/* Buttons match the canonical pattern used by /typesetter/, /audiobooker/, etc. */
+button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 14px;white-space:nowrap}
 button:hover{background:#ccc}
-.controls{display:flex;gap:8px;justify-content:center;margin:0 0 12pt;flex-wrap:wrap}
-.toc{text-align:center;font-size:13pt;color:#bbb;margin:0 0 16pt;line-height:1.6}
-.toc a{margin:0 4px}
-details{border:1px solid #555;border-radius:6px;margin:0 0 16pt;background:rgba(255,255,255,0.02)}
-summary{cursor:pointer;padding:10px 14px;list-style:none;display:flex;align-items:center;justify-content:space-between;border-radius:6px}
+button:disabled{background:#555;color:#888;cursor:default}
+.controls{display:flex;gap:8px;justify-content:center;margin:0 0 16pt;flex-wrap:wrap}
+
+/* Details / summary styled like the canonical white-border / transparent dropdown
+ * pattern used by /audiobooker/'s #chapter-select. Transparent background,
+ * 1px white border, inverted-caret on the right via the summary::after. */
+details{border:1px solid #fff;border-radius:4px;margin:0 0 16pt;background:transparent}
+summary{cursor:pointer;padding:6px 10px;list-style:none;display:flex;align-items:center;justify-content:space-between}
 summary::-webkit-details-marker{display:none}
-summary::after{content:'\25BC';font-size:12pt;color:#888;transition:transform 0.2s}
+summary::after{content:'\25BC';font-size:14pt;color:#fff;transition:transform 0.2s;margin-left:12px}
 details[open] summary::after{transform:rotate(180deg)}
 summary h3{font-size:18pt;font-weight:500;margin:0;text-align:left}
-summary .tagline{font-size:13pt;color:#bbb;font-style:italic;margin-left:12px}
-.tool-frame{width:100%;border:none;background:#2a2a2a;display:block}
+summary .tagline{font-size:16pt;color:#fff;font-style:italic;margin-left:12px}
+.tool-frame{width:100%;border:none;background:#2a2a2a;display:block;margin-top:8pt}
 @media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}summary .tagline{display:none}}
 </style>
 </head>
 <body>
 <img src="/images/Favicon.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Alphomegenator</h1>
-<h2><em>The Alpha &amp; Omega</em>:<span class="sub-break"> </span>An All-in-One Media Suite</h2>
+<h2><em>Imbibe With Your Senses</em>:<span class="sub-break"> </span>An All-in-One Media Suite</h2>
 
 <div class="controls">
   <button onclick="expandAll()">Expand All</button>
   <button onclick="collapseAll()">Collapse All</button>
 </div>
-
-<div class="toc">
-  <a href="#audiobooker">Audiobooker</a> |
-  <a href="#converter">Converter</a> |
-  <a href="#dictator">Dictator</a> |
-  <a href="#musicker">Musicker</a> |
-  <a href="#narrator">Narrator</a> |
-  <a href="#reader">Reader</a> |
-  <a href="#scanner">Scanner</a> |
-  <a href="#translator">Translator</a> |
-  <a href="#typesetter">Typesetter</a>
-</div>
-
-<details open id="audiobooker">
-  <summary><h3>The Jibberjabberer</h3><span class="tagline">Audiobook Player</span></summary>
-  <iframe class="tool-frame" src="/audiobooker/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
-</details>
-
-<details open id="converter">
-  <summary><h3>The Transmogrifier</h3><span class="tagline">File Converter</span></summary>
-  <iframe class="tool-frame" src="/converter/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
-</details>
-
-<details open id="dictator">
-  <summary><h3>The Textualizer</h3><span class="tagline">Speech-to-Text</span></summary>
-  <iframe class="tool-frame" src="/dictator/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; microphone"></iframe>
-</details>
-
-<details open id="musicker">
-  <summary><h3>The Tonalizer</h3><span class="tagline">Music Decoder</span></summary>
-  <iframe class="tool-frame" src="/musicker/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; microphone"></iframe>
-</details>
-
-<details open id="narrator">
-  <summary><h3>The Rhetoricizer</h3><span class="tagline">Text-to-Speech</span></summary>
-  <iframe class="tool-frame" src="/narrator/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; microphone"></iframe>
-</details>
 
 <details open id="reader">
   <summary><h3>The Bibliocaster</h3><span class="tagline">E-Book / Audiobook Reader</span></summary>
@@ -93,6 +60,11 @@ summary .tagline{font-size:13pt;color:#bbb;font-style:italic;margin-left:12px}
 <details open id="scanner">
   <summary><h3>The Decipherer</h3><span class="tagline">Optical Character Recognizer</span></summary>
   <iframe class="tool-frame" src="/scanner/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; camera"></iframe>
+</details>
+
+<details open id="audiobooker">
+  <summary><h3>The Jibberjabberer</h3><span class="tagline">Audiobook Player</span></summary>
+  <iframe class="tool-frame" src="/audiobooker/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
 </details>
 
 <details open id="translator">
@@ -105,8 +77,28 @@ summary .tagline{font-size:13pt;color:#bbb;font-style:italic;margin-left:12px}
   <iframe class="tool-frame" src="/typesetter/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
 </details>
 
+<details open id="narrator">
+  <summary><h3>The Rhetoricizer</h3><span class="tagline">Text-to-Speech</span></summary>
+  <iframe class="tool-frame" src="/narrator/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; microphone"></iframe>
+</details>
+
+<details open id="dictator">
+  <summary><h3>The Textualizer</h3><span class="tagline">Speech-to-Text</span></summary>
+  <iframe class="tool-frame" src="/dictator/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; microphone"></iframe>
+</details>
+
+<details open id="musicker">
+  <summary><h3>The Tonalizer</h3><span class="tagline">Music Decoder</span></summary>
+  <iframe class="tool-frame" src="/musicker/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; microphone"></iframe>
+</details>
+
+<details open id="converter">
+  <summary><h3>The Transmogrifier</h3><span class="tagline">File Converter</span></summary>
+  <iframe class="tool-frame" src="/converter/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
+</details>
+
 <!-- Footer (matches every other page; full link bar) -->
-<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> | <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
 <br>
 <img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 
