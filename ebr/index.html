@@ -177,6 +177,7 @@ body.fs-active>#fs-target{
   flex-direction:column;
   gap:6px;
   box-sizing:border-box;
+  position:relative;  /* anchors the absolute cover-wrap in both-mode */
 }
 #fs-target.pseudo-fs{position:fixed;inset:0;z-index:9999;width:100vw}
 
@@ -256,19 +257,28 @@ body.fs-active.fs-no-book #audio-pane{width:min(80vw,500px)}
 .fs-exit-btn:hover,.fs-help-btn:hover{background:rgba(0,0,0,0.95)}
 body.fs-active .fs-exit-btn,body.fs-active .fs-help-btn{display:inline-flex}
 
-/* In fullscreen, the shortcuts hint becomes an overlay panel toggled by the ? button */
-body.fs-active #shortcuts-hint{display:none !important}
+/* In fullscreen, the shortcuts hint is moved into #settings-panel by JS so
+   opening Reader Settings exposes it (per "all elements still accessible"). */
+body.fs-active #settings-panel #shortcuts-hint{
+  display:flex !important;flex-wrap:wrap;justify-content:flex-start;
+  margin:10px 0 0;padding-top:10px;border-top:1px solid #555;max-width:none
+}
+/* Legacy ?-button overlay path stays available as a quick toggle */
 body.fs-active #shortcuts-hint.shown{display:flex !important;position:fixed;top:56px;right:8px;z-index:10005;background:#1a1a1a;border:1px solid #888;border-radius:6px;padding:12px 16px;max-width:min(90vw,420px);max-height:75vh;overflow-y:auto;flex-direction:column;align-items:flex-start;gap:6px}
 
-/* Both-mode fullscreen with cover: cover floats bottom-right, audio elements
-   leave room for it. Without cover, audio takes full width. */
+/* Both-mode fullscreen with cover: cover floats bottom-right as a square,
+   sized to fill the available audio-area height. Audio elements get a
+   matching margin-right so they shift left and don't overlap. Without
+   cover, audio takes full width. */
 body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #cover-wrap{
-  position:absolute;bottom:8px;right:8px;width:100px;height:100px;margin:0;flex:0 0 auto;z-index:5
+  position:absolute;bottom:8px;right:8px;
+  width:min(28vh,260px);height:min(28vh,260px);
+  aspect-ratio:1;margin:0;z-index:5
 }
 body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #book-progress,
 body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #book-title,
 body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #audio-chapter-select,
-body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #audio-pane{margin-right:116px}
+body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #audio-pane{margin-right:min(calc(28vh + 16px),276px)}
 body.fs-active:not(.fs-no-book):not(.fs-no-audio) #book-title{display:none}
 
 /* Mobile fullscreen tweaks */
@@ -1390,7 +1400,26 @@ function exitFullscreen(){
     else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
   }
   t.classList.remove('pseudo-fs');
-  document.body.classList.remove('fs-active','fs-no-book','fs-no-audio');
+  document.body.classList.remove('fs-active','fs-no-book','fs-no-audio','fs-has-cover');
+  restoreShortcutsHint();
+}
+
+// Stash the shortcuts-hint's original DOM position so we can restore it.
+var _shortcutsHintHome = null;
+function moveShortcutsToSettings(){
+  var sh = document.getElementById('shortcuts-hint');
+  var sp = document.getElementById('settings-panel');
+  if (!sh || !sp || sh.parentNode === sp) return;
+  _shortcutsHintHome = {parent: sh.parentNode, next: sh.nextSibling};
+  sp.appendChild(sh);
+}
+function restoreShortcutsHint(){
+  var sh = document.getElementById('shortcuts-hint');
+  if (!sh || !_shortcutsHintHome) return;
+  var h = _shortcutsHintHome;
+  if (h.next && h.next.parentNode === h.parent) h.parent.insertBefore(sh, h.next);
+  else h.parent.appendChild(sh);
+  _shortcutsHintHome = null;
 }
 
 function enterFullscreen(){
@@ -1410,6 +1439,9 @@ function enterFullscreen(){
   document.body.classList.toggle('fs-no-audio', !hasAudio);
   document.body.classList.toggle('fs-has-cover', hasCover);
   document.body.classList.add('fs-active');
+  // Tuck shortcuts-hint into the settings panel so it's accessible by opening
+  // settings — required by "all elements should still be accessible".
+  moveShortcutsToSettings();
   // After layout settles in fullscreen, recompute pagination at the new dimensions
   setTimeout(function(){ if (chapters.length) computePagination(); }, 200);
   // Try native fullscreen API; fall back to CSS pseudo-fullscreen on mobile Safari
@@ -1433,13 +1465,15 @@ function toggleFullscreen(){
 document.addEventListener('fullscreenchange', function(){
   if (!document.fullscreenElement) {
     document.getElementById('fs-target').classList.remove('pseudo-fs');
-    document.body.classList.remove('fs-active','fs-no-book','fs-no-audio');
+    document.body.classList.remove('fs-active','fs-no-book','fs-no-audio','fs-has-cover');
+    restoreShortcutsHint();
   }
 });
 document.addEventListener('webkitfullscreenchange', function(){
   if (!document.webkitFullscreenElement) {
     document.getElementById('fs-target').classList.remove('pseudo-fs');
-    document.body.classList.remove('fs-active','fs-no-book','fs-no-audio');
+    document.body.classList.remove('fs-active','fs-no-book','fs-no-audio','fs-has-cover');
+    restoreShortcutsHint();
   }
 });
 
