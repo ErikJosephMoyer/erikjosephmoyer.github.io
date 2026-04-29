@@ -771,6 +771,41 @@ var currentChapter = 0;
 var bookMeta = {title: '', author: ''};
 var audioMeta = {title: '', author: ''};
 
+/* ───────── COVER PRIORITY ─────────
+ * The cover image can come from 3 sources:
+ *   1. manual (user uploaded via Upload Cover Image button) — always wins
+ *   2. ebook (extracted from EPUB metadata)
+ *   3. audio (extracted from M4B covr atom or ID3 APIC frame)
+ * Priority: manual > most-recently-extracted of (ebook, audio).
+ * Once the user manually sets a cover, it sticks for this session
+ * regardless of subsequent embedded covers. */
+var coverSource = null;          // 'manual' | 'ebook' | 'audio' | null
+var coverTimes = {ebook: 0, audio: 0};
+
+function setCover(blob, source){
+  if (!blob) return false;
+  // Manual is sticky
+  if (coverSource === 'manual' && source !== 'manual') return false;
+  if (source !== 'manual') {
+    coverTimes[source] = Date.now();
+    var other = (source === 'ebook') ? 'audio' : 'ebook';
+    // If the OTHER non-manual source set a cover more recently, don't override
+    if (coverSource === other && coverTimes[other] > coverTimes[source]) return false;
+  }
+  var img = document.getElementById('cover-img');
+  // Revoke previous blob URL to avoid memory leak
+  if (img.src && img.src.indexOf('blob:') === 0) {
+    try { URL.revokeObjectURL(img.src); } catch(e){}
+  }
+  img.src = URL.createObjectURL(blob);
+  document.getElementById('cover-wrap').style.display = 'block';
+  document.getElementById('cover-upload-btn').textContent = 'Replace Cover Image';
+  hasCover = true;
+  coverSource = source;
+  document.body.classList.add('fs-has-cover');
+  return true;
+}
+
 /* ───────── TITLE DISPLAY HELPERS ─────────
  * Show "TITLE by AUTHOR" (or just "TITLE") only if the metadata is a
  * legitimate title — never a filename, file extension, snake_case glob,
@@ -1158,8 +1193,63 @@ async function parseEpub(file){
   bookMeta.author = dcCreator ? (dcCreator.textContent || '').trim() : '';
 
   var manifest = {};
+  var manifestById = {};  // id → {href, type}
   var items = opfDoc.getElementsByTagName('item');
-  for (var i = 0; i < items.length; i++) manifest[items[i].getAttribute('id')] = items[i].getAttribute('href');
+  for (var i = 0; i < items.length; i++) {
+    var id = items[i].getAttribute('id');
+    var href = items[i].getAttribute('href');
+    manifest[id] = href;
+    manifestById[id] = {
+      href: href,
+      mediaType: items[i].getAttribute('media-type') || '',
+      properties: items[i].getAttribute('properties') || ''
+    };
+  }
+
+  // EPUB cover extraction. Two conventions:
+  //   EPUB 3: a manifest <item> with properties="cover-image"
+  //   EPUB 2: <metadata><meta name="cover" content="cover-id"/> pointing
+  //           to a manifest item id; fallback: any image with "cover" in
+  //           its href.
+  (async function tryExtractEpubCover(){
+    try {
+      var coverHref = null;
+      // EPUB 3 path
+      for (var k in manifestById) {
+        if (manifestById[k].properties.indexOf('cover-image') >= 0) {
+          coverHref = manifestById[k].href; break;
+        }
+      }
+      // EPUB 2 path
+      if (!coverHref) {
+        var metas = opfDoc.getElementsByTagName('meta');
+        var coverId = null;
+        for (var m = 0; m < metas.length; m++) {
+          if ((metas[m].getAttribute('name') || '').toLowerCase() === 'cover') {
+            coverId = metas[m].getAttribute('content');
+            break;
+          }
+        }
+        if (coverId && manifestById[coverId]) coverHref = manifestById[coverId].href;
+      }
+      // Fallback: filename heuristic
+      if (!coverHref) {
+        for (var k2 in manifestById) {
+          var info = manifestById[k2];
+          if (info.mediaType.indexOf('image') === 0 && /cover/i.test(info.href)) {
+            coverHref = info.href; break;
+          }
+        }
+      }
+      if (!coverHref) return;
+      var entry = zip.file(opfDir + coverHref) || zip.file(coverHref);
+      if (!entry) return;
+      var buf = await entry.async('arraybuffer');
+      var mt = guessImageMime(coverHref);
+      setCover(new Blob([buf], {type: mt}), 'ebook');
+    } catch(e){ console.warn('EPUB cover extraction failed:', e); }
+  })();
+
   var spineRefs = opfDoc.getElementsByTagName('itemref');
   var tocMap = {};
   var spineEl = opfDoc.querySelector('spine');
@@ -2110,11 +2200,8 @@ document.getElementById('folder-input').onchange = async function(){
   var imgExts = ['.jpg','.jpeg','.png','.webp','.bmp'];
   var imgFile = files.find(function(f){ return imgExts.some(function(ext){ return f.name.toLowerCase().endsWith(ext); }); });
   if (imgFile) {
-    document.getElementById('cover-img').src = URL.createObjectURL(imgFile);
-    document.getElementById('cover-wrap').style.display = 'block';
-    document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
-    hasCover = true;
-    document.body.classList.add('fs-has-cover');
+    var blob = new Blob([imgFile], {type: imgFile.type || 'image/jpeg'});
+    setCover(blob, 'audio');
   }
 
   audioChapters = [];
@@ -2148,15 +2235,13 @@ function getAudioDuration(url){
 
 document.getElementById('cover-input').onchange = async function(){
   var f = this.files[0]; if (!f) return;
-  document.getElementById('cover-img').src = URL.createObjectURL(f);
-  document.getElementById('cover-wrap').style.display = 'block';
-  document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
-  hasCover = true;
-  if (fileKey) {
-    try {
-      var blob = new Blob([f], {type: f.type || 'image/jpeg'});
-      await storeCover(fileKey, blob);
-    } catch(e){}
+  var blob = new Blob([f], {type: f.type || 'image/jpeg'});
+  setCover(blob, 'manual');
+  // Persist the manual cover so it survives reloads (keyed to whichever
+  // file is loaded — audio if present, else book)
+  var key = fileKey || bookKey;
+  if (key) {
+    try { await storeCover(key, blob); } catch(e){}
   }
 };
 
@@ -2518,7 +2603,7 @@ function parseID3Metadata(file){
         if (fid === 'TPE1' || fid === 'TPE2' || fid === 'TCOM') {
           if (!artist) artist = decodeID3Text(fdata);
         }
-        if (fid === 'APIC' && !hasCover) {
+        if (fid === 'APIC') {
           var i = 1, mime = '';
           while (i < fdata.length && fdata[i] !== 0) mime += String.fromCharCode(fdata[i++]);
           i++; i++;
@@ -2527,10 +2612,7 @@ function parseID3Metadata(file){
           if (i < fdata.length) {
             var imgBytes = fdata.slice(i);
             var blob = new Blob([imgBytes], {type: mime || 'image/jpeg'});
-            document.getElementById('cover-img').src = URL.createObjectURL(blob);
-            document.getElementById('cover-wrap').style.display = 'block';
-            document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
-            hasCover = true;
+            setCover(blob, 'audio');
           }
         }
         if (fid === 'CHAP' && !multiFileMode) {
@@ -2661,17 +2743,14 @@ async function parseM4BMetadata(file){
             di += ds;
           }
         }
-        if (tp2 === 'covr' && !hasCover) {
+        if (tp2 === 'covr') {
           var di2 = pp + 8;
           while (di2 < pp + sz2 - 8) {
             var ds2 = mv.getUint32(di2), dt2 = getType(di2);
             if (dt2 === 'data' && ds2 > 16) {
               var img = moovBuf.slice(di2 + 16, di2 + ds2);
               var mime = (img[0] === 0xFF && img[1] === 0xD8) ? 'image/jpeg' : 'image/png';
-              document.getElementById('cover-img').src = URL.createObjectURL(new Blob([img], {type: mime}));
-              document.getElementById('cover-wrap').style.display = 'block';
-              document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
-              hasCover = true;
+              setCover(new Blob([img], {type: mime}), 'audio');
             }
             if (ds2 < 8) break;
             di2 += ds2;
@@ -2780,12 +2859,7 @@ function populateAudioChapterDropdown(){
 
     if (!hasCover) {
       var savedCover = await loadCover(lastKey);
-      if (savedCover && savedCover.blob) {
-        document.getElementById('cover-img').src = URL.createObjectURL(savedCover.blob);
-        document.getElementById('cover-wrap').style.display = 'block';
-        document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
-        hasCover = true;
-      }
+      if (savedCover && savedCover.blob) setCover(savedCover.blob, 'manual');
     }
 
     var url = URL.createObjectURL(stored.blob);
