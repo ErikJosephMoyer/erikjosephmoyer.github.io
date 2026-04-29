@@ -457,6 +457,7 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
       <option value="Garamond,serif" style="font-family:Garamond">Garamond</option>
       <option value="Georgia,serif" selected style="font-family:Georgia">Georgia</option>
       <option value="Helvetica,sans-serif" style="font-family:Helvetica">Helvetica</option>
+      <option value="native">Native</option>
       <option value="'Times New Roman',serif" style="font-family:'Times New Roman'">Times New Roman</option>
       <option value="Verdana,sans-serif" style="font-family:Verdana">Verdana</option>
     </select></div>
@@ -487,12 +488,14 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
     <div class="setting"><span class="setting-label">Margin:</span><select id="margin-select" onchange="applySettings()">
       <option value="0">None</option>
       <option value="9.6" selected>Narrow</option>
+      <option value="native">Native</option>
       <option value="48">Normal</option>
       <option value="96">Wide</option>
     </select></div>
     <div class="setting"><span class="setting-label">Alignment:</span><select id="align-select" onchange="applySettings()">
       <option value="justify" selected>Justified</option>
       <option value="left">Left</option>
+      <option value="native">Native</option>
     </select></div>
     <div class="setting"><span class="setting-label">Page View:</span><select id="view-select" onchange="applySettings()">
       <option value="single">Single</option>
@@ -631,17 +634,29 @@ function toggleSettings(){
 function applySettings(){
   var content = document.getElementById('reader-content');
   var pane = document.getElementById('reader-pane');
-  content.style.fontFamily = document.getElementById('font-select').value;
+
+  // Font: "native" → clear inline, let inherited file styles apply.
+  var fontVal = document.getElementById('font-select').value;
+  content.style.fontFamily = (fontVal === 'native') ? '' : fontVal;
   content.style.fontSize = document.getElementById('size-select').value + 'pt';
-  // Critical for page-snap math: column-gap MUST equal 2 × padding-horizontal
-  // for scrollLeft += clientWidth to land cleanly on the next 2-page spread.
-  // The user's Margin setting changes padding, so we set both here in lockstep.
-  // Without this, every margin except Normal (P=24, G=48) produced a per-page
-  // drift that compounded into the visible "askew columns" bug.
-  var pad = parseFloat(document.getElementById('margin-select').value) || 0;
-  content.style.padding = pad + 'px';
-  content.style.columnGap = (pad * 2) + 'px';
-  content.style.textAlign = document.getElementById('align-select').value;
+
+  // Margin / column-gap: "native" → use defaults from CSS (24px / 48px).
+  // Otherwise: column-gap = 2 × padding so scrollLeft += step lands cleanly
+  // on the next 2-page spread. Without this lockstep every margin except
+  // 24 produced compounding drift on every page.
+  var marginVal = document.getElementById('margin-select').value;
+  if (marginVal === 'native') {
+    content.style.padding = '';
+    content.style.columnGap = '';
+  } else {
+    var pad = parseFloat(marginVal) || 0;
+    content.style.padding = pad + 'px';
+    content.style.columnGap = (pad * 2) + 'px';
+  }
+
+  // Alignment: "native" → clear inline, file's own align applies.
+  var alignVal = document.getElementById('align-select').value;
+  content.style.textAlign = (alignVal === 'native') ? '' : alignVal;
 
   // Spacing — drives line-height + paragraph margins via class; also re-renders
   // current chapter so <br>-run normalization (and sardines flattening) can run.
@@ -1050,26 +1065,15 @@ function splitTextIntoChapters(html, name){
 }
 
 async function parsePdf(file){
-  // Two-stage paragraph reconstruction:
-  // (1) Group items into lines by Y-coordinate / hasEOL.
-  // (2) Detect paragraph boundaries via Y-GAP between adjacent lines —
-  //     measure each line's gap to the next; the median gap is the
-  //     within-paragraph leading; gaps significantly larger (≥1.4×)
-  //     mark paragraph boundaries (extra leading is the universal
-  //     "next paragraph" cue in typeset prose). This is far more
-  //     reliable than the sentence-end heuristic, which falsely
-  //     paragraph-breaks on every short PDF line ending in a period.
-  // (3) Concatenate ALL pages' lines into one sequence before
-  //     reconstruction so paragraphs that span pages don't get
-  //     split at the page boundary.
-  // After reconstruction we detect chapter/part headings and split
-  // the chapter into separate spine items so a 440-page book isn't
-  // rendered as one giant DOM blob (huge perf win).
+  // Mirrors /tps/'s PDF reconstruction: per-page line collection, then a
+  // sentence-terminator heuristic to identify paragraph breaks. The
+  // y-gap-only approach was under-detecting (whole book as one paragraph);
+  // /tps/'s combined approach correctly identifies paragraphs in real prose.
   var pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
   var pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
 
-  // PDF metadata (Title / Author from the document's info dict)
+  // PDF metadata
   try {
     var meta = await pdf.getMetadata();
     var info = (meta && meta.info) || {};
@@ -1077,82 +1081,54 @@ async function parsePdf(file){
     bookMeta.author = (info.Author || '').trim();
   } catch(e){ bookMeta.title = ''; bookMeta.author = ''; }
 
-  // Stage 1: collect all lines across all pages with their y-coordinates.
-  // pageEnd flag marks where one page ends (treated as paragraph boundary
-  // ONLY if the last line on the previous page was sentence-terminated).
-  var allLines = [];  // {text, y, pageEnd:bool}
+  // Per-page reconstruction (verbatim /tps/ algorithm, lines 137-167):
+  // group items into lines by Y-coord/hasEOL; join lines with a space;
+  // emit paragraph break (\n\n) when current line ends in sentence-
+  // terminator + next line starts capitalized + current line < 80 chars.
+  var pages = [];
   for (var i = 1; i <= pdf.numPages; i++) {
     document.getElementById('status').textContent = 'Status: Loading PDF Page ' + i + ' / ' + pdf.numPages + '...';
     var pg = await pdf.getPage(i);
     var ct = await pg.getTextContent();
-    var curLine = '', curY = null, prevY = null;
+    var pageLines = [];
+    var curLine = '';
+    var prevY = null;
     for (var k = 0; k < ct.items.length; k++) {
       var it = ct.items[k];
       var y = it.transform ? it.transform[5] : null;
       if (prevY !== null && y !== null && Math.abs(prevY - y) > 1) {
-        if (curLine) allLines.push({text: curLine, y: curY, pageEnd: false});
-        curLine = ''; curY = y;
-      } else if (curY === null) curY = y;
-      curLine += it.str;
-      if (it.hasEOL) {
-        if (curLine) allLines.push({text: curLine, y: curY, pageEnd: false});
-        curLine = ''; curY = null;
+        pageLines.push(curLine);
+        curLine = '';
       }
+      curLine += it.str;
+      if (it.hasEOL) { pageLines.push(curLine); curLine = ''; }
       prevY = y;
     }
-    if (curLine) allLines.push({text: curLine, y: curY, pageEnd: false});
-    // Mark the last line of this page so we know it's a page boundary
-    if (allLines.length > 0) allLines[allLines.length - 1].pageEnd = true;
-  }
+    if (curLine) pageLines.push(curLine);
 
-  // Stage 2: compute the median within-page y-gap. Anything significantly
-  // larger than the median is a paragraph boundary in the source.
-  var gaps = [];
-  for (var i = 1; i < allLines.length; i++) {
-    var a = allLines[i-1], b = allLines[i];
-    if (a.pageEnd) continue;  // skip page boundaries (different page = different y-coord system)
-    if (a.y == null || b.y == null) continue;
-    var g = Math.abs(a.y - b.y);
-    if (g > 0.5) gaps.push(g);
-  }
-  gaps.sort(function(x, y){ return x - y; });
-  var medianGap = gaps.length ? gaps[Math.floor(gaps.length / 2)] : 12;
-  var paraGapThreshold = medianGap * 1.4;
-
-  // Stage 3: build paragraphs. Within a page, a y-gap > threshold = new
-  // paragraph. At a page boundary, only break if the previous line's text
-  // ends with sentence-terminator punctuation (heuristic for "did the
-  // paragraph end at the bottom of the page?").
-  var allText = '';
-  for (var i = 0; i < allLines.length; i++) {
-    var line = allLines[i];
-    var l = (line.text || '').replace(/\s+/g, ' ').trim();
-    if (l.length === 0) continue;
-    if (allText.length > 0 && !allText.endsWith('\n')) allText += ' ';
-    allText += l;
-    if (i + 1 >= allLines.length) continue;
-    var nextLine = allLines[i + 1];
-    var nextText = (nextLine.text || '').trim();
-    if (line.pageEnd) {
-      // Paragraph break across pages only if the prior line clearly ended a sentence
-      // AND the next line starts with a capital. Otherwise assume continuation.
-      if (/[.!?][")\]]?$/.test(l) && /^[A-Z"]/.test(nextText)) allText += '\n\n';
-    } else if (line.y != null && nextLine.y != null) {
-      var gap = Math.abs(line.y - nextLine.y);
-      if (gap > paraGapThreshold) allText += '\n\n';
+    var text = '';
+    for (var k = 0; k < pageLines.length; k++) {
+      var l = pageLines[k].replace(/\s+/g, ' ').trim();
+      if (l.length === 0) { text += '\n\n'; continue; }
+      if (text.length > 0 && !text.endsWith('\n')) text += ' ';
+      text += l;
+      var next = pageLines[k + 1] ? pageLines[k + 1].trim() : '';
+      if (/[.!?][")\]]?$/.test(l) && next && /^[A-Z"]/.test(next) && l.length < 80) {
+        text += '\n\n';
+      }
     }
+    pages.push(text);
   }
+  var allText = pages.join('\n\n');
 
-  // Strip page numbers, figure captions, EPUB navigation markers, then
-  // collapse 3+ blank lines to 2.
+  // Strip page numbers, figure captions, EPUB nav markers, collapse blanks.
   allText = allText
     .replace(/^\s*\d+\s*$/gm, '')
     .replace(/^Figure\s+\d+[^\n]*$/gmi, '')
     .replace(/^(Cover|Title Page|Table of Contents|Start of Content|Landmarks)\s*$/gmi, '')
     .replace(/\n{3,}/g, '\n\n');
 
-  // Stage 4: split into paragraphs and detect chapter/part headings.
-  // Each chapter or part heading begins a new spine item.
+  // Split into paragraphs; detect chapter/part headings → split into spine items.
   var paragraphs = allText.split(/\n\s*\n+/);
   var partRe = /^(?:PART|BOOK|VOLUME)\s+(?:[IVXLCDM]+|\d+|[A-Z][A-Z\-]+(?:\s+[A-Z][A-Z\-]+)?)\b/i;
   var chapRe = /^CHAPTER\s+(?:[IVXLCDM]+|\d+|[A-Z][A-Z\-]+(?:\s+[A-Z][A-Z\-]+)?)\b/i;
@@ -1164,10 +1140,7 @@ async function parsePdf(file){
     if (!para) continue;
     var isHeading = para.length < 100 && (partRe.test(para) || chapRe.test(para));
     if (isHeading) {
-      // If current chapter has real content, push it before starting a new one
-      if (current.html.replace(/<[^>]+>/g, '').trim().length > 80) {
-        out.push(current);
-      }
+      if (current.html.replace(/<[^>]+>/g, '').trim().length > 80) out.push(current);
       current = {title: para, html: '<h2>' + escapeHtml(para) + '</h2>'};
     } else {
       current.html += '<p>' + escapeHtml(para) + '</p>';
