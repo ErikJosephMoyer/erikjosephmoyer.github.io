@@ -751,15 +751,66 @@ async function loadCover(key){
     });
   } catch(e){ return null; }
 }
+// Part/Chapter label formatter — recognizes "Part N" / "Chapter N" headings
+// (Arabic / Roman / English-word numbers); when a Part marker is encountered
+// while iterating chapters, all subsequent chapters get a "Part N, ..." prefix.
+const _ABP_WORD_INT = {ONE:1,TWO:2,THREE:3,FOUR:4,FIVE:5,SIX:6,SEVEN:7,EIGHT:8,NINE:9,TEN:10,
+  ELEVEN:11,TWELVE:12,THIRTEEN:13,FOURTEEN:14,FIFTEEN:15,SIXTEEN:16,SEVENTEEN:17,
+  EIGHTEEN:18,NINETEEN:19,TWENTY:20};
+function _abpRomanToInt(s){
+  if (!/^[IVXLCDM]+$/i.test(s)) return null;
+  const R={I:1,V:5,X:10,L:50,C:100,D:500,M:1000};
+  s=s.toUpperCase(); let n=0;
+  for (let i=0;i<s.length;i++){ const c=R[s[i]],nx=R[s[i+1]]; n+=(nx&&c<nx)?-c:c; }
+  return n;
+}
+function _abpParseNum(t){
+  if (!t) return null;
+  if (/^\d+$/.test(t)) return parseInt(t,10);
+  const r=_abpRomanToInt(t); if (r) return r;
+  const w=_ABP_WORD_INT[t.toUpperCase()]; if (w) return w;
+  return null;
+}
+function _abpParseChTitle(title){
+  const t=(title||'').trim(); if (!t) return {type:'other',num:null};
+  let m=t.match(/^(?:PART|BOOK|VOLUME)\s+([IVXLCDM]+|\d+|[A-Z][A-Z\-]+)\b/i);
+  if (m){ const n=_abpParseNum(m[1]); if (n!=null) return {type:'part',num:n}; }
+  m=t.match(/^CHAPTER\s+([IVXLCDM]+|\d+|[A-Z][A-Z\-]+)\b/i);
+  if (m){ const n=_abpParseNum(m[1]); if (n!=null) return {type:'chapter',num:n}; }
+  return {type:'other',num:null};
+}
+function _abpTruncate(s){
+  const max = window.innerWidth < 600 ? 25 : 40;
+  return s.length > max ? s.substring(0, max - 1) + '…' : s;
+}
+
 function populateChapterDropdown(){
   const sel = document.getElementById('chapter-select');
   sel.innerHTML=''; sel.disabled=false;
+  let currentPart = null;
   chapters.forEach((ch,i)=>{
+    let raw = (ch.title || '').trim();
+    // Numeric-only chapter titles like "001" → "Chapter 1"
+    if (/^0*\d+$/.test(raw)) raw = 'Chapter ' + parseInt(raw, 10);
+    if (!raw) raw = 'Chapter ' + (i+1);
+    const info = _abpParseChTitle(raw);
+    let label;
+    if (info.type === 'part') {
+      currentPart = info; label = 'Part ' + info.num;
+    } else if (info.type === 'chapter') {
+      label = (currentPart ? 'Part ' + currentPart.num + ', ' : '') + 'Chapter ' + info.num;
+    } else {
+      label = (currentPart ? 'Part ' + currentPart.num + ', ' : '') + raw;
+    }
+    if (ch.duration && !isNaN(ch.duration)) {
+      const durStr = ch.duration >= 3600 ? fmtHMS(ch.duration) : fmtMS(ch.duration);
+      label += ' (' + durStr + ')';
+    }
     const o=document.createElement('option'); o.value=i;
-    const durStr = ch.duration>=3600 ? fmtHMS(ch.duration) : fmtMS(ch.duration);
-    o.textContent=truncate(ch.title,50)+', '+durStr;
+    o.textContent = _abpTruncate(label);
     sel.appendChild(o);
   });
+  sel.value = currentChapter;
   sel.onchange=()=>{ goToChapter(parseInt(sel.value)); };
 }
 
