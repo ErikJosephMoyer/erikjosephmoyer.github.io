@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="/images/Favicon-192.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2a2a2a">
-<title>Erik's Polyglot</title>
+<title>Erik's Linguifier</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
@@ -31,25 +31,20 @@ textarea,input[type=text]{width:100%;background:rgba(255,255,255,0.04);border:1p
 textarea{min-height:140px}
 textarea:focus,input[type=text]:focus{outline:none;border-color:#888}
 
-/* Language selector row (source [swap] target) */
 .lang-row{display:flex;gap:8px;align-items:center;margin:0 0 10pt}
 .lang-row select{flex:1;min-width:0}
-.lang-row .swap-btn{flex:0 0 auto;width:42px;height:42px;padding:0;font-size:18pt}
+.lang-row .swap-btn{flex:0 0 auto;width:42px;height:42px;padding:0;font-size:16pt}
 
-/* Side-by-side text panes (stack on mobile) */
 .text-pair{display:grid;grid-template-columns:1fr;gap:12pt;margin:0 0 8pt}
 @media(min-width:680px){.text-pair{grid-template-columns:1fr 1fr}}
 .text-block{display:flex;flex-direction:column;gap:6px}
 .text-block textarea{flex:1}
-.text-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.text-actions{display:flex;gap:6px;justify-content:flex-end}
 .text-actions button{padding:4px 10px;font-size:11pt}
-.text-actions .icon-btn{width:36px;padding:4px;font-size:13pt}
 
-#translate-controls{display:flex;gap:10px;align-items:center;justify-content:center;margin:0 0 16pt;flex-wrap:wrap}
+#translate-controls{display:flex;gap:10px;align-items:center;justify-content:center;margin:0 0 16pt;flex-wrap:wrap;font-size:13pt;color:#bbb}
 #translate-status{font-size:12pt;color:#aaa;min-height:1em}
 
-/* Pronouncerator */
-#pron-help{font-size:12pt;color:#bbb;margin:0 0 8pt;text-align:center;line-height:1.4}
 .pron-row{display:flex;gap:8px;margin:0 0 8pt}
 .pron-row input{flex:1}
 #pron-output{background:rgba(255,255,255,0.04);border:1px solid #555;border-radius:6px;padding:14px;min-height:54px;font-size:20pt;text-align:center;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;margin:0 0 8pt}
@@ -61,118 +56,88 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:#888}
 </head>
 <body>
 <img src="/images/Favicon.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
-<h1>Erik's Polyglot</h1>
-<h2><em>Speak With Your Tongues</em>:<span class="sub-break"> </span>A Translator &amp; Pronouncerator</h2>
+<h1>Erik's Linguifier</h1>
+<h2><em>Speak With Your Tongue</em>:<span class="sub-break"> </span>A Linguistic Tool</h2>
 
-<!-- ━━━━━━━━━━━━━━━━ TRANSLATOR ━━━━━━━━━━━━━━━━ -->
-<h3>Translator</h3>
-
+<h3>The Translatorator</h3>
 <div class="lang-row">
-  <select id="src-lang" aria-label="Source language" onchange="onLangChange()"></select>
-  <button class="swap-btn" onclick="swapLanguages()" title="Swap languages">⇄</button>
-  <select id="tgt-lang" aria-label="Target language" onchange="onLangChange()"></select>
+  <select id="src-lang" onchange="onLangChange()"></select>
+  <button class="swap-btn" onclick="swapLanguages()" title="Swap">⇄</button>
+  <select id="tgt-lang" onchange="onLangChange()"></select>
 </div>
 
 <div class="text-pair">
   <div class="text-block">
-    <textarea id="src-text" placeholder="Enter text to translate…" oninput="onSrcInput()" aria-label="Source text"></textarea>
+    <textarea id="src-text" placeholder="Enter text" oninput="onSrcInput()"></textarea>
     <div class="text-actions">
-      <button class="icon-btn" onclick="speakSrc()" title="Speak source">🔊</button>
-      <button class="icon-btn" onclick="clearSrc()" title="Clear">✕</button>
+      <button onclick="speakSrc()">Speak</button>
+      <button onclick="clearSrc()">Clear</button>
     </div>
   </div>
   <div class="text-block">
-    <textarea id="tgt-text" placeholder="Translation will appear here…" readonly aria-label="Translation"></textarea>
+    <textarea id="tgt-text" placeholder="Translation" readonly></textarea>
     <div class="text-actions">
-      <button class="icon-btn" onclick="speakTgt()" title="Speak translation">🔊</button>
-      <button class="icon-btn" onclick="copyTgt()" title="Copy">📋</button>
+      <button onclick="speakTgt()">Speak</button>
+      <button onclick="copyTgt()">Copy</button>
     </div>
   </div>
 </div>
 
 <div id="translate-controls">
   <button id="translate-btn" onclick="doTranslate()">Translate</button>
-  <label style="font-size:13pt;color:#bbb"><input type="checkbox" id="auto-translate" checked> Auto-translate</label>
+  <label><input type="checkbox" id="auto-translate" checked> Auto-translate</label>
   <span id="translate-status"></span>
 </div>
 
-<!-- ━━━━━━━━━━━━━━━━ PRONOUNCERATOR ━━━━━━━━━━━━━━━━ -->
-<h3>Pronouncerator</h3>
-<p id="pron-help">
-  Type any U.S. English word — common nouns, proper nouns, names, places.<br>
-  Output is phonetic spelling: <strong>UPPERCASE</strong> = stressed syllables, lowercase = unstressed,
-  single vowels = short, double vowels = long. e.g. <em>iran</em> → <em>i-RAHN</em>.
-</p>
+<h3>The Pronouncerator</h3>
 <div class="pron-row">
-  <input type="text" id="pron-input" placeholder="e.g., Iran, Wednesday, photograph" onkeydown="if(event.key==='Enter'){event.preventDefault();doPronounce();}">
+  <input type="text" id="pron-input" placeholder="Type a word" onkeydown="if(event.key==='Enter'){event.preventDefault();doPronounce();}">
   <button onclick="doPronounce()">Pronounce</button>
 </div>
 <div id="pron-output" class="placeholder">—</div>
 <div id="pron-actions">
-  <button id="pron-speak-btn" onclick="speakPronWord()" disabled>🔊 Speak Word</button>
-  <button id="pron-copy-btn" onclick="copyPron()" disabled>📋 Copy Phonetic</button>
+  <button id="pron-speak-btn" onclick="speakPronWord()" disabled>Speak</button>
+  <button id="pron-copy-btn" onclick="copyPron()" disabled>Copy</button>
 </div>
 
-<!-- Footer (canonical) -->
 <div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/emt/" style="color:#fff">Alphomegenator</a> | <a href="/abp/" style="color:#fff">Audiobooker</a> | <a href="/fcv/" style="color:#fff">Converter</a> | <a href="/tts/" style="color:#fff">Narrator</a> | <a href="/ebr/" style="color:#fff">Reader</a> | <a href="/ocr/" style="color:#fff">Scanner</a> | <a href="/msc/" style="color:#fff">Tonalizer</a> | <a href="/stt/" style="color:#fff">Transcriber</a> | <a href="/tlt/" style="color:#fff">Translator</a> | <a href="/tps/" style="color:#fff">Typesetter</a></div>
 <br>
 <img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 
 <script>
-/* ━━━━━━━━━━━━━━━━ LANGUAGE LIST ━━━━━━━━━━━━━━━━
-   Top-20 most-spoken languages in alphabetical order. Codes are the
-   ones MyMemory accepts (ISO 639-1 or BCP-47 with region for Chinese). */
 const LANGUAGES = [
-  {code:'ar',name:'Arabic'},
-  {code:'bn',name:'Bengali'},
-  {code:'zh-CN',name:'Chinese (Simplified)'},
-  {code:'zh-TW',name:'Chinese (Traditional)'},
-  {code:'nl',name:'Dutch'},
-  {code:'en',name:'English'},
-  {code:'fr',name:'French'},
-  {code:'de',name:'German'},
-  {code:'el',name:'Greek'},
-  {code:'hi',name:'Hindi'},
-  {code:'it',name:'Italian'},
-  {code:'ja',name:'Japanese'},
-  {code:'ko',name:'Korean'},
-  {code:'pl',name:'Polish'},
-  {code:'pt',name:'Portuguese'},
-  {code:'ru',name:'Russian'},
-  {code:'es',name:'Spanish'},
-  {code:'sv',name:'Swedish'},
-  {code:'tr',name:'Turkish'},
-  {code:'vi',name:'Vietnamese'}
+  {code:'ar',name:'Arabic'},{code:'bn',name:'Bengali'},
+  {code:'zh-CN',name:'Chinese (Simplified)'},{code:'zh-TW',name:'Chinese (Traditional)'},
+  {code:'nl',name:'Dutch'},{code:'en',name:'English'},
+  {code:'fr',name:'French'},{code:'de',name:'German'},
+  {code:'el',name:'Greek'},{code:'hi',name:'Hindi'},
+  {code:'it',name:'Italian'},{code:'ja',name:'Japanese'},
+  {code:'ko',name:'Korean'},{code:'pl',name:'Polish'},
+  {code:'pt',name:'Portuguese'},{code:'ru',name:'Russian'},
+  {code:'es',name:'Spanish'},{code:'sv',name:'Swedish'},
+  {code:'tr',name:'Turkish'},{code:'vi',name:'Vietnamese'}
 ];
 
 function populateLanguageSelects(){
   const src = document.getElementById('src-lang');
   const tgt = document.getElementById('tgt-lang');
-  // Source has Auto-detect option
   src.innerHTML = '<option value="auto">Detect Language</option>' +
     LANGUAGES.map(l => `<option value="${l.code}">${l.name}</option>`).join('');
   tgt.innerHTML = LANGUAGES.map(l => `<option value="${l.code}">${l.name}</option>`).join('');
-  // Defaults
-  src.value = 'auto';
-  tgt.value = 'es';
-  // Persist user's last picks
+  src.value = 'auto'; tgt.value = 'es';
   try {
-    const saved = JSON.parse(localStorage.getItem('trn_langs') || 'null');
-    if (saved) {
-      if (saved.src) src.value = saved.src;
-      if (saved.tgt) tgt.value = saved.tgt;
-    }
+    const saved = JSON.parse(localStorage.getItem('tlt_langs') || 'null');
+    if (saved) { if (saved.src) src.value = saved.src; if (saved.tgt) tgt.value = saved.tgt; }
   } catch(e){}
 }
 
 function onLangChange(){
   try {
-    localStorage.setItem('trn_langs', JSON.stringify({
+    localStorage.setItem('tlt_langs', JSON.stringify({
       src: document.getElementById('src-lang').value,
       tgt: document.getElementById('tgt-lang').value
     }));
   } catch(e){}
-  // Re-translate if there's text
   if (document.getElementById('src-text').value.trim()) doTranslate();
 }
 
@@ -181,64 +146,39 @@ function swapLanguages(){
   const tgt = document.getElementById('tgt-lang');
   const srcText = document.getElementById('src-text');
   const tgtText = document.getElementById('tgt-text');
-  // Source becomes target; target becomes source. If source was Auto,
-  // make new source 'en' (sensible default) instead of Auto.
   const newSrc = tgt.value;
   const newTgt = src.value === 'auto' ? 'en' : src.value;
-  src.value = newSrc;
-  tgt.value = newTgt;
-  // Swap text content too
+  src.value = newSrc; tgt.value = newTgt;
   const t = srcText.value; srcText.value = tgtText.value; tgtText.value = t;
   onLangChange();
 }
 
-/* ━━━━━━━━━━━━━━━━ TRANSLATION ━━━━━━━━━━━━━━━━
-   Primary: MyMemory (https://mymemory.translated.net/doc/spec.php).
-   Fallback: Lingva (Google Translate proxy). MyMemory has a generous
-   free tier (5000 anonymous chars/day) and CORS-enabled; Lingva is
-   a backup if MyMemory rate-limits. */
-let _translateController = null;
-let _translateDebounce = null;
+let _ctrl = null;
+let _debounce = null;
 
 async function doTranslate(){
-  if (_translateController) _translateController.abort();
+  if (_ctrl) _ctrl.abort();
   const ctrl = new AbortController();
-  _translateController = ctrl;
-
+  _ctrl = ctrl;
   const text = document.getElementById('src-text').value.trim();
   const tgt = document.getElementById('tgt-text');
   const status = document.getElementById('translate-status');
   if (!text) { tgt.value = ''; status.textContent = ''; return; }
-
   let src = document.getElementById('src-lang').value;
   const target = document.getElementById('tgt-lang').value;
   if (src === target) { tgt.value = text; status.textContent = ''; return; }
-
-  status.textContent = 'Translating…';
-  status.style.color = '#aaa';
-
-  // MyMemory langpair: source|target. For autodetect, MyMemory accepts
-  // empty or "Autodetect" as source — but their API quirks; using the
-  // literal language code when known is more reliable.
+  status.textContent = 'Translating';
   const myMemSrc = (src === 'auto') ? 'Autodetect' : src;
   const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(myMemSrc + '|' + target)}`;
-
   try {
     const res = await fetch(url, {signal: ctrl.signal});
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    if (data.responseStatus !== 200 && data.responseStatus !== '200') {
-      throw new Error(data.responseDetails || 'translation failed');
-    }
-    let result = (data.responseData && data.responseData.translatedText) || '';
-    // Sometimes the API returns the input unchanged with a warning — show anyway.
-    tgt.value = result;
-    status.textContent = '✓ Translated' + (data.responseData.match ? '' : '');
-    status.style.color = '#9c9';
-    setTimeout(() => { if (status.textContent.startsWith('✓')) status.textContent = ''; }, 2500);
+    if (data.responseStatus !== 200 && data.responseStatus !== '200') throw new Error(data.responseDetails || 'failed');
+    tgt.value = (data.responseData && data.responseData.translatedText) || '';
+    status.textContent = '';
   } catch (e) {
     if (e.name === 'AbortError') return;
-    // Try Lingva as fallback
     try {
       const lingvaSrc = (src === 'auto') ? 'auto' : src;
       const lurl = `https://lingva.ml/api/v1/${encodeURIComponent(lingvaSrc)}/${encodeURIComponent(target)}/${encodeURIComponent(text)}`;
@@ -246,21 +186,18 @@ async function doTranslate(){
       if (!r2.ok) throw new Error('HTTP ' + r2.status);
       const d2 = await r2.json();
       tgt.value = d2.translation || '';
-      status.textContent = '✓ Translated (fallback)';
-      status.style.color = '#9c9';
-      setTimeout(() => { if (status.textContent.startsWith('✓')) status.textContent = ''; }, 2500);
+      status.textContent = '';
     } catch (e2) {
       if (e2.name === 'AbortError') return;
-      status.textContent = '⚠ Translation failed: ' + (e2.message || e.message);
-      status.style.color = '#e88';
+      status.textContent = 'Translation failed';
     }
   }
 }
 
 function onSrcInput(){
   if (!document.getElementById('auto-translate').checked) return;
-  if (_translateDebounce) clearTimeout(_translateDebounce);
-  _translateDebounce = setTimeout(doTranslate, 600);
+  if (_debounce) clearTimeout(_debounce);
+  _debounce = setTimeout(doTranslate, 600);
 }
 
 function clearSrc(){
@@ -272,46 +209,28 @@ function clearSrc(){
 async function copyTgt(){
   const text = document.getElementById('tgt-text').value;
   if (!text) return;
-  try {
-    await navigator.clipboard.writeText(text);
-    const status = document.getElementById('translate-status');
-    status.textContent = '✓ Copied';
-    status.style.color = '#9c9';
-    setTimeout(() => status.textContent = '', 1500);
-  } catch(e){}
+  try { await navigator.clipboard.writeText(text); } catch(e){}
 }
 
-/* ━━━━━━━━━━━━━━━━ TEXT-TO-SPEECH ━━━━━━━━━━━━━━━━
-   Uses the browser's built-in Web Speech API. Voice availability
-   depends on the OS / browser; we pick a voice matching the language
-   if one exists. */
 let _voicesLoaded = false;
 function ensureVoices(){
   return new Promise(resolve => {
-    if (_voicesLoaded || speechSynthesis.getVoices().length > 0) {
-      _voicesLoaded = true; resolve(); return;
-    }
+    if (_voicesLoaded || speechSynthesis.getVoices().length > 0) { _voicesLoaded = true; resolve(); return; }
     speechSynthesis.addEventListener('voiceschanged', function once(){
       _voicesLoaded = true;
       speechSynthesis.removeEventListener('voiceschanged', once);
       resolve();
     });
-    // Some browsers fire voiceschanged immediately, some never — fall back after 500ms
     setTimeout(resolve, 500);
   });
 }
 
 async function speak(text, lang){
-  if (!text) return;
-  if (!('speechSynthesis' in window)) {
-    alert('Your browser does not support speech synthesis.');
-    return;
-  }
+  if (!text || !('speechSynthesis' in window)) return;
   await ensureVoices();
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = lang;
-  // Prefer a voice that matches the requested lang
   const voices = speechSynthesis.getVoices();
   const match = voices.find(v => v.lang === lang)
              || voices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang.toLowerCase().slice(0,2)));
@@ -321,81 +240,53 @@ async function speak(text, lang){
 }
 
 function speakSrc(){
-  const text = document.getElementById('src-text').value;
   let lang = document.getElementById('src-lang').value;
   if (lang === 'auto') lang = 'en';
-  speak(text, lang);
+  speak(document.getElementById('src-text').value, lang);
 }
 function speakTgt(){
   speak(document.getElementById('tgt-text').value, document.getElementById('tgt-lang').value);
 }
 
-/* ━━━━━━━━━━━━━━━━ PRONOUNCERATOR ━━━━━━━━━━━━━━━━
-   Looks up the word's ARPAbet phonetic spelling via Datamuse API
-   (CMU Pronouncing Dictionary backend, no auth, CORS-enabled), then
-   maps the phonemes to the user's preferred format:
-     - Syllables separated by hyphens
-     - UPPERCASE for primary stress, lowercase otherwise
-     - Vowel mappings approximate "single = short, double = long" */
-
 const ARP_MAP = {
-  // Vowels
-  'AA':'ah',  'AE':'a',   'AH':'uh',  'AO':'aw',  'AW':'ow',
-  'AY':'i',   'EH':'e',   'ER':'er',  'EY':'ay',  'IH':'i',
-  'IY':'ee',  'OW':'oh',  'OY':'oy',  'UH':'uu',  'UW':'oo',
-  // Consonants
-  'B':'b',  'CH':'ch', 'D':'d',  'DH':'th', 'F':'f',
-  'G':'g',  'HH':'h',  'JH':'j', 'K':'k',   'L':'l',
-  'M':'m',  'N':'n',   'NG':'ng','P':'p',   'R':'r',
-  'S':'s',  'SH':'sh', 'T':'t',  'TH':'th', 'V':'v',
-  'W':'w',  'Y':'y',   'Z':'z',  'ZH':'zh'
+  'AA':'ah','AE':'a','AH':'uh','AO':'aw','AW':'ow',
+  'AY':'i','EH':'e','ER':'er','EY':'ay','IH':'i',
+  'IY':'ee','OW':'oh','OY':'oy','UH':'uu','UW':'oo',
+  'B':'b','CH':'ch','D':'d','DH':'th','F':'f',
+  'G':'g','HH':'h','JH':'j','K':'k','L':'l',
+  'M':'m','N':'n','NG':'ng','P':'p','R':'r',
+  'S':'s','SH':'sh','T':'t','TH':'th','V':'v',
+  'W':'w','Y':'y','Z':'z','ZH':'zh'
 };
 const VOWELS = new Set(['AA','AE','AH','AO','AW','AY','EH','ER','EY','IH','IY','OW','OY','UH','UW']);
 
 function arpabetToCustom(arpabet){
   if (!arpabet) return '';
   const phonemes = arpabet.trim().split(/\s+/);
-  // Each phoneme is e.g. "AA1" / "B" / "AH0". Strip stress digit and remember it.
   const segs = phonemes.map(p => {
     const m = p.match(/^([A-Z]+)([012])?$/);
     if (!m) return null;
     return {phon: m[1], stress: m[2] || null, isVowel: VOWELS.has(m[1])};
   }).filter(Boolean);
-
-  // Build syllables. Maximal-onset principle: between two vowels, send
-  // ALL intervening consonants to the next syllable's onset (a strong
-  // simplification of English phonotactics, but it gets common cases
-  // like "iran" → "i-RAHN" / "rocket" → "ROK-it" right enough).
   const syllables = [];
   let pendingOnset = [];
   let i = 0;
   while (i < segs.length) {
     if (segs[i].isVowel) {
-      // Find the next vowel index
       let nextV = -1;
-      for (let j = i + 1; j < segs.length; j++) {
-        if (segs[j].isVowel) { nextV = j; break; }
-      }
+      for (let j = i + 1; j < segs.length; j++) if (segs[j].isVowel) { nextV = j; break; }
       const between = (nextV > 0) ? segs.slice(i + 1, nextV) : segs.slice(i + 1);
-      // Maximal onset: send all to next syllable's onset (only if next vowel exists)
       let coda = [], nextOnset = [];
       if (nextV > 0) nextOnset = between; else coda = between;
-      syllables.push({
-        onset: pendingOnset.map(s => s.phon),
-        vowel: segs[i].phon,
-        stress: segs[i].stress,
-        coda: coda.map(s => s.phon)
-      });
+      syllables.push({onset: pendingOnset.map(s => s.phon), vowel: segs[i].phon, stress: segs[i].stress, coda: coda.map(s => s.phon)});
       pendingOnset = nextOnset.slice();
       i = (nextV > 0) ? nextV : segs.length;
     } else {
-      // Pre-first-vowel onset
       pendingOnset.push(segs[i]);
       i++;
     }
   }
   if (syllables.length === 0) return phonemes.map(p => (ARP_MAP[p.replace(/[012]$/,'')] || p.toLowerCase())).join('');
-
   return syllables.map(syl => {
     const onset = syl.onset.map(c => ARP_MAP[c] || '').join('');
     const vowel = ARP_MAP[syl.vowel] || '';
@@ -411,39 +302,27 @@ async function doPronounce(){
   const speakBtn = document.getElementById('pron-speak-btn');
   const copyBtn = document.getElementById('pron-copy-btn');
   if (!word) { out.textContent = '—'; out.classList.add('placeholder'); speakBtn.disabled = true; copyBtn.disabled = true; return; }
-  out.textContent = 'Looking up…';
+  out.textContent = 'Looking up';
   out.classList.remove('placeholder');
   speakBtn.disabled = true; copyBtn.disabled = true;
   try {
-    // Datamuse: sp=word, md=r returns the ARPAbet pronunciation tag
     const url = `https://api.datamuse.com/words?sp=${encodeURIComponent(word)}&md=r&max=1`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('lookup HTTP ' + res.status);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    if (!data.length || !data[0].tags) {
-      out.textContent = 'Word not in dictionary.';
-      out.classList.add('placeholder');
-      return;
-    }
+    if (!data.length || !data[0].tags) { out.textContent = 'Not found'; out.classList.add('placeholder'); return; }
     const pronTag = data[0].tags.find(t => typeof t === 'string' && t.startsWith('pron:'));
-    if (!pronTag) {
-      out.textContent = 'No pronunciation available.';
-      out.classList.add('placeholder');
-      return;
-    }
-    const arpabet = pronTag.substring(5);
-    const formatted = arpabetToCustom(arpabet);
-    out.textContent = formatted || '(unable to format)';
+    if (!pronTag) { out.textContent = 'No pronunciation'; out.classList.add('placeholder'); return; }
+    out.textContent = arpabetToCustom(pronTag.substring(5)) || '(format error)';
     speakBtn.disabled = false; copyBtn.disabled = false;
   } catch (e) {
-    out.textContent = 'Error: ' + (e.message || e);
+    out.textContent = 'Error';
     out.classList.add('placeholder');
   }
 }
 
 function speakPronWord(){
-  const word = document.getElementById('pron-input').value.trim();
-  speak(word, 'en-US');
+  speak(document.getElementById('pron-input').value.trim(), 'en-US');
 }
 
 async function copyPron(){
@@ -452,7 +331,6 @@ async function copyPron(){
   try { await navigator.clipboard.writeText(text); } catch(e){}
 }
 
-/* ━━━━━━━━━━━━━━━━ INIT ━━━━━━━━━━━━━━━━ */
 populateLanguageSelects();
 ensureVoices();
 </script>

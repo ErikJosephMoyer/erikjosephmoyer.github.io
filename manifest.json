@@ -21,7 +21,7 @@
     {"name": "Decipherer", "url": "/ocr/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
     {"name": "Tonalizer", "url": "/msc/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
     {"name": "Speech-to-Texter", "url": "/stt/", "icons": [{"src": "/images/SpeechToTexter.png", "sizes": "100x100"}]},
-    {"name": "Translator", "url": "/tlt/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
+    {"name": "Linguifier", "url": "/tlt/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
     {"name": "Text-to-Speecher", "url": "/tts/", "icons": [{"src": "/images/TextToSpeecher.png", "sizes": "100x100"}]},
     {"name": "Typesetter", "url": "/tps/", "icons": [{"src": "/images/Typesetter.PNG", "sizes": "100x100"}]}
   ]

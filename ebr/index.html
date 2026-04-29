@@ -535,10 +535,10 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
   <button id="next-ch-btn" class="transport" disabled onclick="navChapter(1)" title="Next Chapter (Shift+Right)">
     <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20"/><rect x="17" y="4" width="3" height="16"/></svg>
   </button>
-  <button id="font-down-btn" class="modifier" disabled onclick="bumpFontSize(-1)" title="Decrease Font Size (−)">
+  <button id="font-down-btn" class="modifier" disabled onclick="bumpFontSize(-1)" title="Decrease Font Size ([)">
     <span class="btn-label">A−</span>
   </button>
-  <button id="font-up-btn" class="modifier" disabled onclick="bumpFontSize(1)" title="Increase Font Size (+)">
+  <button id="font-up-btn" class="modifier" disabled onclick="bumpFontSize(1)" title="Increase Font Size (])">
     <span class="btn-label">A+</span>
   </button>
 </div>
@@ -559,20 +559,20 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
     <button id="abp-pitch-btn" class="modifier" title="Pitch (P)" disabled onclick="cyclePitch()">
       <span id="pitch-label" class="btn-label">0</span>
     </button>
-    <button id="abp-prev-btn" class="transport" title="Previous Chapter (Shift+Up)" disabled onclick="audioPrevChapter()">
+    <button id="abp-prev-btn" class="transport" title="Previous Chapter (Shift+Down)" disabled onclick="audioPrevChapter()">
       <svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16"/><polygon points="20,4 9,12 20,20"/></svg>
     </button>
-    <button id="abp-skipb-btn" class="transport" title="Back 10s (Up)" disabled onclick="audioSkip(-10)">
+    <button id="abp-skipb-btn" class="transport" title="Back 10s (Down)" disabled onclick="audioSkip(-10)">
       <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
     </button>
     <button id="abp-play-btn" class="transport" title="Play / Pause (Space)" disabled onclick="audioToggle()">
       <svg id="play-icon" viewBox="0 0 24 24"><polygon points="8,5 19,12 8,19"/></svg>
       <svg id="pause-icon" viewBox="0 0 24 24" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
     </button>
-    <button id="abp-skipf-btn" class="transport" title="Forward 10s (Down)" disabled onclick="audioSkip(10)">
+    <button id="abp-skipf-btn" class="transport" title="Forward 10s (Up)" disabled onclick="audioSkip(10)">
       <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/></svg>
     </button>
-    <button id="abp-next-btn" class="transport" title="Next Chapter (Shift+Down)" disabled onclick="audioNextChapter()">
+    <button id="abp-next-btn" class="transport" title="Next Chapter (Shift+Up)" disabled onclick="audioNextChapter()">
       <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20"/><rect x="17" y="4" width="3" height="16"/></svg>
     </button>
     <button id="abp-mute-btn" class="modifier" title="Mute (M)" disabled onclick="toggleMute()">
@@ -605,14 +605,14 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
   <span class="kbd-row"><button class="kbd-btn" id="kbd-pgprev" onclick="pageScroll(-1)" disabled title="Previous Page">←</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-pgnext" onclick="pageScroll(1)" disabled title="Next Page">→</button> <span>Page</span></span>
   <span class="kbd-row"><button class="kbd-btn" id="kbd-chprev" onclick="navChapter(-1)" disabled title="Previous E-Book Chapter">Shift+←</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-chnext" onclick="navChapter(1)" disabled title="Next E-Book Chapter">Shift+→</button> <span>E-Book Chapter</span></span>
   <span class="kbd-row"><button class="kbd-btn" id="kbd-play" onclick="audioToggle()" disabled title="Play / Pause">Space</button> <span>Play / Pause</span></span>
-  <span class="kbd-row"><button class="kbd-btn" id="kbd-skipb" onclick="audioSkip(-10)" disabled title="Back 10s">↑</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-skipf" onclick="audioSkip(10)" disabled title="Forward 10s">↓</button> <span>Skip 10s</span></span>
-  <span class="kbd-row"><button class="kbd-btn" id="kbd-audprev" onclick="audioPrevChapter()" disabled title="Previous Audiobook Chapter">Shift+↑</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-audnext" onclick="audioNextChapter()" disabled title="Next Audiobook Chapter">Shift+↓</button> <span>Audiobook Chapter</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-skipf" onclick="audioSkip(10)" disabled title="Forward 10s">↑</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-skipb" onclick="audioSkip(-10)" disabled title="Back 10s">↓</button> <span>Skip 10s</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-audnext" onclick="audioNextChapter()" disabled title="Next Audiobook Chapter">Shift+↑</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-audprev" onclick="audioPrevChapter()" disabled title="Previous Audiobook Chapter">Shift+↓</button> <span>Audiobook Chapter</span></span>
   <span class="kbd-row"><button class="kbd-btn" id="kbd-fs" onclick="toggleFullscreen()" disabled title="Fullscreen">F</button> <span>Fullscreen</span></span>
   <span class="kbd-row"><button class="kbd-btn" id="kbd-mute" onclick="toggleMute()" disabled title="Mute">M</button> <span>Mute</span></span>
   <span class="kbd-row"><button class="kbd-btn" id="kbd-pitch" onclick="cyclePitch()" disabled title="Pitch">P</button> <span>Pitch</span></span>
   <span class="kbd-row"><button class="kbd-btn" id="kbd-speed" onclick="cycleSpeed()" disabled title="Speed">S</button> <span>Speed</span></span>
   <span class="kbd-row"><button class="kbd-btn" id="kbd-boost" onclick="cycleBoost()" disabled title="Volume Boost">V</button> <span>Volume Boost</span></span>
-  <span class="kbd-row"><button class="kbd-btn" id="kbd-fontup" onclick="bumpFontSize(1)" disabled title="Increase Font Size">+</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-fontdown" onclick="bumpFontSize(-1)" disabled title="Decrease Font Size">−</button> <span>Font Size</span></span>
+  <span class="kbd-row"><button class="kbd-btn" id="kbd-fontup" onclick="bumpFontSize(1)" disabled title="Increase Font Size">]</button><span class="kbd-sep">/</span><button class="kbd-btn" id="kbd-fontdown" onclick="bumpFontSize(-1)" disabled title="Decrease Font Size">[</button> <span>Font Size</span></span>
 </div>
 
 </div><!-- /#fs-target -->
@@ -1231,7 +1231,12 @@ async function parseEpub(file){
   })();
 
   var spineRefs = opfDoc.getElementsByTagName('itemref');
-  var tocMap = {};
+
+  // Build NCX TOC preserving anchors: ncxByFile[fileHref] = [{label, anchor}, ...]
+  // (Multiple NCX entries can point into the same XHTML at different anchors.
+  //  We need to keep them all so we can split a single spine file into the
+  //  multiple chapters it contains.)
+  var ncxByFile = {};
   var spineEl = opfDoc.querySelector('spine');
   var ncxId = spineEl ? spineEl.getAttribute('toc') : null;
   if (ncxId && manifest[ncxId]) {
@@ -1242,13 +1247,113 @@ async function parseEpub(file){
       for (var j = 0; j < navPoints.length; j++) {
         var labelEl = navPoints[j].getElementsByTagName('text')[0];
         var contentEl = navPoints[j].getElementsByTagName('content')[0];
-        var label = labelEl ? labelEl.textContent : '';
+        var label = labelEl ? labelEl.textContent.replace(/\s+/g, ' ').trim() : '';
         var src = contentEl ? contentEl.getAttribute('src') : '';
-        var srcFile = src ? src.split('#')[0] : '';
-        if (srcFile) tocMap[srcFile] = label;
+        if (!src) continue;
+        var hashIdx = src.indexOf('#');
+        var srcFile = hashIdx >= 0 ? src.substring(0, hashIdx) : src;
+        var anchor = hashIdx >= 0 ? src.substring(hashIdx + 1) : '';
+        if (!ncxByFile[srcFile]) ncxByFile[srcFile] = [];
+        ncxByFile[srcFile].push({label: label, anchor: anchor});
       }
     } catch(e){}
   }
+
+  // EPUB 3 nav.xhtml fallback (when no NCX). Look for an item with
+  // properties="nav" and parse its <nav epub:type="toc"> ol structure.
+  if (!Object.keys(ncxByFile).length) {
+    try {
+      var navHref = null;
+      for (var nk in manifestById) {
+        if ((manifestById[nk].properties || '').indexOf('nav') >= 0) {
+          navHref = manifestById[nk].href; break;
+        }
+      }
+      if (navHref) {
+        var navStr = await zip.file(opfDir + navHref).async('string');
+        var navDoc = dp.parseFromString(navStr, 'text/html');
+        var navDir = navHref.indexOf('/') >= 0 ? navHref.substring(0, navHref.lastIndexOf('/') + 1) : '';
+        var anchors = navDoc.querySelectorAll('nav a[href]');
+        for (var na = 0; na < anchors.length; na++) {
+          var aHref = anchors[na].getAttribute('href') || '';
+          if (!aHref) continue;
+          // Resolve nav-relative path (e.g. nav at OEBPS/nav.xhtml linking ch01.xhtml → OEBPS/ch01.xhtml)
+          var resolved = resolveZipPath(navDir + aHref);
+          // Strip opfDir prefix to match keys we'll look up by spine href
+          var fileKey = resolved;
+          if (opfDir && resolved.indexOf(opfDir) === 0) fileKey = resolved.substring(opfDir.length);
+          var hi = fileKey.indexOf('#');
+          var sf = hi >= 0 ? fileKey.substring(0, hi) : fileKey;
+          var ac = hi >= 0 ? fileKey.substring(hi + 1) : '';
+          var lbl = (anchors[na].textContent || '').replace(/\s+/g, ' ').trim();
+          if (!ncxByFile[sf]) ncxByFile[sf] = [];
+          ncxByFile[sf].push({label: lbl, anchor: ac});
+        }
+      }
+    } catch(e){ console.warn('EPUB 3 nav parse failed:', e); }
+  }
+
+  // Helper: pick the best heading from a body element.
+  // Prefer h1 over h2 over h3 over h4 (chapter title takes precedence over
+  // sub-headings, regardless of source order).
+  function pickHeading(rootEl){
+    if (!rootEl) return '';
+    for (var hl = 1; hl <= 4; hl++) {
+      var h = rootEl.querySelector('h' + hl);
+      if (h) {
+        var t = h.textContent.replace(/\s+/g, ' ').trim();
+        if (t && t.length < 200) return t;
+      }
+    }
+    return '';
+  }
+
+  // Helper: split a body's top-level children into slices keyed by NCX
+  // anchors. Returns [{label, html}, ...]. Each slice gathers all top-level
+  // children from one anchor to (but not including) the next.
+  function sliceByAnchors(bodyEl, entries){
+    // Find the top-level child of bodyEl that contains each anchor
+    var anchorPositions = []; // [{label, childIndex}]
+    var children = Array.prototype.slice.call(bodyEl.children);
+    for (var ei = 0; ei < entries.length; ei++) {
+      var entry = entries[ei];
+      var anchorEl = null;
+      if (entry.anchor) {
+        try {
+          anchorEl = bodyEl.querySelector('#' + (window.CSS && CSS.escape ? CSS.escape(entry.anchor) : entry.anchor.replace(/[^\w-]/g, '\\$&')));
+        } catch(e){}
+        if (!anchorEl) anchorEl = bodyEl.querySelector('[name="' + entry.anchor.replace(/"/g, '\\"') + '"]');
+      }
+      var childIdx = -1;
+      if (anchorEl) {
+        for (var ci = 0; ci < children.length; ci++) {
+          if (children[ci] === anchorEl || children[ci].contains(anchorEl)) {
+            childIdx = ci; break;
+          }
+        }
+      } else if (!entry.anchor) {
+        // Anchorless entry → start of file
+        childIdx = 0;
+      }
+      anchorPositions.push({label: entry.label, childIndex: childIdx});
+    }
+    // Drop entries whose anchor wasn't found
+    var found = anchorPositions.filter(function(p){ return p.childIndex >= 0; });
+    if (!found.length) return null;
+    // Sort by childIndex to handle out-of-order NCX (rare but possible)
+    found.sort(function(a, b){ return a.childIndex - b.childIndex; });
+    // Build slices
+    var slices = [];
+    for (var fi = 0; fi < found.length; fi++) {
+      var startIdx = (fi === 0 ? 0 : found[fi].childIndex);  // first slice gets pre-anchor content too
+      var endIdx = (fi + 1 < found.length) ? found[fi + 1].childIndex : children.length;
+      var html = '';
+      for (var k = startIdx; k < endIdx; k++) html += children[k].outerHTML;
+      slices.push({label: found[fi].label, html: html});
+    }
+    return slices;
+  }
+
   var out = [];
   for (var i = 0; i < spineRefs.length; i++) {
     var idref = spineRefs[i].getAttribute('idref');
@@ -1283,21 +1388,56 @@ async function parseEpub(file){
         }
       } catch(e){}
     }
-    // Title detection: prefer the first body heading, falling back to NCX label
-    // (NCX labels are often auto-generated garbage like "text00003" — see isGarbageLabel)
-    var bodyHeadingEl = body.querySelector('h1, h2, h3, h4');
-    var bodyHeading = bodyHeadingEl ? bodyHeadingEl.textContent.replace(/\s+/g, ' ').trim() : '';
-    var ncxLabel = (tocMap[href] || tocMap[href.split('/').pop()] || '').replace(/\s+/g, ' ').trim();
+    var hasImage = !!body.querySelector('img, image');
+
+    // NCX entries that point into this spine file (try multiple key forms)
+    var ncxEntries = ncxByFile[href]
+                  || ncxByFile[href.split('/').pop()]
+                  || ncxByFile[resolveZipPath(opfDir + href).substring(opfDir.length)]
+                  || [];
+
+    // If multiple NCX entries point inside this spine file with anchors,
+    // split it into multiple chapters.
+    var anchoredEntries = ncxEntries.filter(function(e){ return e.anchor; });
+    if (anchoredEntries.length >= 2) {
+      var slices = sliceByAnchors(body, ncxEntries);
+      if (slices && slices.length >= 2) {
+        for (var si = 0; si < slices.length; si++) {
+          var slice = slices[si];
+          var sHtml = slice.html;
+          // Skip empty slices
+          if (sHtml.replace(/<[^>]+>/g, '').trim().length < 30 && !/(img|image)/i.test(sHtml)) continue;
+          var sliceTitle;
+          if (slice.label && !isGarbageLabel(slice.label)) {
+            sliceTitle = slice.label;
+          } else {
+            // Fall back to picking heading inside the slice's HTML
+            var tmp = document.createElement('div');
+            tmp.innerHTML = sHtml;
+            var sh = pickHeading(tmp);
+            sliceTitle = sh || ('Chapter ' + (out.length + 1));
+          }
+          out.push({title: sliceTitle, html: sHtml});
+        }
+        continue;
+      }
+    }
+
+    // Single-chapter spine file
+    var bodyHeading = pickHeading(body);
+    var ncxLabel = ncxEntries[0] ? ncxEntries[0].label : '';
     var title;
-    if (bodyHeading && bodyHeading.length > 0 && bodyHeading.length < 200) {
-      title = bodyHeading;
-    } else if (ncxLabel && !isGarbageLabel(ncxLabel)) {
+    // Prefer NCX label (publisher-set TOC) when present and non-garbage.
+    // NCX labels are typically the canonical chapter titles. Fall back to
+    // body heading, then to a generic counter.
+    if (ncxLabel && !isGarbageLabel(ncxLabel)) {
       title = ncxLabel;
+    } else if (bodyHeading) {
+      title = bodyHeading;
     } else {
       title = 'Chapter ' + (out.length + 1);
     }
     var html = body.innerHTML;
-    var hasImage = !!body.querySelector('img, image');
     if (html.replace(/<[^>]+>/g, '').trim().length < 30 && !hasImage) continue;
     out.push({title: title, html: html});
   }
@@ -1901,10 +2041,11 @@ document.addEventListener('keydown', function(e){
   var k = e.key, hasMod = e.ctrlKey || e.metaKey || e.altKey;
   // Audiobook controls
   if (k === ' ' && audio && audio.src && !hasMod) { e.preventDefault(); audioToggle(); return; }
-  if (k === 'ArrowUp' && e.shiftKey && audio && audio.src) { e.preventDefault(); audioPrevChapter(); return; }
-  if (k === 'ArrowDown' && e.shiftKey && audio && audio.src) { e.preventDefault(); audioNextChapter(); return; }
-  if (k === 'ArrowUp' && audio && audio.src && !hasMod) { e.preventDefault(); audioSkip(-10); return; }
-  if (k === 'ArrowDown' && audio && audio.src && !hasMod) { e.preventDefault(); audioSkip(10); return; }
+  // Audio direction: Up = forward / next, Down = back / previous (per user spec)
+  if (k === 'ArrowUp' && e.shiftKey && audio && audio.src) { e.preventDefault(); audioNextChapter(); return; }
+  if (k === 'ArrowDown' && e.shiftKey && audio && audio.src) { e.preventDefault(); audioPrevChapter(); return; }
+  if (k === 'ArrowUp' && audio && audio.src && !hasMod) { e.preventDefault(); audioSkip(10); return; }
+  if (k === 'ArrowDown' && audio && audio.src && !hasMod) { e.preventDefault(); audioSkip(-10); return; }
   // E-book controls
   if (k === 'ArrowLeft' && e.shiftKey) { e.preventDefault(); navChapter(-1); return; }
   if (k === 'ArrowRight' && e.shiftKey) { e.preventDefault(); navChapter(1); return; }
@@ -1919,8 +2060,9 @@ document.addEventListener('keydown', function(e){
   if (lk === 'p' && !hasMod && audio && audio.src) { e.preventDefault(); cyclePitch(); return; }
   if (lk === 's' && !hasMod && audio && audio.src) { e.preventDefault(); cycleSpeed(); return; }
   if (lk === 'v' && !hasMod && audio && audio.src) { e.preventDefault(); cycleBoost(); return; }
-  if ((k === '+' || k === '=') && !hasMod) { e.preventDefault(); bumpFontSize(1); return; }
-  if ((k === '-' || k === '_') && !hasMod) { e.preventDefault(); bumpFontSize(-1); return; }
+  // Font size: ] / [ (avoids Chrome zoom shortcut Ctrl+=/Ctrl+-)
+  if (k === ']' && !hasMod) { e.preventDefault(); bumpFontSize(1); return; }
+  if (k === '[' && !hasMod) { e.preventDefault(); bumpFontSize(-1); return; }
 });
 
 // Page step in CSS-multicol with overflow:
