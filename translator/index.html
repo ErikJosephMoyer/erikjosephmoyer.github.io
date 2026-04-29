@@ -22,34 +22,39 @@ h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:
 h3{font-size:18pt;font-weight:500;margin:8pt 0 8pt;text-align:center;border-bottom:1px solid #555;padding-bottom:4px}
 a,a:visited{color:#fff;text-decoration:underline;cursor:pointer}
 a:hover{color:#ccc}
-button{background:#fff;color:#2a2a2a;border:none;font:14pt 'EB Garamond',serif;cursor:pointer;padding:6px 14px;white-space:nowrap;border-radius:4px}
+/* Canonical button: matches /typesetter/, /audiobooker/. Fixed height
+ * so icon-only and text-only buttons are uniform. */
+button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:0 14px;white-space:nowrap;height:38px;min-width:38px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
 button:hover:not(:disabled){background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
-select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:14pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0}
+button.icon{padding:0;width:38px}
+button svg{width:20px;height:20px;display:block}
+button.icon.recording{background:#d44}
+button.icon.recording:hover{background:#e55}
+select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0}
 select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
-textarea,input[type=text]{width:100%;background:rgba(255,255,255,0.04);border:1px solid #555;border-radius:6px;color:#fff;font:14pt 'EB Garamond',serif;padding:10px;resize:vertical}
+textarea,input[type=text]{width:100%;background:transparent;border:1px solid #fff;border-radius:4px;color:#fff;font:16pt 'EB Garamond',serif;padding:10px;resize:vertical}
 textarea{min-height:140px}
-textarea:focus,input[type=text]:focus{outline:none;border-color:#888}
+textarea:focus,input[type=text]:focus{outline:none;border-color:#ccc}
 
 .lang-row{display:flex;gap:8px;align-items:center;margin:0 0 10pt}
 .lang-row select{flex:1;min-width:0}
-.lang-row .swap-btn{flex:0 0 auto;width:42px;height:42px;padding:0;font-size:16pt}
+.lang-row .swap-btn{flex:0 0 auto}
 
 .text-pair{display:grid;grid-template-columns:1fr;gap:12pt;margin:0 0 8pt}
 @media(min-width:680px){.text-pair{grid-template-columns:1fr 1fr}}
-.text-block{display:flex;flex-direction:column;gap:6px}
+.text-block{display:flex;flex-direction:column;gap:8px}
 .text-block textarea{flex:1}
 .text-actions{display:flex;gap:6px;justify-content:flex-end}
-.text-actions button{padding:4px 10px;font-size:11pt}
 
-#translate-controls{display:flex;gap:10px;align-items:center;justify-content:center;margin:0 0 16pt;flex-wrap:wrap;font-size:13pt;color:#bbb}
-#translate-status{font-size:12pt;color:#aaa;min-height:1em}
+#translate-status{font-size:14pt;color:#aaa;min-height:1em;text-align:center;margin:0 0 16pt}
 
 .pron-row{display:flex;gap:8px;margin:0 0 8pt}
 .pron-row input{flex:1}
-#pron-output{background:rgba(255,255,255,0.04);border:1px solid #555;border-radius:6px;padding:14px;min-height:54px;font-size:20pt;text-align:center;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;margin:0 0 8pt}
-#pron-output.placeholder{color:#666;font-style:italic;font-size:14pt;letter-spacing:0}
+#pron-output{background:transparent;border:1px solid #fff;border-radius:4px;padding:14px;min-height:54px;font-size:20pt;text-align:center;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;margin:0 0 8pt}
+#pron-output.placeholder{color:#888;font-style:italic;font-size:16pt;letter-spacing:0}
 #pron-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 8pt}
+.pron-blurb{font-size:14pt;color:#bbb;text-align:center;margin:0 0 10pt;line-height:1.3}
 
 @media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
 </style>
@@ -57,12 +62,14 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:#888}
 <body>
 <img src="/images/Favicon.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Linguifier</h1>
-<h2><em>Speak With Your Tongue</em>:<span class="sub-break"> </span>A Linguistic Tool</h2>
+<h2><em>Speak With Your Tongue</em>:<span class="sub-break"> </span>A Translation and Pronunciation Tool</h2>
 
 <h3>The Translatorator</h3>
 <div class="lang-row">
   <select id="src-lang" onchange="onLangChange()"></select>
-  <button class="swap-btn" onclick="swapLanguages()" title="Swap">⇄</button>
+  <button class="icon swap-btn" onclick="swapLanguages()" title="Swap" aria-label="Swap">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
+  </button>
   <select id="tgt-lang" onchange="onLangChange()"></select>
 </div>
 
@@ -70,34 +77,46 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:#888}
   <div class="text-block">
     <textarea id="src-text" placeholder="Enter text" oninput="onSrcInput()"></textarea>
     <div class="text-actions">
-      <button onclick="speakSrc()">Speak</button>
-      <button onclick="clearSrc()">Clear</button>
+      <button class="icon" onclick="speakSrc()" title="Speak" aria-label="Speak">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 10v4c0 .55.45 1 1 1h3l3.29 3.29c.63.63 1.71.18 1.71-.71V6.41c0-.89-1.08-1.34-1.71-.71L7 9H4c-.55 0-1 .45-1 1zm13.5 2A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v.69c0 .42.28.78.67.93C17.65 5.99 19.5 8.79 19.5 12s-1.85 6.01-4.83 7.15c-.39.15-.67.5-.67.93v.69c0 .65.65 1.1 1.25.91 4.05-1.46 6.95-5.32 6.95-9.78s-2.9-8.32-6.95-9.78c-.6-.21-1.25.24-1.25.9z"/></svg>
+      </button>
+      <button class="icon" id="record-btn" onclick="toggleRecord()" title="Record" aria-label="Record">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/></svg>
+      </button>
+      <button class="icon" onclick="clearSrc()" title="Clear" aria-label="Clear">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
     </div>
   </div>
   <div class="text-block">
     <textarea id="tgt-text" placeholder="Translation" readonly></textarea>
     <div class="text-actions">
-      <button onclick="speakTgt()">Speak</button>
-      <button onclick="copyTgt()">Copy</button>
+      <button class="icon" onclick="speakTgt()" title="Speak" aria-label="Speak">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 10v4c0 .55.45 1 1 1h3l3.29 3.29c.63.63 1.71.18 1.71-.71V6.41c0-.89-1.08-1.34-1.71-.71L7 9H4c-.55 0-1 .45-1 1zm13.5 2A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v.69c0 .42.28.78.67.93C17.65 5.99 19.5 8.79 19.5 12s-1.85 6.01-4.83 7.15c-.39.15-.67.5-.67.93v.69c0 .65.65 1.1 1.25.91 4.05-1.46 6.95-5.32 6.95-9.78s-2.9-8.32-6.95-9.78c-.6-.21-1.25.24-1.25.9z"/></svg>
+      </button>
+      <button class="icon" onclick="copyTgt()" title="Copy" aria-label="Copy">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+      </button>
     </div>
   </div>
 </div>
 
-<div id="translate-controls">
-  <button id="translate-btn" onclick="doTranslate()">Translate</button>
-  <label><input type="checkbox" id="auto-translate" checked> Auto-translate</label>
-  <span id="translate-status"></span>
-</div>
+<div id="translate-status"></div>
 
 <h3>The Pronouncerator</h3>
+<p class="pron-blurb">Get a phonetic guide for any English word — proper nouns, names, brands, and technical terms welcome.</p>
 <div class="pron-row">
   <input type="text" id="pron-input" placeholder="Type a word" onkeydown="if(event.key==='Enter'){event.preventDefault();doPronounce();}">
   <button onclick="doPronounce()">Pronounce</button>
 </div>
 <div id="pron-output" class="placeholder">—</div>
 <div id="pron-actions">
-  <button id="pron-speak-btn" onclick="speakPronWord()" disabled>Speak</button>
-  <button id="pron-copy-btn" onclick="copyPron()" disabled>Copy</button>
+  <button class="icon" id="pron-speak-btn" onclick="speakPronWord()" disabled title="Speak" aria-label="Speak">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 10v4c0 .55.45 1 1 1h3l3.29 3.29c.63.63 1.71.18 1.71-.71V6.41c0-.89-1.08-1.34-1.71-.71L7 9H4c-.55 0-1 .45-1 1zm13.5 2A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v.69c0 .42.28.78.67.93C17.65 5.99 19.5 8.79 19.5 12s-1.85 6.01-4.83 7.15c-.39.15-.67.5-.67.93v.69c0 .65.65 1.1 1.25.91 4.05-1.46 6.95-5.32 6.95-9.78s-2.9-8.32-6.95-9.78c-.6-.21-1.25.24-1.25.9z"/></svg>
+  </button>
+  <button class="icon" id="pron-copy-btn" onclick="copyPron()" disabled title="Copy" aria-label="Copy">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+  </button>
 </div>
 
 <div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
@@ -105,17 +124,30 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:#888}
 <img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 
 <script>
+// One language per first letter where feasible. "Mandarin" replaces
+// "Chinese (Simplified)" — clearer for the spoken-language being translated
+// (Mandarin is the actual language; Simplified/Traditional refer only to
+// written script). Bengali and Chinese (Traditional) removed; Latin added.
 const LANGUAGES = [
-  {code:'ar',name:'Arabic'},{code:'bn',name:'Bengali'},
-  {code:'zh-CN',name:'Chinese (Simplified)'},{code:'zh-TW',name:'Chinese (Traditional)'},
-  {code:'nl',name:'Dutch'},{code:'en',name:'English'},
-  {code:'fr',name:'French'},{code:'de',name:'German'},
-  {code:'el',name:'Greek'},{code:'hi',name:'Hindi'},
-  {code:'it',name:'Italian'},{code:'ja',name:'Japanese'},
-  {code:'ko',name:'Korean'},{code:'pl',name:'Polish'},
-  {code:'pt',name:'Portuguese'},{code:'ru',name:'Russian'},
-  {code:'es',name:'Spanish'},{code:'sv',name:'Swedish'},
-  {code:'tr',name:'Turkish'},{code:'vi',name:'Vietnamese'}
+  {code:'ar',name:'Arabic'},
+  {code:'zh-CN',name:'Mandarin'},
+  {code:'nl',name:'Dutch'},
+  {code:'en',name:'English'},
+  {code:'fr',name:'French'},
+  {code:'de',name:'German'},
+  {code:'el',name:'Greek'},
+  {code:'hi',name:'Hindi'},
+  {code:'it',name:'Italian'},
+  {code:'ja',name:'Japanese'},
+  {code:'ko',name:'Korean'},
+  {code:'la',name:'Latin'},
+  {code:'pl',name:'Polish'},
+  {code:'pt',name:'Portuguese'},
+  {code:'ru',name:'Russian'},
+  {code:'es',name:'Spanish'},
+  {code:'sv',name:'Swedish'},
+  {code:'tr',name:'Turkish'},
+  {code:'vi',name:'Vietnamese'}
 ];
 
 function populateLanguageSelects(){
@@ -194,8 +226,9 @@ async function doTranslate(){
   }
 }
 
+// Auto-translate is always on now. Debounce keystrokes by 600ms so we don't
+// hammer the API on every character.
 function onSrcInput(){
-  if (!document.getElementById('auto-translate').checked) return;
   if (_debounce) clearTimeout(_debounce);
   _debounce = setTimeout(doTranslate, 600);
 }
@@ -248,6 +281,67 @@ function speakTgt(){
   speak(document.getElementById('tgt-text').value, document.getElementById('tgt-lang').value);
 }
 
+/* ───────── RECORD (Speech-to-Text into source) ─────────
+ * Uses the Web Speech Recognition API (Chrome/Edge/Safari). Tap the mic to
+ * start, tap again to stop. Final transcript replaces the source text and
+ * triggers an auto-translate.
+ */
+let _rec = null;
+function toggleRecord(){
+  const btn = document.getElementById('record-btn');
+  const status = document.getElementById('translate-status');
+  if (_rec) {
+    try { _rec.stop(); } catch(e){}
+    _rec = null;
+    btn.classList.remove('recording');
+    return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    status.textContent = 'Recording is not supported in this browser';
+    return;
+  }
+  let lang = document.getElementById('src-lang').value;
+  if (lang === 'auto') lang = 'en';
+  // Map our two-letter codes to BCP 47 tags the recognition API expects
+  const langMap = {ar:'ar-SA','zh-CN':'cmn-Hans-CN',nl:'nl-NL',en:'en-US',fr:'fr-FR',de:'de-DE',el:'el-GR',hi:'hi-IN',it:'it-IT',ja:'ja-JP',ko:'ko-KR',la:'la',pl:'pl-PL',pt:'pt-BR',ru:'ru-RU',es:'es-ES',sv:'sv-SE',tr:'tr-TR',vi:'vi-VN'};
+  _rec = new SR();
+  _rec.lang = langMap[lang] || lang;
+  _rec.continuous = false;
+  _rec.interimResults = true;
+  _rec.maxAlternatives = 1;
+  let finalText = '';
+  _rec.onresult = (ev) => {
+    let interim = '';
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      const r = ev.results[i];
+      if (r.isFinal) finalText += r[0].transcript;
+      else interim += r[0].transcript;
+    }
+    document.getElementById('src-text').value = (finalText + interim).trim();
+    onSrcInput();
+  };
+  _rec.onerror = (e) => {
+    status.textContent = 'Recording error: ' + (e.error || 'unknown');
+    btn.classList.remove('recording');
+    _rec = null;
+  };
+  _rec.onend = () => {
+    btn.classList.remove('recording');
+    _rec = null;
+    if (document.getElementById('src-text').value.trim()) doTranslate();
+  };
+  try {
+    _rec.start();
+    btn.classList.add('recording');
+    status.textContent = 'Listening';
+  } catch(e) {
+    status.textContent = 'Could not start recording';
+    _rec = null;
+  }
+}
+
+/* ───────── PRONOUNCERATOR ───────── */
 const ARP_MAP = {
   'AA':'ah','AE':'a','AH':'uh','AO':'aw','AW':'ow',
   'AY':'i','EH':'e','ER':'er','EY':'ay','IH':'i',
