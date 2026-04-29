@@ -192,28 +192,32 @@ body.fs-active #progress-text,
 body.fs-active #shortcuts-hint,
 body.fs-active .btn-row{display:none !important}
 
-/* Compact controls in fullscreen — all chrome text shares the same size */
+/* Compact controls in fullscreen — minimal vertical footprint to give the
+   reader pane the most room. */
 body.fs-active #chapter-select,
-body.fs-active #audio-chapter-select{margin:0;padding:4px 10px;flex:0 0 auto;height:36px;line-height:1}
-body.fs-active #settings-toggle{margin:0;padding:4px 10px;flex:0 0 auto;height:32px;position:relative;z-index:10001}
+body.fs-active #audio-chapter-select{margin:0;padding:2px 8px;flex:0 0 auto;height:30px;line-height:1}
+body.fs-active #settings-toggle{margin:0;padding:2px 8px;flex:0 0 auto;height:30px;position:relative;z-index:10001}
 body.fs-active #settings-panel{flex:0 0 auto;max-height:40vh;overflow-y:auto;margin:0}
 body.fs-active #ebook-btn-row,
-body.fs-active #all-btn-row{margin:0;flex:0 0 auto}
+body.fs-active #all-btn-row{margin:0;flex:0 0 auto;gap:3px}
 body.fs-active #ebook-btn-row button,
-body.fs-active #all-btn-row button{height:38px}
+body.fs-active #all-btn-row button{height:32px}
 body.fs-active #reader-pane{flex:1 1 auto;min-height:0;height:auto !important;max-height:none !important;left:0 !important;transform:none !important;width:100% !important;max-width:100% !important;border:none}
-body.fs-active #book-progress{margin:0;flex:0 0 auto;display:block}
-body.fs-active #cover-wrap{margin:2px auto;width:60px;height:60px;flex:0 0 auto}
+body.fs-active #book-progress{margin:0;flex:0 0 auto;display:block;padding:2px 0}
+body.fs-active #cover-wrap{margin:2px auto;width:50px;height:50px;flex:0 0 auto}
 body.fs-active #book-title{margin:0;flex:0 0 auto;text-align:center}
-body.fs-active #audio-pane{flex:0 0 auto;background:transparent;border:none;padding:0}
+body.fs-active #audio-pane{flex:0 0 auto;background:transparent;border:none;padding:0;gap:3px;display:flex;flex-direction:column}
 body.fs-active #audio-pane.hidden{display:none}
-body.fs-active #ch-bar{height:10px}
-body.fs-active #time-row{margin:0 0 4pt}
+body.fs-active #ch-bar{height:8px}
+body.fs-active #time-row{margin:0}
+body.fs-active #fs-target{gap:3px;padding:6px}
 
 /* Uniform 13pt across every chrome text element in fullscreen — except
-   the reader content itself, which keeps the user's chosen font size. */
+   the reader content itself, which keeps the user's chosen font size.
+   Includes select option text and the new fs-menu panel labels. */
 body.fs-active #chapter-select,
 body.fs-active #audio-chapter-select,
+body.fs-active select option,
 body.fs-active #settings-toggle,
 body.fs-active #settings-toggle span,
 body.fs-active #settings-panel,
@@ -229,7 +233,13 @@ body.fs-active #all-btn-row .btn-label,
 body.fs-active #ebook-btn-row .btn-label,
 body.fs-active #shortcuts-hint,
 body.fs-active .kbd-btn,
-body.fs-active .kbd-row span{font-size:13pt !important}
+body.fs-active .kbd-row span,
+body.fs-active #fs-menu-toggle,
+body.fs-active #fs-menu-toggle span,
+body.fs-active #fs-menu-panel,
+body.fs-active #fs-menu-panel .fs-menu-h1,
+body.fs-active #fs-menu-panel .fs-menu-h2,
+body.fs-active #fs-menu-panel button{font-size:13pt !important}
 
 /* ── Mode: e-book only (no audio) ── */
 body.fs-active.fs-no-audio #book-progress,
@@ -257,29 +267,38 @@ body.fs-active.fs-no-book #audio-pane{width:min(80vw,500px)}
 .fs-exit-btn:hover,.fs-help-btn:hover{background:rgba(0,0,0,0.95)}
 body.fs-active .fs-exit-btn,body.fs-active .fs-help-btn{display:inline-flex}
 
-/* In fullscreen, the shortcuts hint is moved into #settings-panel by JS so
-   opening Reader Settings exposes it (per "all elements still accessible"). */
-body.fs-active #settings-panel #shortcuts-hint{
-  display:flex !important;flex-wrap:wrap;justify-content:flex-start;
-  margin:10px 0 0;padding-top:10px;border-top:1px solid #555;max-width:none
-}
-/* Legacy ?-button overlay path stays available as a quick toggle */
+/* The fullscreen Menu collects everything that can't live in the slim
+   chrome: page title text, upload buttons, keyboard shortcuts. Behaves
+   like #settings-toggle: a compact bar that expands a panel when clicked. */
+#fs-menu-toggle,#fs-menu-panel{display:none}
+body.fs-active #fs-menu-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid #555;border-radius:6px;padding:4px 10px;height:32px;flex:0 0 auto;margin:0}
+body.fs-active #fs-menu-toggle:hover{background:rgba(255,255,255,0.08)}
+body.fs-active #fs-menu-toggle span{font-size:13pt}
+body.fs-active #fs-menu-panel.open{display:flex;flex:0 0 auto;flex-direction:column;gap:8px;border:1px solid #555;border-radius:6px;padding:10px 12px;background:rgba(255,255,255,0.04);max-height:60vh;overflow-y:auto;margin:0}
+body.fs-active #fs-menu-panel .fs-menu-title{text-align:center}
+body.fs-active #fs-menu-panel .fs-menu-h1{font-size:18pt;font-weight:400;margin:0 0 4px}
+body.fs-active #fs-menu-panel .fs-menu-h2{font-size:13pt;font-weight:400;margin:0 0 6px;color:#bbb}
+body.fs-active #fs-menu-panel .btn-row{margin:0}
+body.fs-active #fs-menu-panel .btn-row button{height:36px}
+body.fs-active #fs-menu-panel #shortcuts-hint{display:flex !important;flex-wrap:wrap;justify-content:flex-start;margin:6px 0 0;padding-top:8px;border-top:1px solid #555;max-width:none;gap:6px 12px}
+/* Legacy ?-button overlay path — kept for quick toggle */
 body.fs-active #shortcuts-hint.shown{display:flex !important;position:fixed;top:56px;right:8px;z-index:10005;background:#1a1a1a;border:1px solid #888;border-radius:6px;padding:12px 16px;max-width:min(90vw,420px);max-height:75vh;overflow-y:auto;flex-direction:column;align-items:flex-start;gap:6px}
 
-/* Both-mode fullscreen with cover: cover floats bottom-right as a square,
-   sized to fill the available audio-area height. Audio elements get a
-   matching margin-right so they shift left and don't overlap. Without
-   cover, audio takes full width. */
+/* Both-mode fullscreen with cover: a small square (~140px) sits flush in
+   the bottom-right of the audio chrome — directly below the reader's
+   horizontal scrollbar — and never extends up into the reader area.
+   Audio elements get a matching margin-right so they shift left of it. */
 body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #cover-wrap{
-  position:absolute;bottom:8px;right:8px;
-  width:min(28vh,260px);height:min(28vh,260px);
+  position:absolute;bottom:6px;right:6px;
+  width:140px;height:140px;
   aspect-ratio:1;margin:0;z-index:5
 }
-body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #book-progress,
-body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #book-title,
-body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #audio-chapter-select,
-body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #audio-pane{margin-right:min(calc(28vh + 16px),276px)}
+body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #audio-pane,
+body.fs-active.fs-has-cover:not(.fs-no-book):not(.fs-no-audio) #audio-chapter-select{margin-right:152px}
+/* book-title is moved into #fs-menu-panel by JS in fullscreen, so don't show it
+   in its native location. */
 body.fs-active:not(.fs-no-book):not(.fs-no-audio) #book-title{display:none}
+body.fs-active #fs-menu-panel #book-title{display:block !important;font-size:13pt !important;color:#fff;text-align:center;margin:0 0 4pt}
 
 /* Mobile fullscreen tweaks */
 @media(max-width:600px){
@@ -368,6 +387,28 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
 <h2><em>Read With Your Brainbox</em>:<span class="sub-break"> </span>An E-Book/Audiobook Readio</h2>
 
 <div id="fs-target">
+
+<!-- Fullscreen-only Menu: tucks away page-title text, upload buttons, and
+     the keyboard-shortcuts list. Hidden outside fullscreen. -->
+<div id="fs-menu-toggle" onclick="toggleFsMenu()">
+  <span>Menu</span>
+  <span id="fs-menu-arrow">▼</span>
+</div>
+<div id="fs-menu-panel">
+  <div class="fs-menu-title">
+    <div class="fs-menu-h1">Erik's Bibliocaster</div>
+    <div class="fs-menu-h2"><em>Read With Your Brainbox</em>: An E-Book/Audiobook Readio</div>
+  </div>
+  <div class="btn-row">
+    <button onclick="document.getElementById('file-input').click()">Upload E-Book File</button>
+    <button onclick="document.getElementById('cover-input').click()">Upload Cover Image</button>
+  </div>
+  <div class="btn-row">
+    <button onclick="document.getElementById('audio-input').click()">Upload Audiobook File</button>
+    <button onclick="document.getElementById('folder-input').click()">Upload Audiobook Folder</button>
+  </div>
+  <!-- #shortcuts-hint is moved here on enterFullscreen -->
+</div>
 
 <!-- ━━━━━━━━━━━━━━━━ E-BOOK READER ━━━━━━━━━━━━━━━━ -->
 <div class="btn-row">
@@ -520,11 +561,11 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
     </button>
     <div class="mob-break"></div>
   </div>
+  <div id="book-progress">Read 0:00:00 of 0:00:00 (0%), 0:00:00 Left</div>
   <div id="ch-bar" onclick="seekAudio(event)"><div id="ch-fill"></div></div>
   <div id="time-row"><span id="cur-time">0:00</span><span id="tot-time">0:00</span></div>
 </div>
 
-<div id="book-progress">Read 0:00:00 of 0:00:00 (0%), 0:00:00 Left</div>
 <select id="audio-chapter-select" disabled style="display:none"><option>No Chapters</option></select>
 <h2 id="book-title"></h2>
 <div id="cover-wrap"><img id="cover-img" src="" alt="Cover"></div>
@@ -1305,9 +1346,13 @@ var _snapTimer = null;
     _snapTimer = setTimeout(function(){
       var w = rc.clientWidth;
       if (!w) return;
-      // Round to whichever page is closer (Math.round picks nearest).
+      // Round to whichever page is closer (Math.round picks nearest), then
+      // clamp to maxScroll so the last page can settle even when scrollWidth
+      // isn't a clean multiple of clientWidth.
       var page = Math.round(rc.scrollLeft / w);
-      var target = page * w;
+      var maxScroll = Math.max(0, rc.scrollWidth - w);
+      var target = Math.min(page * w, maxScroll);
+      target = Math.max(0, target);
       if (Math.abs(rc.scrollLeft - target) > 1) snapScroll(rc, target);
     }, 120);
   });
@@ -1404,22 +1449,48 @@ function exitFullscreen(){
   restoreShortcutsHint();
 }
 
-// Stash the shortcuts-hint's original DOM position so we can restore it.
+// Stash original DOM positions so we can restore them on fullscreen exit.
 var _shortcutsHintHome = null;
-function moveShortcutsToSettings(){
+var _bookTitleHome = null;
+function moveShortcutsToMenu(){
   var sh = document.getElementById('shortcuts-hint');
-  var sp = document.getElementById('settings-panel');
-  if (!sh || !sp || sh.parentNode === sp) return;
+  var mp = document.getElementById('fs-menu-panel');
+  if (!sh || !mp || sh.parentNode === mp) return;
   _shortcutsHintHome = {parent: sh.parentNode, next: sh.nextSibling};
-  sp.appendChild(sh);
+  mp.appendChild(sh);
+}
+function moveBookTitleToMenu(){
+  var bt = document.getElementById('book-title');
+  var mp = document.getElementById('fs-menu-panel');
+  if (!bt || !mp || bt.parentNode === mp) return;
+  _bookTitleHome = {parent: bt.parentNode, next: bt.nextSibling};
+  // Insert near the top of the menu, after the title text block
+  var titleBlock = mp.querySelector('.fs-menu-title');
+  if (titleBlock && titleBlock.nextSibling) mp.insertBefore(bt, titleBlock.nextSibling);
+  else mp.appendChild(bt);
 }
 function restoreShortcutsHint(){
   var sh = document.getElementById('shortcuts-hint');
-  if (!sh || !_shortcutsHintHome) return;
-  var h = _shortcutsHintHome;
-  if (h.next && h.next.parentNode === h.parent) h.parent.insertBefore(sh, h.next);
-  else h.parent.appendChild(sh);
-  _shortcutsHintHome = null;
+  if (sh && _shortcutsHintHome) {
+    var h = _shortcutsHintHome;
+    if (h.next && h.next.parentNode === h.parent) h.parent.insertBefore(sh, h.next);
+    else h.parent.appendChild(sh);
+    _shortcutsHintHome = null;
+  }
+  var bt = document.getElementById('book-title');
+  if (bt && _bookTitleHome) {
+    var h2 = _bookTitleHome;
+    if (h2.next && h2.next.parentNode === h2.parent) h2.parent.insertBefore(bt, h2.next);
+    else h2.parent.appendChild(bt);
+    _bookTitleHome = null;
+  }
+}
+
+function toggleFsMenu(){
+  var p = document.getElementById('fs-menu-panel');
+  var a = document.getElementById('fs-menu-arrow');
+  p.classList.toggle('open');
+  if (a) a.textContent = p.classList.contains('open') ? '▲' : '▼';
 }
 
 function enterFullscreen(){
@@ -1439,9 +1510,14 @@ function enterFullscreen(){
   document.body.classList.toggle('fs-no-audio', !hasAudio);
   document.body.classList.toggle('fs-has-cover', hasCover);
   document.body.classList.add('fs-active');
-  // Tuck shortcuts-hint into the settings panel so it's accessible by opening
-  // settings — required by "all elements should still be accessible".
-  moveShortcutsToSettings();
+  // Make sure the menu starts closed each time we enter fullscreen
+  var mp = document.getElementById('fs-menu-panel');
+  if (mp) mp.classList.remove('open');
+  var ma = document.getElementById('fs-menu-arrow');
+  if (ma) ma.textContent = '▼';
+  // Move shortcuts-hint and book-title into the Menu so they remain reachable.
+  moveShortcutsToMenu();
+  moveBookTitleToMenu();
   // After layout settles in fullscreen, recompute pagination at the new dimensions
   setTimeout(function(){ if (chapters.length) computePagination(); }, 200);
   // Try native fullscreen API; fall back to CSS pseudo-fullscreen on mobile Safari
