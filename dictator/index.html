@@ -301,6 +301,7 @@ function downloadText(){
   a.href = URL.createObjectURL(new Blob([text], {type:'text/plain'}));
   a.download = `stt_ejm_${getOutputName()}.txt`;
   a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 100);
 }
 
 function downloadAudio(){

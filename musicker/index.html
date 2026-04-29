@@ -473,9 +473,11 @@ document.getElementById('audio-upload').onchange = async function(){
   if(!f) return;
   uploadedAudioFile = f;
   document.getElementById('audio-info').textContent = f.name + ' (' + Math.round(f.size/1024) + ' KB)';
-  var url = URL.createObjectURL(f);
+  // Free the previous blob URL when the user replaces the audio file
   var player = document.getElementById('audio-player');
-  player.src = url;
+  if (player._blobUrl) { try { URL.revokeObjectURL(player._blobUrl); } catch(e){} }
+  player._blobUrl = URL.createObjectURL(f);
+  player.src = player._blobUrl;
   player.style.display = 'block';
   document.getElementById('analyze-audio-btn').disabled = true;
   document.getElementById('status').textContent = 'Status: Decoding audio...';
@@ -642,7 +644,7 @@ function renderBackendResult(d){
   html += '<div class="value">'+escHtml(tsTxt)+'</div>';
   if(d.parts && d.parts.length){
     html += '<div class="label" style="margin-top:8pt">Chord progression:</div>';
-    html += '<div id="progression">';
+    html += '<div class="progression">';
     d.parts.forEach(function(p){
       html += '<div><strong>'+escHtml(p.label)+':</strong> '+escHtml(p.chords)+'</div>';
     });
@@ -707,7 +709,7 @@ async function analyzeAudioClientSide(){
   html += '<div class="label" style="margin-top:8pt">Tempo:</div><div class="value">'+(bpm>0?bpm+' BPM':'(undetermined)')+'</div>';
   html += '<div class="label" style="margin-top:8pt">Time signature:</div><div class="value">4/4</div>';
   html += '<div class="label" style="margin-top:8pt">Chord progression:</div>';
-  html += '<div id="progression"><strong>Progression:</strong> ';
+  html += '<div class="progression"><strong>Progression:</strong> ';
   collapsed.forEach(function(c){ html += c.chord + (c.count > 1 ? ' '+c.chord : '') + ' '; });
   html += '</div>';
   document.getElementById('result').innerHTML = html;
