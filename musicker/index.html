@@ -481,15 +481,21 @@ document.getElementById('audio-upload').onchange = async function(){
   player.style.display = 'block';
   document.getElementById('analyze-audio-btn').disabled = true;
   document.getElementById('status').textContent = 'Status: Decoding audio...';
+  // Close the AudioContext in finally so a decode failure doesn't leave
+  // the context open (browsers cap at ~6 concurrent contexts; opening 6
+  // bad files would deadlock the page until reload).
+  var ac = null;
   try {
     var buf = await f.arrayBuffer();
-    var ac = new (window.AudioContext||window.webkitAudioContext)();
+    ac = new (window.AudioContext||window.webkitAudioContext)();
     audioBuffer = await new Promise(function(resolve,reject){ ac.decodeAudioData(buf, resolve, reject); });
-    ac.close();
     document.getElementById('analyze-audio-btn').disabled = false;
     document.getElementById('status').textContent = 'Status: Ready ('+audioBuffer.duration.toFixed(1)+'s)';
   } catch(e){
-    document.getElementById('status').textContent = 'Status: Error decoding - '+e.message;
+    document.getElementById('status').textContent = 'Status: Error decoding - ' + (e && e.message || e);
+    audioBuffer = null;
+  } finally {
+    if (ac) try { ac.close(); } catch(_){}
   }
 };
 
