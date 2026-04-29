@@ -66,6 +66,10 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
    should never be pushed forward leaving a gap. Only images stay whole. */
 #reader-content p{margin:0 0 1em;orphans:1;widows:1}
 #reader-content h1,#reader-content h2,#reader-content h3,#reader-content h4{margin:1em 0 0.5em;font-weight:600;line-height:1.2}
+/* Each chapter / part heading starts a new page — except in Native mode
+   (file's own layout) and Sardines mode (which flattens away h*). */
+#reader-content[class*="sp-"]:not(.sp-sardines) h1,
+#reader-content[class*="sp-"]:not(.sp-sardines) h2{break-before:column;-webkit-column-break-before:always}
 #reader-content h1{font-size:1.6em;text-align:left;border:none;padding:0}
 #reader-content h2{font-size:1.4em;text-align:left}
 #reader-content h3{font-size:1.2em;text-align:left;border:none;padding:0}
@@ -1727,7 +1731,10 @@ document.addEventListener('keydown', function(e){
 
 // Custom scroll animation — snappier than the browser's smooth scroll.
 // Ease-out cubic over 130ms feels like a page-flip, not a glide.
+// Always rounds the final value so scrollLeft sits on an integer pixel
+// — sub-pixel landings were how the cumulative-drift bug crept in.
 function snapScroll(el, target){
+  target = Math.round(target);
   var start = el.scrollLeft;
   var change = target - start;
   if (Math.abs(change) < 1) { el.scrollLeft = target; return; }
@@ -1743,30 +1750,39 @@ function snapScroll(el, target){
   requestAnimationFrame(step);
 }
 
-// Page navigation: snap one page-spread horizontally (matches the column layout).
-// At end-of-chapter, advance/retreat into the next chapter so paging feels seamless.
+// Page navigation. Drift-proof: snap to the *nearest* current page first,
+// then add the direction. Without this, an in-flight animation or a
+// slightly-off scrollLeft would compound on every press, drifting the
+// layout further from page boundaries with every step (resets only at
+// chapter boundaries because renderChapter zeroes scrollLeft).
 function pageScroll(dir){
   var c = document.getElementById('reader-content');
   if (!c) return;
   var step = c.clientWidth;
-  var maxScroll = c.scrollWidth - c.clientWidth;
-  var newScroll = c.scrollLeft + dir * step;
-  if (dir > 0 && c.scrollLeft >= maxScroll - 2) {
+  var maxScroll = Math.max(0, c.scrollWidth - c.clientWidth);
+  var currentPage = Math.round(c.scrollLeft / step);
+  var targetPage = currentPage + dir;
+  var target = targetPage * step;
+  // Off the right edge of the chapter → next chapter
+  if (target > maxScroll + 2) {
     if (currentChapter < chapters.length - 1) navChapter(1);
     return;
   }
-  if (dir < 0 && c.scrollLeft <= 2) {
+  // Off the left edge → previous chapter, jump to its last page
+  if (target < -2) {
     if (currentChapter > 0) {
       navChapter(-1);
-      // Jump to end of new chapter
       requestAnimationFrame(function(){
         var nc = document.getElementById('reader-content');
-        nc.scrollLeft = nc.scrollWidth;
+        var nMax = Math.max(0, nc.scrollWidth - nc.clientWidth);
+        var lastPage = Math.round(nMax / nc.clientWidth);
+        nc.scrollLeft = Math.round(lastPage * nc.clientWidth);
       });
     }
     return;
   }
-  snapScroll(c, Math.max(0, Math.min(maxScroll, newScroll)));
+  target = Math.max(0, Math.min(maxScroll, target));
+  snapScroll(c, target);
 }
 
 function bumpFontSize(dir){
