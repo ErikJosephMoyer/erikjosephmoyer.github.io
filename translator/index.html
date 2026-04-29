@@ -19,7 +19,7 @@
 body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
 h1{font-size:28pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
 h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
-h3{font-size:18pt;font-weight:500;margin:8pt 0 8pt;text-align:center;border-bottom:1px solid #555;padding-bottom:4px}
+h3{font-size:18pt;font-weight:500;margin:16pt 0 8pt;text-align:center}
 a,a:visited{color:#fff;text-decoration:underline;cursor:pointer}
 a:hover{color:#ccc}
 /* Canonical button: matches /typesetter/, /audiobooker/. Fixed height
@@ -47,14 +47,15 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:#ccc}
 .text-block textarea{flex:1}
 .text-actions{display:flex;gap:6px;justify-content:flex-end}
 
-#translate-status{font-size:14pt;color:#aaa;min-height:1em;text-align:center;margin:0 0 16pt}
+/* status text style is defined later as 16pt white */
 
 .pron-row{display:flex;gap:8px;margin:0 0 8pt}
 .pron-row input{flex:1}
 #pron-output{background:transparent;border:1px solid #fff;border-radius:4px;padding:14px;min-height:54px;font-size:20pt;text-align:center;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;margin:0 0 8pt}
 #pron-output.placeholder{color:#888;font-style:italic;font-size:16pt;letter-spacing:0}
 #pron-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 0 8pt}
-.pron-blurb{font-size:14pt;color:#bbb;text-align:center;margin:0 0 10pt;line-height:1.3}
+.pron-blurb{font-size:16pt;color:#fff;text-align:center;margin:0 0 10pt;line-height:1.3}
+#translate-status{font-size:16pt;color:#fff;min-height:1em;text-align:center;margin:0 0 16pt}
 
 @media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
 </style>
@@ -62,7 +63,7 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:#ccc}
 <body>
 <img src="/images/Favicon.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Linguifier</h1>
-<h2><em>Speak With Your Tongue</em>:<span class="sub-break"> </span>A Translation and Pronunciation Tool</h2>
+<h2><em>Speak With Your Tongue</em>:<span class="sub-break"> </span>An Interpretive Tool</h2>
 
 <h3>The Translatorator</h3>
 <div class="lang-row">
@@ -104,7 +105,7 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:#ccc}
 <div id="translate-status"></div>
 
 <h3>The Pronouncerator</h3>
-<p class="pron-blurb">Get a phonetic guide for any English word — proper nouns, names, brands, and technical terms welcome.</p>
+<p class="pron-blurb">How to pronounce any English word, including names, brands, and other proper nouns.</p>
 <div class="pron-row">
   <input type="text" id="pron-input" placeholder="Type a word" onkeydown="if(event.key==='Enter'){event.preventDefault();doPronounce();}">
   <button onclick="doPronounce()">Pronounce</button>
@@ -124,30 +125,38 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:#ccc}
 <img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 
 <script>
-// One language per first letter where feasible. "Mandarin" replaces
-// "Chinese (Simplified)" — clearer for the spoken-language being translated
-// (Mandarin is the actual language; Simplified/Traditional refer only to
-// written script). Bengali and Chinese (Traditional) removed; Latin added.
+// Exactly 26 languages, one per letter A–Z. Where multiple languages start
+// with the same letter, the one with the largest native-speaker base is
+// chosen (Mandarin for C, Hindi for H, Portuguese for P, etc.). Quechua,
+// Welsh, Xhosa, Yoruba, and Zulu have weaker translation API support but
+// the MyMemory→Lingva fallback chain handles them via Google Translate.
 const LANGUAGES = [
-  {code:'ar',name:'Arabic'},
-  {code:'zh-CN',name:'Mandarin'},
-  {code:'nl',name:'Dutch'},
-  {code:'en',name:'English'},
-  {code:'fr',name:'French'},
-  {code:'de',name:'German'},
-  {code:'el',name:'Greek'},
-  {code:'hi',name:'Hindi'},
-  {code:'it',name:'Italian'},
-  {code:'ja',name:'Japanese'},
-  {code:'ko',name:'Korean'},
-  {code:'la',name:'Latin'},
-  {code:'pl',name:'Polish'},
-  {code:'pt',name:'Portuguese'},
-  {code:'ru',name:'Russian'},
-  {code:'es',name:'Spanish'},
-  {code:'sv',name:'Swedish'},
-  {code:'tr',name:'Turkish'},
-  {code:'vi',name:'Vietnamese'}
+  {code:'ar', name:'Arabic'},      // A
+  {code:'bn', name:'Bengali'},     // B
+  {code:'zh-CN', name:'Mandarin'}, // C
+  {code:'nl', name:'Dutch'},       // D
+  {code:'en', name:'English'},     // E
+  {code:'fr', name:'French'},      // F
+  {code:'de', name:'German'},      // G
+  {code:'hi', name:'Hindi'},       // H
+  {code:'it', name:'Italian'},     // I
+  {code:'ja', name:'Japanese'},    // J
+  {code:'ko', name:'Korean'},      // K
+  {code:'la', name:'Latin'},       // L
+  {code:'ms', name:'Malay'},       // M
+  {code:'ne', name:'Nepali'},      // N
+  {code:'or', name:'Odia'},        // O
+  {code:'pt', name:'Portuguese'},  // P
+  {code:'qu', name:'Quechua'},     // Q
+  {code:'ru', name:'Russian'},     // R
+  {code:'es', name:'Spanish'},     // S
+  {code:'tr', name:'Turkish'},     // T
+  {code:'ur', name:'Urdu'},        // U
+  {code:'vi', name:'Vietnamese'},  // V
+  {code:'cy', name:'Welsh'},       // W
+  {code:'xh', name:'Xhosa'},       // X
+  {code:'yo', name:'Yoruba'},      // Y
+  {code:'zu', name:'Zulu'}         // Z
 ];
 
 function populateLanguageSelects(){
@@ -258,17 +267,63 @@ function ensureVoices(){
   });
 }
 
+/* Score each voice by quality. Browsers expose dozens of voices per
+ * language; the difference between "Microsoft David" (robotic) and
+ * "Google US English" or "Samantha (Premium)" (natural) is huge. We
+ * rank by:
+ *   1. Quality keywords in the name (Premium > Enhanced > Natural >
+ *      Neural > Wavenet > Studio)
+ *   2. Cloud-backed voices (localService=false) generally beat local TTS
+ *   3. Exact lang match beats partial
+ *   4. Known-good voice families (Google, Microsoft Online, Apple Premium)
+ */
+function pickBestVoice(lang){
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) return null;
+  const langPrefix = lang.toLowerCase().slice(0, 2);
+  const matching = voices.filter(v =>
+    v.lang === lang || (v.lang && v.lang.toLowerCase().startsWith(langPrefix))
+  );
+  if (!matching.length) return null;
+
+  const QUALITY = ['Premium', 'Enhanced', 'Natural', 'Neural', 'Wavenet', 'Studio', 'Online'];
+  const FAMILY = ['Google', 'Microsoft', 'Apple', 'Samantha', 'Karen', 'Daniel', 'Moira'];
+
+  function score(v){
+    let s = 0;
+    const name = v.name || '';
+    // Quality keywords (higher index = lower priority, so subtract)
+    for (let i = 0; i < QUALITY.length; i++) {
+      if (name.includes(QUALITY[i])) { s += (QUALITY.length - i) * 10; break; }
+    }
+    // Family bonus
+    for (const f of FAMILY) if (name.includes(f)) { s += 3; break; }
+    // Cloud > local
+    if (!v.localService) s += 5;
+    // Exact lang match
+    if (v.lang === lang) s += 4;
+    // Default voice slight bonus
+    if (v.default) s += 1;
+    return s;
+  }
+  matching.sort((a, b) => score(b) - score(a));
+  return matching[0];
+}
+
 async function speak(text, lang){
   if (!text || !('speechSynthesis' in window)) return;
   await ensureVoices();
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = lang;
-  const voices = speechSynthesis.getVoices();
-  const match = voices.find(v => v.lang === lang)
-             || voices.find(v => v.lang && v.lang.toLowerCase().startsWith(lang.toLowerCase().slice(0,2)));
-  if (match) u.voice = match;
-  u.rate = 1.0;
+  const best = pickBestVoice(lang);
+  if (best) u.voice = best;
+  // Slightly slower + lower pitch sounds more natural and less robotic
+  // than the browser default. Pronouncerator output (single words) gets
+  // an extra-slow rate so listeners can catch each syllable.
+  u.rate = 0.95;
+  u.pitch = 0.95;
+  u.volume = 1.0;
   speechSynthesis.speak(u);
 }
 
@@ -303,8 +358,17 @@ function toggleRecord(){
   }
   let lang = document.getElementById('src-lang').value;
   if (lang === 'auto') lang = 'en';
-  // Map our two-letter codes to BCP 47 tags the recognition API expects
-  const langMap = {ar:'ar-SA','zh-CN':'cmn-Hans-CN',nl:'nl-NL',en:'en-US',fr:'fr-FR',de:'de-DE',el:'el-GR',hi:'hi-IN',it:'it-IT',ja:'ja-JP',ko:'ko-KR',la:'la',pl:'pl-PL',pt:'pt-BR',ru:'ru-RU',es:'es-ES',sv:'sv-SE',tr:'tr-TR',vi:'vi-VN'};
+  // Map our short codes to BCP 47 tags the recognition API expects.
+  // Languages without recognition support (Latin, Quechua, Welsh, Xhosa,
+  // Yoruba, Zulu in most browsers) fall through with the bare code; Web
+  // Speech will reject and the error handler shows a clean message.
+  const langMap = {
+    ar:'ar-SA', bn:'bn-IN', 'zh-CN':'cmn-Hans-CN', nl:'nl-NL', en:'en-US',
+    fr:'fr-FR', de:'de-DE', hi:'hi-IN', it:'it-IT', ja:'ja-JP',
+    ko:'ko-KR', la:'la', ms:'ms-MY', ne:'ne-NP', or:'or-IN',
+    pt:'pt-BR', qu:'qu', ru:'ru-RU', es:'es-ES', tr:'tr-TR',
+    ur:'ur-PK', vi:'vi-VN', cy:'cy-GB', xh:'xh-ZA', yo:'yo-NG', zu:'zu-ZA'
+  };
   _rec = new SR();
   _rec.lang = langMap[lang] || lang;
   _rec.continuous = false;
@@ -416,7 +480,22 @@ async function doPronounce(){
 }
 
 function speakPronWord(){
-  speak(document.getElementById('pron-input').value.trim(), 'en-US');
+  // Pronouncerator output is a single word — read it slower than translator
+  // playback so each syllable is distinct.
+  if (!('speechSynthesis' in window)) return;
+  const word = document.getElementById('pron-input').value.trim();
+  if (!word) return;
+  ensureVoices().then(() => {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(word);
+    u.lang = 'en-US';
+    const best = pickBestVoice('en-US');
+    if (best) u.voice = best;
+    u.rate = 0.85;
+    u.pitch = 0.95;
+    u.volume = 1.0;
+    speechSynthesis.speak(u);
+  });
 }
 
 async function copyPron(){
