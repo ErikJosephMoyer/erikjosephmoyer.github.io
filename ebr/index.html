@@ -633,7 +633,14 @@ function applySettings(){
   var pane = document.getElementById('reader-pane');
   content.style.fontFamily = document.getElementById('font-select').value;
   content.style.fontSize = document.getElementById('size-select').value + 'pt';
-  content.style.padding = document.getElementById('margin-select').value + 'px';
+  // Critical for page-snap math: column-gap MUST equal 2 × padding-horizontal
+  // for scrollLeft += clientWidth to land cleanly on the next 2-page spread.
+  // The user's Margin setting changes padding, so we set both here in lockstep.
+  // Without this, every margin except Normal (P=24, G=48) produced a per-page
+  // drift that compounded into the visible "askew columns" bug.
+  var pad = parseFloat(document.getElementById('margin-select').value) || 0;
+  content.style.padding = pad + 'px';
+  content.style.columnGap = (pad * 2) + 'px';
   content.style.textAlign = document.getElementById('align-select').value;
 
   // Spacing — drives line-height + paragraph margins via class; also re-renders
@@ -1421,11 +1428,11 @@ async function computePagination(){
   for (var i = 0; i < chapters.length; i++) {
     c.innerHTML = normalizeBreaks(chapters[i].html, spacing);
     void c.offsetWidth;  // force reflow
-    var cw = c.clientWidth || 1;
-    var pages = Math.max(1, Math.ceil(c.scrollWidth / cw));
+    var step = getPageStep();
+    var maxScroll = Math.max(0, c.scrollWidth - c.clientWidth);
+    var pages = Math.max(1, Math.round(maxScroll / step) + 1);
     pagesPerChapter.push(pages);
     totalPages += pages;
-    // Yield every 3 chapters
     if (i % 3 === 2 && i < chapters.length - 1) {
       await new Promise(function(r){ setTimeout(r, 0); });
     }
@@ -1443,8 +1450,8 @@ function updateProgress(){
   var pt = document.getElementById('progress-text');
   if (!pt || chapters.length === 0) { if (pt) pt.textContent = ''; return; }
   var c = document.getElementById('reader-content');
-  var cw = c.clientWidth || 1;
-  var pageInCh = Math.floor(c.scrollLeft / cw) + 1;
+  var step = getPageStep();
+  var pageInCh = Math.floor(c.scrollLeft / step) + 1;
   var pages = pagesPerChapter.length ? pagesPerChapter : null;
   if (pages) {
     var pagesBefore = 0;
@@ -1489,10 +1496,10 @@ function saveBookProgress(){
   if (!bookKey) return;
   try {
     var c = document.getElementById('reader-content');
-    var pageW = c.clientWidth || 1;
+    var step = getPageStep();
     localStorage.setItem('ebr_pos_' + bookKey, JSON.stringify({
       ch: currentChapter,
-      pg: Math.round(c.scrollLeft / pageW),
+      pg: Math.round(c.scrollLeft / step),
       sl: c.scrollLeft,
       st: c.scrollTop,
       ts: Date.now()
@@ -1510,12 +1517,55 @@ document.addEventListener('visibilitychange', function(){ if (document.visibilit
 // Throttled scroll save + progress refresh + page-boundary snap.
 // The reader can never settle between pages: after any scroll motion stops
 // (programmatic, wheel, trackpad, drag, touch), we snap to the nearest
-// clientWidth multiple. Aligned positions are a no-op.
+// page-step multiple. Aligned positions are a no-op.
 var _bookScrollTimer = null;
 var _snapTimer = null;
+
+// Swipe gestures — finger swipe on mobile and click-drag on desktop both
+// turn pages. Distance/velocity thresholds keep accidental drags during
+// text selection from page-flipping.
+function attachSwipe(rc){
+  var sx = null, sy = null, st = null;
+  function begin(x, y){ sx = x; sy = y; st = Date.now(); }
+  function finish(x, y){
+    if (sx == null) return false;
+    var dx = x - sx, dy = y - sy, dt = Date.now() - st;
+    sx = sy = st = null;
+    // Horizontal-dominant, fast, far enough
+    if (dt > 800) return false;
+    if (Math.abs(dx) < 50) return false;
+    if (Math.abs(dx) < Math.abs(dy) * 1.2) return false;
+    pageScroll(dx > 0 ? -1 : 1);  // swipe right → previous page
+    return true;
+  }
+  // Touch (mobile)
+  rc.addEventListener('touchstart', function(e){
+    if (e.touches.length === 1) begin(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive:true});
+  rc.addEventListener('touchend', function(e){
+    if (e.changedTouches.length === 1) finish(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+  }, {passive:true});
+  // Mouse drag (desktop) — only for left-button drags
+  var dragging = false;
+  rc.addEventListener('mousedown', function(e){
+    if (e.button !== 0) return;
+    dragging = true;
+    begin(e.clientX, e.clientY);
+  });
+  rc.addEventListener('mouseup', function(e){
+    if (!dragging) return;
+    dragging = false;
+    finish(e.clientX, e.clientY);
+  });
+  rc.addEventListener('mouseleave', function(){
+    dragging = false; sx = sy = st = null;
+  });
+}
+
 (function attachReaderScroll(){
   var rc = document.getElementById('reader-content');
   if (!rc) { setTimeout(attachReaderScroll, 50); return; }
+  attachSwipe(rc);
   rc.addEventListener('scroll', function(){
     updateProgress();
     if (!_bookScrollTimer) {
@@ -1523,14 +1573,11 @@ var _snapTimer = null;
     }
     if (_snapTimer) clearTimeout(_snapTimer);
     _snapTimer = setTimeout(function(){
-      var w = rc.clientWidth;
-      if (!w) return;
-      // Round to whichever page is closer (Math.round picks nearest), then
-      // clamp to maxScroll so the last page can settle even when scrollWidth
-      // isn't a clean multiple of clientWidth.
-      var page = Math.round(rc.scrollLeft / w);
-      var maxScroll = Math.max(0, rc.scrollWidth - w);
-      var target = Math.min(page * w, maxScroll);
+      var step = getPageStep();
+      if (!step) return;
+      var page = Math.round(rc.scrollLeft / step);
+      var maxScroll = Math.max(0, rc.scrollWidth - rc.clientWidth);
+      var target = Math.min(page * step, maxScroll);
       target = Math.max(0, target);
       if (Math.abs(rc.scrollLeft - target) > 1) snapScroll(rc, target);
     }, 120);
@@ -1903,6 +1950,22 @@ document.addEventListener('keydown', function(e){
   if ((k === '-' || k === '_') && !hasMod) { e.preventDefault(); bumpFontSize(-1); return; }
 });
 
+// Page step in CSS-multicol with overflow:
+//   step = clientWidth - padL - padR + columnGap
+// (Derived from: col 3's content-x = (clientWidth - 2P + G) when col 2 ends
+// at content-x = (clientWidth - 2P) and gap of G separates them.)
+// Returns the actual computed step regardless of P/G — robust against any
+// settings combo, even ones where padding ≠ gap/2.
+function getPageStep(){
+  var c = document.getElementById('reader-content');
+  if (!c || !c.clientWidth) return 1;
+  var cs = window.getComputedStyle(c);
+  var padL = parseFloat(cs.paddingLeft) || 0;
+  var padR = parseFloat(cs.paddingRight) || 0;
+  var gap = parseFloat(cs.columnGap) || 0;
+  return Math.max(1, Math.round(c.clientWidth - padL - padR + gap));
+}
+
 // Custom scroll animation — snappier than the browser's smooth scroll.
 // Ease-out cubic over 130ms feels like a page-flip, not a glide.
 // Always rounds the final value so scrollLeft sits on an integer pixel
@@ -1932,7 +1995,7 @@ function snapScroll(el, target){
 function pageScroll(dir){
   var c = document.getElementById('reader-content');
   if (!c) return;
-  var step = c.clientWidth;
+  var step = getPageStep();
   var maxScroll = Math.max(0, c.scrollWidth - c.clientWidth);
   var currentPage = Math.round(c.scrollLeft / step);
   var targetPage = currentPage + dir;
@@ -1948,9 +2011,10 @@ function pageScroll(dir){
       navChapter(-1);
       requestAnimationFrame(function(){
         var nc = document.getElementById('reader-content');
+        var nStep = getPageStep();
         var nMax = Math.max(0, nc.scrollWidth - nc.clientWidth);
-        var lastPage = Math.round(nMax / nc.clientWidth);
-        nc.scrollLeft = Math.round(lastPage * nc.clientWidth);
+        var lastPage = Math.round(nMax / nStep);
+        nc.scrollLeft = Math.round(lastPage * nStep);
       });
     }
     return;
