@@ -52,7 +52,11 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
   #reader-pane.view-double{left:0;transform:none;width:100%;max-width:100%}
   #reader-pane{height:min(75vh,calc(100vh - 240px));min-height:240px}
 }
-#reader-content{padding:24px 32px;height:100%;column-gap:48px;column-fill:auto;overflow-x:auto;overflow-y:hidden;line-height:1.5;hyphens:auto;-webkit-hyphens:auto;scroll-behavior:smooth;scrollbar-width:thin}
+/* CSS-multicol math: for scrollLeft += clientWidth to land cleanly on the
+   next 2-page spread, we need column-gap == 2 × padding-horizontal so that
+   the inter-page gap (between col 2 and col 3) matches the symmetric outer
+   padding. With padding:24px and column-gap:48px → page-step = clientWidth. */
+#reader-content{padding:24px;height:100%;column-gap:48px;column-fill:auto;overflow-x:auto;overflow-y:hidden;line-height:1.5;hyphens:auto;-webkit-hyphens:auto;scrollbar-width:thin}
 .view-double #reader-content{columns:2;column-rule:1px solid #444}
 .view-single #reader-content{columns:1;column-rule:none}
 @media(max-width:800px){.view-double #reader-content{columns:1;column-rule:none}}
