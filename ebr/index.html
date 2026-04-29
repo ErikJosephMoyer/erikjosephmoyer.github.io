@@ -55,8 +55,14 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 /* CSS-multicol math: for scrollLeft += clientWidth to land cleanly on the
    next 2-page spread, we need column-gap == 2 × padding-horizontal so that
    the inter-page gap (between col 2 and col 3) matches the symmetric outer
-   padding. With padding:24px and column-gap:48px → page-step = clientWidth. */
-#reader-content{padding:24px;height:100%;column-gap:48px;column-fill:auto;overflow-x:auto;overflow-y:hidden;line-height:1.5;hyphens:auto;-webkit-hyphens:auto;scrollbar-width:thin}
+   padding. With padding:24px and column-gap:48px → page-step = clientWidth.
+
+   overflow-x: hidden — manual horizontal scrolling is disabled. The reader
+   only advances via Page buttons / arrow keys / chapter nav, all of which
+   set scrollLeft to an exact integer page boundary. This eliminates the
+   drift problem entirely: browsers can't return scrollLeft to a sub-pixel
+   value if the user can't scroll there. */
+#reader-content{padding:24px;height:100%;column-gap:48px;column-fill:auto;overflow-x:hidden;overflow-y:hidden;line-height:1.5;hyphens:auto;-webkit-hyphens:auto}
 .view-double #reader-content{columns:2;column-rule:1px solid #444}
 .view-single #reader-content{columns:1;column-rule:none}
 @media(max-width:800px){.view-double #reader-content{columns:1;column-rule:none}}
@@ -185,16 +191,24 @@ body.fs-active>#fs-target{
 }
 #fs-target.pseudo-fs{position:fixed;inset:0;z-index:9999;width:100vw}
 
-/* Hide chrome that doesn't belong in fullscreen */
+/* Hide chrome that doesn't belong in fullscreen.
+   #progress-text is intentionally NOT hidden — it's the page-of-page
+   readout that sits below Reader Settings.
+   #book-title is hidden everywhere in fullscreen (covers both audio
+   sections — title is shown only in non-fullscreen mode). */
 body.fs-active h3,
+body.fs-active #ebook-title,
+body.fs-active #book-title,
 body.fs-active #upload-btn,
 body.fs-active #file-info,
 body.fs-active #audio-info,
 body.fs-active #status,
 body.fs-active #progress-bar,
-body.fs-active #progress-text,
 body.fs-active #shortcuts-hint,
-body.fs-active .btn-row{display:none !important}
+body.fs-active>#fs-target>.btn-row{display:none !important}
+/* Upload-button rows INSIDE the Tools panel must remain visible */
+body.fs-active #fs-menu-panel .btn-row{display:flex !important;margin:0}
+body.fs-active #fs-menu-panel .btn-row button{height:32px}
 
 /* Compact controls in fullscreen — minimal vertical footprint to give the
    reader pane the most room. */
@@ -284,7 +298,10 @@ body.fs-active #fs-menu-panel .fs-menu-h1{font-size:18pt;font-weight:400;margin:
 body.fs-active #fs-menu-panel .fs-menu-h2{font-size:13pt;font-weight:400;margin:0 0 6px;color:#bbb}
 body.fs-active #fs-menu-panel .btn-row{margin:0}
 body.fs-active #fs-menu-panel .btn-row button{height:36px}
-body.fs-active #fs-menu-panel #shortcuts-hint{display:flex !important;flex-wrap:wrap;justify-content:flex-start;margin:6px 0 0;padding-top:8px;border-top:1px solid #555;max-width:none;gap:6px 12px}
+body.fs-active #fs-menu-panel #shortcuts-hint{display:flex !important;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;margin:6px 0 0;padding-top:8px;border-top:1px solid #555;max-width:none;gap:8px;white-space:nowrap}
+body.fs-active #fs-menu-panel #shortcuts-hint .kbd-row{flex:0 0 auto}
+body.fs-active #fs-menu-panel #shortcuts-hint .kbd-btn{padding:1px 5px;font-size:11pt;height:auto}
+body.fs-active #fs-menu-panel #shortcuts-hint .kbd-row span{font-size:11pt}
 /* Legacy ?-button overlay path — kept for quick toggle */
 body.fs-active #shortcuts-hint.shown{display:flex !important;position:fixed;top:56px;right:8px;z-index:10005;background:#1a1a1a;border:1px solid #888;border-radius:6px;padding:12px 16px;max-width:min(90vw,420px);max-height:75vh;overflow-y:auto;flex-direction:column;align-items:flex-start;gap:6px}
 
@@ -395,14 +412,10 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
 <!-- Fullscreen-only Menu: tucks away page-title text, upload buttons, and
      the keyboard-shortcuts list. Hidden outside fullscreen. -->
 <div id="fs-menu-toggle" onclick="toggleFsMenu()">
-  <span>Menu</span>
+  <span>Tools</span>
   <span id="fs-menu-arrow">▼</span>
 </div>
 <div id="fs-menu-panel">
-  <div class="fs-menu-title">
-    <div class="fs-menu-h1">Erik's Bibliocaster</div>
-    <div class="fs-menu-h2"><em>Read With Your Brainbox</em>: An E-Book/Audiobook Readio</div>
-  </div>
   <div class="btn-row">
     <button onclick="document.getElementById('file-input').click()">Upload E-Book File</button>
     <button onclick="document.getElementById('cover-input').click()">Upload Cover Image</button>
@@ -464,9 +477,9 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
     </select></div>
     <div class="setting"><span class="setting-label">Theme:</span><select id="theme-select" onchange="applySettings()">
       <option value="theme-dark" selected>Dark</option>
+      <option value="theme-light">Light</option>
       <option value="theme-midnight">Midnight</option>
       <option value="theme-sepia">Sepia</option>
-      <option value="theme-light">Light</option>
     </select></div>
     <div class="setting"><span class="setting-label">Margin:</span><select id="margin-select" onchange="applySettings()">
       <option value="0">None</option>
@@ -475,8 +488,8 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
       <option value="96">Wide</option>
     </select></div>
     <div class="setting"><span class="setting-label">Alignment:</span><select id="align-select" onchange="applySettings()">
-      <option value="left">Left</option>
       <option value="justify" selected>Justified</option>
+      <option value="left">Left</option>
     </select></div>
     <div class="setting"><span class="setting-label">Page View:</span><select id="view-select" onchange="applySettings()">
       <option value="single">Single</option>
@@ -992,13 +1005,21 @@ function splitTextIntoChapters(html, name){
 }
 
 async function parsePdf(file){
-  // Reconstruct paragraphs from PDF text content using the /tps/ algorithm:
-  // (1) group items into lines by Y-coordinate / hasEOL,
-  // (2) join lines with a space (PDFs hard-wrap mid-sentence),
-  // (3) start a new paragraph only when a line ends with sentence-terminator
-  //     punctuation AND the next line starts capitalized AND the current line
-  //     is short — these heuristics catch paragraph breaks without mistaking
-  //     hard-wraps for new paragraphs.
+  // Two-stage paragraph reconstruction:
+  // (1) Group items into lines by Y-coordinate / hasEOL.
+  // (2) Detect paragraph boundaries via Y-GAP between adjacent lines —
+  //     measure each line's gap to the next; the median gap is the
+  //     within-paragraph leading; gaps significantly larger (≥1.4×)
+  //     mark paragraph boundaries (extra leading is the universal
+  //     "next paragraph" cue in typeset prose). This is far more
+  //     reliable than the sentence-end heuristic, which falsely
+  //     paragraph-breaks on every short PDF line ending in a period.
+  // (3) Concatenate ALL pages' lines into one sequence before
+  //     reconstruction so paragraphs that span pages don't get
+  //     split at the page boundary.
+  // After reconstruction we detect chapter/part headings and split
+  // the chapter into separate spine items so a 440-page book isn't
+  // rendered as one giant DOM blob (huge perf win).
   var pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs');
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs';
   var pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
@@ -1011,48 +1032,105 @@ async function parsePdf(file){
     bookMeta.author = (info.Author || '').trim();
   } catch(e){ bookMeta.title = ''; bookMeta.author = ''; }
 
-  var allText = '';
+  // Stage 1: collect all lines across all pages with their y-coordinates.
+  // pageEnd flag marks where one page ends (treated as paragraph boundary
+  // ONLY if the last line on the previous page was sentence-terminated).
+  var allLines = [];  // {text, y, pageEnd:bool}
   for (var i = 1; i <= pdf.numPages; i++) {
     document.getElementById('status').textContent = 'Status: Loading PDF Page ' + i + ' / ' + pdf.numPages + '...';
     var pg = await pdf.getPage(i);
     var ct = await pg.getTextContent();
-    var pageLines = [], curLine = '', prevY = null;
+    var curLine = '', curY = null, prevY = null;
     for (var k = 0; k < ct.items.length; k++) {
       var it = ct.items[k];
       var y = it.transform ? it.transform[5] : null;
-      if (prevY !== null && y !== null && Math.abs(prevY - y) > 1) { pageLines.push(curLine); curLine = ''; }
+      if (prevY !== null && y !== null && Math.abs(prevY - y) > 1) {
+        if (curLine) allLines.push({text: curLine, y: curY, pageEnd: false});
+        curLine = ''; curY = y;
+      } else if (curY === null) curY = y;
       curLine += it.str;
-      if (it.hasEOL) { pageLines.push(curLine); curLine = ''; }
+      if (it.hasEOL) {
+        if (curLine) allLines.push({text: curLine, y: curY, pageEnd: false});
+        curLine = ''; curY = null;
+      }
       prevY = y;
     }
-    if (curLine) pageLines.push(curLine);
-    var pageText = '';
-    for (var k = 0; k < pageLines.length; k++) {
-      var l = pageLines[k].replace(/\s+/g, ' ').trim();
-      if (l.length === 0) { pageText += '\n\n'; continue; }
-      if (pageText.length > 0 && !pageText.endsWith('\n')) pageText += ' ';
-      pageText += l;
-      var next = pageLines[k + 1] ? pageLines[k + 1].trim() : '';
-      if (/[.!?][")\]]?$/.test(l) && next && /^[A-Z"]/.test(next) && l.length < 80) {
-        pageText += '\n\n';
-      }
-    }
-    allText += pageText + '\n\n';
+    if (curLine) allLines.push({text: curLine, y: curY, pageEnd: false});
+    // Mark the last line of this page so we know it's a page boundary
+    if (allLines.length > 0) allLines[allLines.length - 1].pageEnd = true;
   }
-  // Strip page numbers and figure captions, then collapse 3+ blanks → 2
+
+  // Stage 2: compute the median within-page y-gap. Anything significantly
+  // larger than the median is a paragraph boundary in the source.
+  var gaps = [];
+  for (var i = 1; i < allLines.length; i++) {
+    var a = allLines[i-1], b = allLines[i];
+    if (a.pageEnd) continue;  // skip page boundaries (different page = different y-coord system)
+    if (a.y == null || b.y == null) continue;
+    var g = Math.abs(a.y - b.y);
+    if (g > 0.5) gaps.push(g);
+  }
+  gaps.sort(function(x, y){ return x - y; });
+  var medianGap = gaps.length ? gaps[Math.floor(gaps.length / 2)] : 12;
+  var paraGapThreshold = medianGap * 1.4;
+
+  // Stage 3: build paragraphs. Within a page, a y-gap > threshold = new
+  // paragraph. At a page boundary, only break if the previous line's text
+  // ends with sentence-terminator punctuation (heuristic for "did the
+  // paragraph end at the bottom of the page?").
+  var allText = '';
+  for (var i = 0; i < allLines.length; i++) {
+    var line = allLines[i];
+    var l = (line.text || '').replace(/\s+/g, ' ').trim();
+    if (l.length === 0) continue;
+    if (allText.length > 0 && !allText.endsWith('\n')) allText += ' ';
+    allText += l;
+    if (i + 1 >= allLines.length) continue;
+    var nextLine = allLines[i + 1];
+    var nextText = (nextLine.text || '').trim();
+    if (line.pageEnd) {
+      // Paragraph break across pages only if the prior line clearly ended a sentence
+      // AND the next line starts with a capital. Otherwise assume continuation.
+      if (/[.!?][")\]]?$/.test(l) && /^[A-Z"]/.test(nextText)) allText += '\n\n';
+    } else if (line.y != null && nextLine.y != null) {
+      var gap = Math.abs(line.y - nextLine.y);
+      if (gap > paraGapThreshold) allText += '\n\n';
+    }
+  }
+
+  // Strip page numbers, figure captions, EPUB navigation markers, then
+  // collapse 3+ blank lines to 2.
   allText = allText
     .replace(/^\s*\d+\s*$/gm, '')
     .replace(/^Figure\s+\d+[^\n]*$/gmi, '')
     .replace(/^(Cover|Title Page|Table of Contents|Start of Content|Landmarks)\s*$/gmi, '')
     .replace(/\n{3,}/g, '\n\n');
-  // Convert to HTML paragraphs
-  var paras = allText.split(/\n\s*\n+/);
-  var html = '';
-  for (var p = 0; p < paras.length; p++) {
-    var t = paras[p].replace(/\s+/g, ' ').trim();
-    if (t) html += '<p>' + escapeHtml(t) + '</p>';
+
+  // Stage 4: split into paragraphs and detect chapter/part headings.
+  // Each chapter or part heading begins a new spine item.
+  var paragraphs = allText.split(/\n\s*\n+/);
+  var partRe = /^(?:PART|BOOK|VOLUME)\s+(?:[IVXLCDM]+|\d+|[A-Z][A-Z\-]+(?:\s+[A-Z][A-Z\-]+)?)\b/i;
+  var chapRe = /^CHAPTER\s+(?:[IVXLCDM]+|\d+|[A-Z][A-Z\-]+(?:\s+[A-Z][A-Z\-]+)?)\b/i;
+  var fallbackName = file.name.replace(/\.[^.]+$/, '');
+  var out = [];
+  var current = {title: fallbackName, html: ''};
+  for (var p = 0; p < paragraphs.length; p++) {
+    var para = (paragraphs[p] || '').replace(/\s+/g, ' ').trim();
+    if (!para) continue;
+    var isHeading = para.length < 100 && (partRe.test(para) || chapRe.test(para));
+    if (isHeading) {
+      // If current chapter has real content, push it before starting a new one
+      if (current.html.replace(/<[^>]+>/g, '').trim().length > 80) {
+        out.push(current);
+      }
+      current = {title: para, html: '<h2>' + escapeHtml(para) + '</h2>'};
+    } else {
+      current.html += '<p>' + escapeHtml(para) + '</p>';
+    }
   }
-  return splitTextIntoChapters(html, file.name);
+  if (current.html.replace(/<[^>]+>/g, '').trim().length > 0) out.push(current);
+  if (out.length === 0) return [{title: fallbackName, html: '<p>' + escapeHtml(allText) + '</p>'}];
+  return out;
 }
 
 async function parseEpub(file){
@@ -1233,7 +1311,7 @@ var pagesPerChapter = [];
 var totalPages = 0;
 var _paginating = false;
 
-function computePagination(){
+async function computePagination(){
   if (_paginating || !chapters.length) return;
   var c = document.getElementById('reader-content');
   if (!c || !c.clientWidth) return;
@@ -1245,6 +1323,8 @@ function computePagination(){
   c.style.visibility = 'hidden';
   pagesPerChapter = [];
   totalPages = 0;
+  // Process chapters in batches and yield to the UI between batches so
+  // the page stays responsive while a 30-chapter book paginates.
   for (var i = 0; i < chapters.length; i++) {
     c.innerHTML = normalizeBreaks(chapters[i].html, spacing);
     void c.offsetWidth;  // force reflow
@@ -1252,14 +1332,16 @@ function computePagination(){
     var pages = Math.max(1, Math.ceil(c.scrollWidth / cw));
     pagesPerChapter.push(pages);
     totalPages += pages;
+    // Yield every 3 chapters
+    if (i % 3 === 2 && i < chapters.length - 1) {
+      await new Promise(function(r){ setTimeout(r, 0); });
+    }
   }
   c.innerHTML = origHTML;
   void c.offsetWidth;
   c.scrollLeft = origScrollLeft;
   c.style.visibility = origVis;
   _paginating = false;
-  // Now that we know per-chapter pages, refresh the dropdown so each entry
-  // shows "(N pages)". Preserves the current selection.
   populateChapterSelect();
   updateProgress();
 }
@@ -1519,9 +1601,8 @@ function enterFullscreen(){
   if (mp) mp.classList.remove('open');
   var ma = document.getElementById('fs-menu-arrow');
   if (ma) ma.textContent = '▼';
-  // Move shortcuts-hint and book-title into the Menu so they remain reachable.
+  // Move shortcuts-hint into the Tools menu so they remain reachable.
   moveShortcutsToMenu();
-  moveBookTitleToMenu();
   // After layout settles in fullscreen, recompute pagination at the new dimensions
   setTimeout(function(){ if (chapters.length) computePagination(); }, 200);
   // Try native fullscreen API; fall back to CSS pseudo-fullscreen on mobile Safari
