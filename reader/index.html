@@ -1619,6 +1619,7 @@ function saveBookProgress(){
       ts: Date.now()
     }));
     localStorage.setItem('ebr_book_last', bookKey);
+    if (window.EMSync) window.EMSync.push();
   } catch(e){}
 }
 
@@ -2275,6 +2276,7 @@ function saveAudioProgress(){
     };
     localStorage.setItem('ebr_audio_' + fileKey, JSON.stringify(data));
     localStorage.setItem('ebr_audio_last', fileKey);
+    if (window.EMSync) window.EMSync.push();
   } catch(e){}
 }
 function restoreAudioProgress(){
@@ -3086,6 +3088,7 @@ function populateAudioChapterDropdown(){
   } catch(e){ console.error('autoReloadAudio:', e); }
 })();
 </script>
+<script src="/sync.js"></script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>
 </body>
 </html>
