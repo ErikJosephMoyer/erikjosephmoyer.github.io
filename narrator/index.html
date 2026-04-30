@@ -96,6 +96,20 @@ var speedIdx = 0;
 var speeds = [1, 1.2, 1.5, 2, 0.5, 0.8];
 var uploadedFilename = '';
 
+/* ───────── PROGRESSIVE CHUNK PLAYBACK ─────────
+ * The backend writes each text-chunk to its own mp3 file. We fetch each
+ * chunk URL the moment the server marks it ready, queue them up, and
+ * play them sequentially via a single Audio element. First audio starts
+ * in ~5s instead of waiting for the whole file (often 1+ minute).
+ *
+ * Trade-off: a brief gap (~50-200ms) between chunks while the next mp3
+ * loads. Acceptable for sentence-boundary splits.
+ */
+var chunkUrls = [];        // URLs of chunks fetched and queued
+var chunksLoaded = 0;       // total chunks server has marked ready
+var chunkPlayIdx = 0;       // index of chunk currently in audio.src
+var progressiveActive = false;
+
 document.getElementById('file-input').onchange = async function(){
   var file = this.files[0];
   if(!file) return;
@@ -124,6 +138,11 @@ async function generate(){
   // about the prior generation. Without this, rapid double-clicks of
   // Generate would interleave two pollProgress timers updating status.
   jobId = null;
+  // Reset progressive playback state for the new job
+  chunkUrls = [];
+  chunksLoaded = 0;
+  chunkPlayIdx = 0;
+  progressiveActive = false;
   var text = document.getElementById('text-input').value.trim();
   if(!text){ document.getElementById('status').textContent='Status: No text entered'; return; }
   var voice = document.getElementById('voice-select').value;
@@ -151,32 +170,114 @@ async function generate(){
     document.getElementById('gen-btn').disabled = false;
   }
 }
+
+// Start playback the moment chunk 0 is ready
+function startProgressivePlayback(firstUrl){
+  progressiveActive = true;
+  chunkPlayIdx = 0;
+  audio.src = firstUrl;
+  audio.load();
+  enablePlayer();
+  audio.play().then(function(){
+    document.getElementById('play-icon').style.display = 'none';
+    document.getElementById('pause-icon').style.display = '';
+  }).catch(function(){
+    // Autoplay blocked — user will click Play manually
+    document.getElementById('play-icon').style.display = '';
+    document.getElementById('pause-icon').style.display = 'none';
+  });
+}
+
+// When the current chunk finishes, hop to the next one. If we've caught
+// up to the generator, audio simply ends; pollProgress will resume us
+// when the next chunk lands (see "stalled-and-waiting" branch below).
+function onChunkEnded(){
+  if (!progressiveActive) {
+    // Normal end-of-track for the full concatenated file (post-generation replay)
+    document.getElementById('play-icon').style.display = '';
+    document.getElementById('pause-icon').style.display = 'none';
+    return;
+  }
+  if (chunkPlayIdx + 1 < chunkUrls.length) {
+    chunkPlayIdx++;
+    audio.src = chunkUrls[chunkPlayIdx];
+    audio.play().catch(function(){});
+  } else if (jobId === null) {
+    // Generation done AND we played every chunk. Switch to the full
+    // concatenated file so replay / seek / download work normally.
+    progressiveActive = false;
+    if (downloadUrl) {
+      audio.src = downloadUrl;
+      audio.load();
+    }
+    document.getElementById('play-icon').style.display = '';
+    document.getElementById('pause-icon').style.display = 'none';
+  }
+  // else: still generating, audio is paused at end of last available chunk.
+  // pollProgress will detect this and call resumeIfStalled() once a new
+  // chunk arrives.
+}
+audio.addEventListener('ended', onChunkEnded);
+
+function resumeIfStalled(){
+  if (!progressiveActive) return;
+  if (!audio.paused) return;
+  if (audio.currentTime < (audio.duration || 0) - 0.1) return;  // Not actually at end
+  if (chunkPlayIdx + 1 < chunkUrls.length) {
+    chunkPlayIdx++;
+    audio.src = chunkUrls[chunkPlayIdx];
+    audio.play().catch(function(){});
+  }
+}
+
 // Max consecutive network errors before giving up. At 5s per retry that's
-// ~50s before the user gets told to try again, which is reasonable for
-// a flaky free Hugging Face Space waking from sleep.
+// ~50s before the user gets told to try again — reasonable for a flaky
+// free Hugging Face Space waking from sleep.
 var MAX_POLL_ERRORS = 10;
 async function pollProgress(jid, errCount){
   // If a newer Generate has started, abandon this stale poll loop.
-  if (jid !== jobId) return;
+  if (jid !== jobId && jobId !== null) return;
   try {
     var r = await fetch(API+'/api/status/'+jid);
     var d = await r.json();
+
+    // Fetch URLs for any newly-ready chunks
+    var ready = d.chunks_ready || 0;
+    while (chunksLoaded < ready) {
+      var cn = chunksLoaded;
+      var url = API + '/api/chunk/' + jid + '/' + cn;
+      chunkUrls.push(url);
+      chunksLoaded++;
+      if (cn === 0) {
+        // First chunk available — kick off progressive playback
+        startProgressivePlayback(url);
+      } else {
+        // Audio may be stalled at the end of a previous chunk; resume now
+        resumeIfStalled();
+      }
+    }
+
     if(d.status==='generating'){
       var pct = d.total>0 ? Math.round(d.progress/d.total*100) : 0;
       document.getElementById('status').textContent = 'Status: Generating, chunk '+d.progress+'/'+d.total+' ('+pct+'%)';
       setTimeout(function(){pollProgress(jid, 0);}, 2000);
     } else if(d.status==='done'){
       downloadName = d.filename;
+      downloadUrl = API + '/api/audio/' + jid;
       document.getElementById('status').textContent = 'Status: Done, '+d.words+' words, '+d.mb;
-      audio.src = downloadUrl;
-      audio.load();
-      enablePlayer();
+      // Mark generation complete BEFORE drawing waveform so the
+      // chunk-end handler knows it's safe to switch to the full file.
+      jobId = null;
+      // Resume in case audio was waiting on the final chunk
+      resumeIfStalled();
+      // Waveform draws from the full concatenated file
       waveformPeaks = null;
       drawWaveform();
       document.getElementById('gen-btn').disabled = false;
     } else {
       document.getElementById('status').textContent = 'Status: Error'+(d.error?', '+d.error:'');
       document.getElementById('gen-btn').disabled = false;
+      jobId = null;
     }
   } catch(e){
     if (errCount >= MAX_POLL_ERRORS) {
@@ -239,9 +340,16 @@ audio.ontimeupdate=function(){
 audio.onloadedmetadata=function(){
   document.getElementById('tot-time').textContent=fmtTime(audio.duration);
 };
+// Note: a separate addEventListener('ended', onChunkEnded) handles chunk
+// swaps during progressive playback. This onended is the legacy "track
+// finished" handler — it still runs after the chunk handler for the
+// final chunk, which is fine; in that case onChunkEnded already swapped
+// to the full file or set play icon, so this is a no-op duplicate.
 audio.onended=function(){
-  document.getElementById('play-icon').style.display='';
-  document.getElementById('pause-icon').style.display='none';
+  if (!progressiveActive) {
+    document.getElementById('play-icon').style.display='';
+    document.getElementById('pause-icon').style.display='none';
+  }
 };
 var waveformPeaks = null;
 async function drawWaveform(){
