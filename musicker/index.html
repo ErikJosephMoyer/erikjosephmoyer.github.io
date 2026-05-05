@@ -598,6 +598,12 @@ async function toggleRecord(){
 }
 
 /* ───────── URL FETCH (yt-dlp on MSC backend) ───────── */
+function isYouTubeUrl(u){
+  try { var h = new URL(u).hostname.toLowerCase();
+        return h === 'youtu.be' || h.endsWith('youtube.com') || h.endsWith('youtube-nocookie.com');
+  } catch(e){ return false; }
+}
+
 async function fetchUrl(){
   var input = document.getElementById('url-input');
   var url = input.value.trim();
@@ -614,6 +620,7 @@ async function fetchUrl(){
     if(!resp.ok){
       var msg;
       if(resp.status === 404) msg = 'Status: Backend extract endpoint not yet deployed';
+      else if(resp.status === 400 && isYouTubeUrl(url)) msg = 'Status: YouTube blocks this server. Try uploading the audio file or recording with the mic instead.';
       else if(resp.status === 400) msg = 'Status: Could not extract from this URL';
       else msg = 'Status: Fetch failed (HTTP ' + resp.status + ')';
       document.getElementById('status').textContent = msg;
