@@ -68,6 +68,22 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 .note-btn{padding:8px;background:rgba(255,255,255,0.05);border:1px solid #555;color:#fff;cursor:pointer;font:13pt 'EB Garamond',serif}
 .note-btn.selected{background:#88ccff;color:#000;border-color:#88ccff}
 @media(max-width:600px){.note-buttons{grid-template-columns:repeat(4,1fr)}}
+.url-row{display:flex;gap:8px;margin:0 0 8pt}
+.url-row input{flex:1;background:transparent;border:1px solid #fff;color:#fff;font:14pt 'EB Garamond',serif;padding:6px 10px;min-width:0}
+.url-row input:focus{outline:none;border-color:#88ccff}
+.url-row button{flex:0 0 auto;min-width:120px}
+#rec-indicator{text-align:center;font-size:14pt;color:#ff4444;margin:0 0 8pt;display:none}
+.pitch-display{text-align:center;margin:8pt 0}
+.pitch-note{font:60pt 'EB Garamond',serif;line-height:1.05;color:#fff;min-height:80px;letter-spacing:1px}
+.pitch-note.flat{color:#ffaa66}
+.pitch-note.sharp{color:#88ccff}
+.pitch-cents{font:18pt 'EB Garamond',serif;color:#bbb;margin:4pt 0;min-height:24px}
+.pitch-bar-container{margin:8pt auto;width:100%;max-width:400px}
+.pitch-bar-track{position:relative;height:30px;background:rgba(255,255,255,0.06);border:1px solid #555;border-radius:4px}
+.pitch-bar-track::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;background:#fff;transform:translateX(-1px)}
+.pitch-bar-tick{position:absolute;top:0;bottom:0;width:6px;background:#88ccff;border-radius:2px;left:50%;transform:translateX(-3px);transition:left 0.05s linear}
+.pitch-hz{font:14pt 'EB Garamond',serif;color:#888;margin:4pt 0;min-height:20px}
+#pitch-graph{display:block;margin:8pt auto;width:100%;max-width:660px;height:120px;background:rgba(255,255,255,0.04);border:1px solid #555;border-radius:6px}
 </style>
 </head>
 <body>
@@ -78,6 +94,7 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 <div class="tab-row">
   <button class="tab active" onclick="setTab('notes')">Notes</button>
   <button class="tab" onclick="setTab('audio')">Audio</button>
+  <button class="tab" onclick="setTab('pitch')">Pitch</button>
   <button class="tab" onclick="setTab('piano')">Piano</button>
   <button class="tab" onclick="setTab('guitar')">Fretboard</button>
   <button class="tab" onclick="setTab('tab')">Guitar Tab</button>
@@ -128,13 +145,39 @@ select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 </div>
 
 <div id="tab-audio" class="tab-content">
-  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt;text-align:center">Upload audio file to identify the song, artist, key, tempo, time signature, and chords:</p>
-  <button id="upload-btn" onclick="document.getElementById('audio-upload').click()">Upload Audio</button>
-  <input type="file" id="audio-upload" accept="audio/*">
+  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt;text-align:center">Upload, record, or fetch audio to identify the song, artist, key, tempo, time signature, and chords:</p>
+  <div class="btn-row">
+    <button id="upload-btn" onclick="document.getElementById('audio-upload').click()">Upload Audio</button>
+    <button id="record-btn" onclick="toggleRecord()">Record</button>
+  </div>
+  <input type="file" id="audio-upload" accept="audio/*" style="display:none">
+  <div class="url-row">
+    <input type="url" id="url-input" placeholder="Paste YouTube/SoundCloud/etc. URL...">
+    <button id="fetch-url-btn" onclick="fetchUrl()">Fetch URL</button>
+  </div>
+  <div id="rec-indicator">Recording...</div>
   <div id="audio-info">No file selected</div>
   <audio id="audio-player" controls style="display:none"></audio>
   <div class="btn-row">
     <button id="analyze-audio-btn" onclick="analyzeAudio()" disabled>Analyze</button>
+  </div>
+</div>
+
+<div id="tab-pitch" class="tab-content">
+  <p style="margin:0 0 4pt;color:#bbb;font-size:14pt;text-align:center">Live pitch detection from your microphone. Sing or play a note to see it tuned in real time:</p>
+  <div class="pitch-display">
+    <div class="pitch-note" id="pitch-note">--</div>
+    <div class="pitch-cents" id="pitch-cents"></div>
+    <div class="pitch-bar-container">
+      <div class="pitch-bar-track">
+        <div class="pitch-bar-tick" id="pitch-bar-tick"></div>
+      </div>
+    </div>
+    <div class="pitch-hz" id="pitch-hz"></div>
+    <canvas id="pitch-graph" width="660" height="120"></canvas>
+  </div>
+  <div class="btn-row">
+    <button id="pitch-start-btn" onclick="togglePitch()">Start</button>
   </div>
 </div>
 
@@ -437,17 +480,22 @@ function showAnalysis(pcs){
  * direct link like /musicker/#aud and land on the Audio tab. setTab() updates
  * the hash, and on page load we read the hash to choose the initial tab.
  */
-var HASH_FROM_TAB = {notes:'#nts', audio:'#aud', piano:'#pno', guitar:'#ftb', tab:'#gtt'};
-var TAB_FROM_HASH = {'#nts':'notes', '#aud':'audio', '#pno':'piano', '#ftb':'guitar', '#gtt':'tab'};
+var HASH_FROM_TAB = {notes:'#nts', audio:'#aud', pitch:'#pch', piano:'#pno', guitar:'#ftb', tab:'#gtt'};
+var TAB_FROM_HASH = {'#nts':'notes', '#aud':'audio', '#pch':'pitch', '#pno':'piano', '#ftb':'guitar', '#gtt':'tab'};
 
 function setTab(name){
   document.querySelectorAll('.tab').forEach(function(t,i){
-    var names = ['notes','audio','piano','guitar','tab'];
+    var names = ['notes','audio','pitch','piano','guitar','tab'];
     t.classList.toggle('active', names[i] === name);
   });
   document.querySelectorAll('.tab-content').forEach(function(c){
     c.classList.toggle('active', c.id === 'tab-'+name);
   });
+  // Auto-stop the pitch monitor when navigating away from its tab so the
+  // mic is released and the rAF loop doesn't keep running in the background
+  if (name !== 'pitch' && typeof pitchActive !== 'undefined' && pitchActive) {
+    togglePitch();
+  }
   var newHash = HASH_FROM_TAB[name];
   if (newHash && window.location.hash !== newHash) {
     history.replaceState(null, '', newHash);
@@ -468,15 +516,15 @@ window.addEventListener('hashchange', function(){
 /* ───────── AUDIO ANALYSIS ───────── */
 var audioBuffer = null;
 var uploadedAudioFile = null;
-document.getElementById('audio-upload').onchange = async function(){
-  var f = this.files[0];
-  if(!f) return;
-  uploadedAudioFile = f;
-  document.getElementById('audio-info').textContent = f.name + ' (' + Math.round(f.size/1024) + ' KB)';
-  // Free the previous blob URL when the user replaces the audio file
+
+// Shared loader: any source (upload, mic recording, URL fetch) feeds through here
+async function loadAudioFromBlob(file){
+  uploadedAudioFile = file;
+  document.getElementById('audio-info').textContent = file.name + ' (' + Math.round(file.size/1024) + ' KB)';
+  // Free the previous blob URL when replacing
   var player = document.getElementById('audio-player');
   if (player._blobUrl) { try { URL.revokeObjectURL(player._blobUrl); } catch(e){} }
-  player._blobUrl = URL.createObjectURL(f);
+  player._blobUrl = URL.createObjectURL(file);
   player.src = player._blobUrl;
   player.style.display = 'block';
   document.getElementById('analyze-audio-btn').disabled = true;
@@ -486,7 +534,7 @@ document.getElementById('audio-upload').onchange = async function(){
   // bad files would deadlock the page until reload).
   var ac = null;
   try {
-    var buf = await f.arrayBuffer();
+    var buf = await file.arrayBuffer();
     ac = new (window.AudioContext||window.webkitAudioContext)();
     audioBuffer = await new Promise(function(resolve,reject){ ac.decodeAudioData(buf, resolve, reject); });
     document.getElementById('analyze-audio-btn').disabled = false;
@@ -497,7 +545,266 @@ document.getElementById('audio-upload').onchange = async function(){
   } finally {
     if (ac) try { ac.close(); } catch(_){}
   }
+}
+
+document.getElementById('audio-upload').onchange = async function(){
+  var f = this.files[0];
+  if(!f) return;
+  await loadAudioFromBlob(f);
 };
+
+/* ───────── MIC RECORDING (Audio tab) ───────── */
+var mediaRecorder = null;
+var recordChunks = [];
+var isRecording = false;
+var recordStream = null;
+
+async function toggleRecord(){
+  var btn = document.getElementById('record-btn');
+  var ind = document.getElementById('rec-indicator');
+  if(isRecording){
+    isRecording = false;
+    if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    btn.textContent = 'Record';
+    ind.style.display = 'none';
+    return;
+  }
+  try {
+    recordStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    isRecording = true;
+    btn.textContent = 'Stop';
+    ind.style.display = 'block';
+    document.getElementById('status').textContent = 'Status: Recording...';
+    recordChunks = [];
+    var mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' :
+                   MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
+    mediaRecorder = new MediaRecorder(recordStream, mimeType ? {mimeType} : {});
+    mediaRecorder.ondataavailable = function(e){ if(e.data.size>0) recordChunks.push(e.data); };
+    mediaRecorder.onstop = async function(){
+      for (var t of recordStream.getTracks()) t.stop();
+      var recType = mimeType || 'audio/webm';
+      var ext = recType.indexOf('mp4') >= 0 ? 'm4a' : 'webm';
+      var blob = new Blob(recordChunks, {type: recType});
+      var fakeFile = new File([blob], 'recording.'+ext, {type: recType});
+      await loadAudioFromBlob(fakeFile);
+    };
+    mediaRecorder.start(1000); // collect chunks every 1s (helps mobile)
+  } catch(e){
+    document.getElementById('status').textContent = 'Status: Microphone access denied';
+    isRecording = false;
+    btn.textContent = 'Record';
+    ind.style.display = 'none';
+  }
+}
+
+/* ───────── URL FETCH (yt-dlp on MSC backend) ───────── */
+async function fetchUrl(){
+  var input = document.getElementById('url-input');
+  var url = input.value.trim();
+  if(!url) return;
+  var btn = document.getElementById('fetch-url-btn');
+  btn.disabled = true;
+  document.getElementById('status').textContent = 'Status: Fetching audio from URL...';
+  try {
+    var resp = await fetch(MSC_API + '/api/extract', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({url: url})
+    });
+    if(!resp.ok){
+      var msg;
+      if(resp.status === 404) msg = 'Status: Backend extract endpoint not yet deployed';
+      else if(resp.status === 400) msg = 'Status: Could not extract from this URL';
+      else msg = 'Status: Fetch failed (HTTP ' + resp.status + ')';
+      document.getElementById('status').textContent = msg;
+      return;
+    }
+    var blob = await resp.blob();
+    if(blob.size === 0){
+      document.getElementById('status').textContent = 'Status: Empty response from server';
+      return;
+    }
+    var fakeFile = new File([blob], 'fetched.mp3', {type: blob.type || 'audio/mpeg'});
+    await loadAudioFromBlob(fakeFile);
+  } catch(e){
+    document.getElementById('status').textContent = 'Status: Backend unreachable - ' + (e && e.message || e);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ───────── PITCH MONITOR (Pitch tab) ───────── */
+var pitchCtx = null;
+var pitchAnalyser = null;
+var pitchSource = null;
+var pitchStream = null;
+var pitchActive = false;
+var pitchBuffer = null;
+var pitchHistory = []; // {t, hz, midi}
+var pitchSmoothedHz = -1;
+var PITCH_NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+var PITCH_MIN_HZ = 80;    // a touch below low-E guitar (82.4)
+var PITCH_MAX_HZ = 1100;  // ~C#6, covers vocal range and common instruments
+
+async function togglePitch(){
+  var btn = document.getElementById('pitch-start-btn');
+  if(pitchActive){
+    pitchActive = false;
+    if(pitchSource){ try { pitchSource.disconnect(); } catch(e){} pitchSource = null; }
+    if(pitchStream){ for (var t of pitchStream.getTracks()) t.stop(); pitchStream = null; }
+    if(pitchCtx){ try { pitchCtx.close(); } catch(e){} pitchCtx = null; }
+    btn.textContent = 'Start';
+    return;
+  }
+  try {
+    // Disable browser audio processing so the mic feeds raw signal to the analyser;
+    // echo cancellation + noise suppression mangle pitch detection of sustained tones.
+    pitchStream = await navigator.mediaDevices.getUserMedia({audio:{
+      echoCancellation: false, noiseSuppression: false, autoGainControl: false
+    }});
+    pitchCtx = new (window.AudioContext||window.webkitAudioContext)();
+    pitchSource = pitchCtx.createMediaStreamSource(pitchStream);
+    pitchAnalyser = pitchCtx.createAnalyser();
+    pitchAnalyser.fftSize = 4096;
+    pitchAnalyser.smoothingTimeConstant = 0;
+    pitchSource.connect(pitchAnalyser);
+    pitchBuffer = new Float32Array(pitchAnalyser.fftSize);
+    pitchHistory = [];
+    pitchSmoothedHz = -1;
+    pitchActive = true;
+    btn.textContent = 'Stop';
+    pitchLoop();
+  } catch(e){
+    document.getElementById('status').textContent = 'Status: Microphone access denied';
+  }
+}
+
+function pitchLoop(){
+  if(!pitchActive) return;
+  pitchAnalyser.getFloatTimeDomainData(pitchBuffer);
+  var rms = 0;
+  for(var i=0;i<pitchBuffer.length;i++) rms += pitchBuffer[i]*pitchBuffer[i];
+  rms = Math.sqrt(rms/pitchBuffer.length);
+  var hz = -1;
+  if(rms > 0.01) hz = yinDetect(pitchBuffer, pitchCtx.sampleRate);
+  renderPitch(hz);
+  requestAnimationFrame(pitchLoop);
+}
+
+// YIN algorithm (de Cheveigne & Kawahara 2002), simplified.
+function yinDetect(buf, sampleRate){
+  var threshold = 0.1;
+  var halfBuf = Math.floor(buf.length / 2);
+  var minTau = Math.max(2, Math.floor(sampleRate / PITCH_MAX_HZ));
+  var maxTau = Math.min(halfBuf - 1, Math.floor(sampleRate / PITCH_MIN_HZ));
+  var diff = new Float32Array(halfBuf);
+  for(var tau=1; tau<halfBuf; tau++){
+    var sum = 0;
+    for(var i=0;i<halfBuf;i++){
+      var d = buf[i] - buf[i+tau];
+      sum += d*d;
+    }
+    diff[tau] = sum;
+  }
+  // Cumulative mean normalized difference
+  var cmnd = new Float32Array(halfBuf);
+  cmnd[0] = 1;
+  var running = 0;
+  for(var tau=1; tau<halfBuf; tau++){
+    running += diff[tau];
+    cmnd[tau] = running > 0 ? diff[tau] * tau / running : 1;
+  }
+  // First τ in range where cmnd dips below threshold; descend to local min
+  var foundTau = -1;
+  for(var tau=minTau; tau<=maxTau; tau++){
+    if(cmnd[tau] < threshold){
+      while(tau+1 <= maxTau && cmnd[tau+1] < cmnd[tau]) tau++;
+      foundTau = tau;
+      break;
+    }
+  }
+  if(foundTau < 0) return -1;
+  // Parabolic interpolation around the minimum for sub-sample precision
+  var x0 = foundTau > 0 ? cmnd[foundTau-1] : cmnd[foundTau];
+  var x1 = cmnd[foundTau];
+  var x2 = foundTau+1 < halfBuf ? cmnd[foundTau+1] : cmnd[foundTau];
+  var a = (x0 + x2 - 2*x1) / 2;
+  var b = (x2 - x0) / 2;
+  var betterTau = a !== 0 ? foundTau - b/(2*a) : foundTau;
+  if(betterTau <= 0) return -1;
+  return sampleRate / betterTau;
+}
+
+function renderPitch(hz){
+  var noteEl = document.getElementById('pitch-note');
+  var centsEl = document.getElementById('pitch-cents');
+  var hzEl = document.getElementById('pitch-hz');
+  var tickEl = document.getElementById('pitch-bar-tick');
+  if(hz <= 0){
+    noteEl.textContent = '--';
+    noteEl.classList.remove('flat','sharp');
+    centsEl.textContent = '';
+    hzEl.textContent = '';
+    tickEl.style.left = '50%';
+    pitchHistory.push({t: performance.now(), hz: -1});
+    drawPitchGraph();
+    pitchSmoothedHz = -1;
+    return;
+  }
+  // Exponential smoothing damps frame-to-frame jitter; reset on gap
+  if(pitchSmoothedHz < 0) pitchSmoothedHz = hz;
+  else pitchSmoothedHz = 0.7 * pitchSmoothedHz + 0.3 * hz;
+  var f = pitchSmoothedHz;
+  var midiF = 12 * Math.log2(f / 440) + 69;
+  var midi = Math.round(midiF);
+  var cents = Math.round((midiF - midi) * 100);
+  var pcIdx = ((midi % 12) + 12) % 12;
+  var octave = Math.floor(midi / 12) - 1;
+  noteEl.textContent = PITCH_NOTE_NAMES[pcIdx] + octave;
+  noteEl.classList.toggle('flat', cents < -5);
+  noteEl.classList.toggle('sharp', cents > 5);
+  centsEl.textContent = (cents > 0 ? '+' : '') + cents + '¢';
+  hzEl.textContent = f.toFixed(1) + ' Hz';
+  var pct = Math.max(0, Math.min(100, 50 + cents));
+  tickEl.style.left = pct + '%';
+  pitchHistory.push({t: performance.now(), hz: f, midi: midiF});
+  drawPitchGraph();
+}
+
+function drawPitchGraph(){
+  var canvas = document.getElementById('pitch-graph');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var now = performance.now();
+  var WINDOW_MS = 10000;
+  pitchHistory = pitchHistory.filter(function(p){ return now - p.t < WINDOW_MS; });
+  ctx.clearRect(0, 0, W, H);
+  var midis = pitchHistory.filter(function(p){return p.midi;}).map(function(p){return p.midi;});
+  if(midis.length === 0) return;
+  var midMidi = midis[midis.length-1];
+  var lo = Math.floor(midMidi - 12);
+  var hi = Math.ceil(midMidi + 12);
+  if(hi - lo < 1) hi = lo + 1;
+  ctx.strokeStyle = '#444';
+  ctx.lineWidth = 1;
+  for(var m=lo; m<=hi; m++){
+    var y = H - ((m - lo) / (hi - lo)) * H;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+  ctx.strokeStyle = '#88ccff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  var first = true;
+  for(var i=0;i<pitchHistory.length;i++){
+    var p = pitchHistory[i];
+    if(!p.midi){ first = true; continue; }
+    var x = W - ((now - p.t) / WINDOW_MS) * W;
+    var y = H - ((p.midi - lo) / (hi - lo)) * H;
+    if(first){ ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
 
 // Convert audio segment to chromagram (12-element pitch class vector)
 function chromagramFromBuffer(channelData, sampleRate, startSec, durSec){
