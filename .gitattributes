@@ -1,0 +1,23 @@
+# Normalize line endings across platforms.
+# Without this, CRLF/LF drift between Windows checkouts and the LF-stored
+# blobs makes single-file edits look like full rewrites in diffs.
+* text=auto eol=lf
+
+# Keep binaries byte-exact.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.mp3  binary
+*.mp4  binary
+*.m4a  binary
+*.m4b  binary
+*.wav  binary
+*.webm binary
+*.zip  binary
