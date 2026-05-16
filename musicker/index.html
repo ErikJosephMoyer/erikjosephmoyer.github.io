@@ -620,7 +620,8 @@ async function fetchUrl(){
     if(!resp.ok){
       var msg;
       if(resp.status === 404) msg = 'Status: Backend extract endpoint not yet deployed';
-      else if(resp.status === 400 && isYouTubeUrl(url)) msg = 'Status: YouTube blocks this server. Try uploading the audio file or recording with the mic instead.';
+      else if(resp.status === 429 && isYouTubeUrl(url)) msg = 'Status: Monthly YouTube quota used up. Try again next month or upload the file directly.';
+      else if(resp.status === 400 && isYouTubeUrl(url)) msg = 'Status: Could not extract this YouTube video. It may be private, age restricted, or removed.';
       else if(resp.status === 400) msg = 'Status: Could not extract from this URL';
       else msg = 'Status: Fetch failed (HTTP ' + resp.status + ')';
       document.getElementById('status').textContent = msg;
