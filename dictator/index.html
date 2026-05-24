@@ -92,6 +92,7 @@ let liveFinalText = '';
 
 const MSC_API = 'https://erikmoyer-msc-tool.hf.space';
 
+// Returns true on success, false if Whisper failed (so caller can decide to fall back).
 async function transcribeViaWhisper(blob){
   try {
     const fd = new FormData();
@@ -101,7 +102,7 @@ async function transcribeViaWhisper(blob){
       const msg = resp.status === 503 ? 'Status: Whisper backend not ready, try again in a minute'
                 : 'Status: Transcription failed (HTTP ' + resp.status + ')';
       document.getElementById('status').textContent = msg;
-      return;
+      return false;
     }
     const data = await resp.json();
     const text = (data.text || '').trim();
@@ -109,9 +110,59 @@ async function transcribeViaWhisper(blob){
     const wc = text.split(/\s+/).filter(Boolean).length;
     document.getElementById('status').textContent = wc > 0 ? `Status: Done, ${wc} words` : 'Status: Done (no speech detected)';
     if(wc > 0) document.getElementById('dl-text').style.display = 'inline-block';
+    return true;
   } catch(e){
     document.getElementById('status').textContent = 'Status: Backend unreachable - ' + (e && e.message || e);
+    return false;
   }
+}
+
+// Last-resort fallback for file Transcribe when Whisper is unavailable. Plays the audio
+// out the speakers and captures it via the browser's WSR. Lossy and slow but better than
+// nothing. Only kicks in when Whisper has already failed AND the browser supports WSR.
+function transcribeViaWSRPlayback(){
+  return new Promise(function(resolve){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR || !audioUrl) { resolve(false); return; }
+    document.getElementById('status').textContent = 'Status: Whisper failed. Falling back to playback transcription. Keep volume up.';
+    document.getElementById('output').value = '';
+    const playEl = new Audio(audioUrl);
+    let finalTranscript = '';
+    const recognition = new SR();
+    recognition.lang = 'en-US';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onresult = function(e){
+      let interim = '';
+      for(let i=e.resultIndex; i<e.results.length; i++){
+        if(e.results[i].isFinal) finalTranscript += e.results[i][0].transcript + ' ';
+        else interim += e.results[i][0].transcript;
+      }
+      document.getElementById('output').value = finalTranscript + interim;
+      document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
+    };
+    recognition.onerror = function(e){
+      if(e.error === 'no-speech' && !playEl.paused && !playEl.ended){
+        try { recognition.start(); } catch(_){}
+      }
+    };
+    recognition.onend = function(){
+      if(!playEl.paused && !playEl.ended){
+        try { recognition.start(); } catch(_){}
+      } else {
+        const text = finalTranscript.trim();
+        document.getElementById('output').value = text;
+        const wc = text.split(/\s+/).filter(Boolean).length;
+        document.getElementById('status').textContent = wc > 0 ? `Status: Done via playback fallback, ${wc} words` : 'Status: Playback fallback produced no text';
+        if(wc > 0) document.getElementById('dl-text').style.display = 'inline-block';
+        resolve(true);
+      }
+    };
+    playEl.onended = function(){ setTimeout(function(){ try { recognition.stop(); } catch(_){} }, 2000); };
+    try { recognition.start(); } catch(_){}
+    playEl.volume = 1.0;
+    playEl.play();
+  });
 }
 
 function fmtSize(bytes){
@@ -253,7 +304,13 @@ async function transcribe(){
   document.getElementById('transcribe-btn').disabled = true;
   document.getElementById('output').value = '';
   document.getElementById('dl-text').style.display = 'none';
-  await transcribeViaWhisper(audioBlob);
+  const ok = await transcribeViaWhisper(audioBlob);
+  if(!ok){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(SR){
+      await transcribeViaWSRPlayback();
+    }
+  }
   document.getElementById('transcribe-btn').disabled = false;
 }
 function replayAudio(){
