@@ -90,6 +90,30 @@ let isRecording = false;
 let liveRecognition = null;
 let liveFinalText = '';
 
+const MSC_API = 'https://erikmoyer-msc-tool.hf.space';
+
+async function transcribeViaWhisper(blob){
+  try {
+    const fd = new FormData();
+    fd.append('file', blob, audioFileName || 'audio.webm');
+    const resp = await fetch(MSC_API + '/api/transcribe', { method:'POST', body: fd });
+    if(!resp.ok){
+      const msg = resp.status === 503 ? 'Status: Whisper backend not ready, try again in a minute'
+                : 'Status: Transcription failed (HTTP ' + resp.status + ')';
+      document.getElementById('status').textContent = msg;
+      return;
+    }
+    const data = await resp.json();
+    const text = (data.text || '').trim();
+    document.getElementById('output').value = text;
+    const wc = text.split(/\s+/).filter(Boolean).length;
+    document.getElementById('status').textContent = wc > 0 ? `Status: Done, ${wc} words` : 'Status: Done (no speech detected)';
+    if(wc > 0) document.getElementById('dl-text').style.display = 'inline-block';
+  } catch(e){
+    document.getElementById('status').textContent = 'Status: Backend unreachable - ' + (e && e.message || e);
+  }
+}
+
 function fmtSize(bytes){
   const mb=bytes/1048576;
   if(mb<0.05) return '0.1MB';
@@ -134,7 +158,7 @@ async function toggleRecord(){
     document.getElementById('output').value = '';
     document.getElementById('record-btn').textContent = 'Stop';
     document.getElementById('rec-indicator').style.display = 'block';
-    document.getElementById('status').textContent = 'Status: Recording and transcribing live';
+    document.getElementById('status').textContent = SR ? 'Status: Recording and transcribing live' : 'Status: Recording (will transcribe via Whisper on stop)';
     document.getElementById('dl-text').style.display = 'none';
     document.getElementById('dl-audio').style.display = 'none';
     document.getElementById('replay-btn').style.display = 'none';
@@ -187,7 +211,7 @@ async function toggleRecord(){
                      MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : '';
     mediaRecorder = new MediaRecorder(stream, mimeType ? {mimeType} : {});
     mediaRecorder.ondataavailable = (e) => { if(e.data.size>0) recordChunks.push(e.data); };
-    mediaRecorder.onstop = () => {
+    mediaRecorder.onstop = async () => {
       stream.getTracks().forEach(t=>t.stop());
       const recType = mimeType || 'audio/webm';
       audioBlob = new Blob(recordChunks, {type:recType});
@@ -199,13 +223,20 @@ async function toggleRecord(){
       document.getElementById('replay-btn').style.display = 'inline-block';
       document.getElementById('dl-audio').style.display = 'inline-block';
       drawWaveform(audioBlob);
-      setTimeout(() => {
-        const text = document.getElementById('output').value.trim() || liveFinalText.trim();
-        if(text) document.getElementById('output').value = text;
-        const wc = text.split(/\s+/).filter(Boolean).length;
-        document.getElementById('status').textContent = wc > 0 ? `Status: Done, ${wc} words` : 'Status: Done';
-        document.getElementById('dl-text').style.display = 'inline-block';
-      }, 3000); // 3s delay for mobile to finish processing
+      if(recognitionActive){
+        // Live WSR was running, its results are already in the output. Just finalize.
+        setTimeout(() => {
+          const text = document.getElementById('output').value.trim() || liveFinalText.trim();
+          if(text) document.getElementById('output').value = text;
+          const wc = text.split(/\s+/).filter(Boolean).length;
+          document.getElementById('status').textContent = wc > 0 ? `Status: Done, ${wc} words` : 'Status: Done';
+          document.getElementById('dl-text').style.display = 'inline-block';
+        }, 3000); // 3s delay for mobile to finish processing
+      } else {
+        // WSR unavailable (Firefox/Safari/etc). Send the recording to Whisper.
+        document.getElementById('status').textContent = 'Status: Transcribing via Whisper...';
+        await transcribeViaWhisper(audioBlob);
+      }
     };
     mediaRecorder.start(1000); // Collect data every 1s (helps mobile)
   } catch(e){
@@ -213,65 +244,17 @@ async function toggleRecord(){
     isRecording = false;
   }
 }
-function transcribe(){
+async function transcribe(){
   if(!audioBlob){
     document.getElementById('status').textContent = 'Status: No audio to transcribe';
     return;
   }
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){
-    document.getElementById('status').textContent = 'Status: Speech recognition not supported, use Chrome';
-    return;
-  }
-
-  document.getElementById('status').textContent = 'Status: Playing audio for transcription, keep volume up...';
+  document.getElementById('status').textContent = 'Status: Transcribing via Whisper (server-side, no playback)...';
   document.getElementById('transcribe-btn').disabled = true;
   document.getElementById('output').value = '';
   document.getElementById('dl-text').style.display = 'none';
-
-  const playEl = new Audio(audioUrl);
-  let finalTranscript = '';
-
-  const recognition = new SR();
-  recognition.lang = 'en-US';
-  recognition.continuous = true;
-  recognition.interimResults = true;
-
-  recognition.onresult = (e) => {
-    let interim = '';
-    for(let i=e.resultIndex; i<e.results.length; i++){
-      if(e.results[i].isFinal) finalTranscript += e.results[i][0].transcript + ' ';
-      else interim += e.results[i][0].transcript;
-    }
-    document.getElementById('output').value = finalTranscript + interim;
-    document.getElementById('output').scrollTop = document.getElementById('output').scrollHeight;
-  };
-
-  recognition.onerror = (e) => {
-    if(e.error==='no-speech' && !playEl.paused && !playEl.ended){
-      try { recognition.start(); } catch(ex){}
-    }
-  };
-
-  recognition.onend = () => {
-    if(!playEl.paused && !playEl.ended){
-      try { recognition.start(); } catch(e){}
-    } else {
-      document.getElementById('output').value = finalTranscript.trim();
-      const wc = finalTranscript.trim().split(/\s+/).filter(Boolean).length;
-      document.getElementById('status').textContent = `Status: Done, ${wc} words`;
-      document.getElementById('transcribe-btn').disabled = false;
-      if(wc > 0) document.getElementById('dl-text').style.display = 'inline-block';
-    }
-  };
-
-  playEl.onended = () => {
-    setTimeout(()=>{ try { recognition.stop(); } catch(e){} }, 2000);
-  };
-
-  recognition.start();
-  playEl.volume = 1.0;
-  playEl.play();
+  await transcribeViaWhisper(audioBlob);
+  document.getElementById('transcribe-btn').disabled = false;
 }
 function replayAudio(){
   if(!audioUrl) return;
