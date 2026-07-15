@@ -92,12 +92,50 @@ let liveFinalText = '';
 
 const MSC_API = 'https://erikmoyer-msc-tool.hf.space';
 
+/* ───────── RESILIENT BACKEND FETCH ─────────
+ * Free Hugging Face Spaces sleep after idle and answer 503 (or refuse the
+ * connection) for up to about a minute while they wake and reschedule onto a
+ * CPU node. wakeFetch keeps retrying, surfacing a "waking" status, until the
+ * Space answers or WAKE_TIMEOUT_MS elapses. Non-retryable statuses
+ * (400/404/429/etc) are returned immediately so real errors surface fast.
+ */
+const WAKE_TIMEOUT_MS = 90000;
+function wakeSleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+function wakeBackoff(n){ return Math.min(6000, 2000 + n * 1000); }
+async function wakeFetch(url, opts, onWaking){
+  let start = Date.now(), attempt = 0;
+  while(true){
+    attempt++;
+    try {
+      const r = await fetch(url, opts);
+      if(r.ok) return r;
+      if(r.status===502 || r.status===503 || r.status===504){
+        if(Date.now() - start > WAKE_TIMEOUT_MS) return r;
+        if(onWaking) onWaking(attempt);
+        await wakeSleep(wakeBackoff(attempt));
+        continue;
+      }
+      return r;
+    } catch(e){
+      if(Date.now() - start > WAKE_TIMEOUT_MS) throw e;
+      if(onWaking) onWaking(attempt);
+      await wakeSleep(wakeBackoff(attempt));
+    }
+  }
+}
+// Fire-and-forget: nudge the backend awake the moment the tool loads so it is
+// usually running by the time the visitor acts. no-cors keeps the console quiet.
+function warmBackend(base){ try { fetch(base + '/', {method:'GET', mode:'no-cors', cache:'no-store'}).catch(function(){}); } catch(e){} }
+warmBackend(MSC_API);
+
 // Returns true on success, false if Whisper failed (so caller can decide to fall back).
 async function transcribeViaWhisper(blob){
   try {
     const fd = new FormData();
     fd.append('file', blob, audioFileName || 'audio.webm');
-    const resp = await fetch(MSC_API + '/api/transcribe', { method:'POST', body: fd });
+    const resp = await wakeFetch(MSC_API + '/api/transcribe', { method:'POST', body: fd }, function(){
+      document.getElementById('status').textContent = 'Status: Waking the server, this can take up to a minute';
+    });
     if(!resp.ok){
       const msg = resp.status === 503 ? 'Status: Whisper backend not ready, try again in a minute'
                 : 'Status: Transcription failed (HTTP ' + resp.status + ')';
