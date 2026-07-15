@@ -1,0 +1,26 @@
+name: keep-warm
+
+# Pings the Bibliotech Hugging Face Spaces on a schedule so they never idle out
+# and get descheduled. An idle free Space is what triggers the rare HF
+# "scheduling failure" that takes a tool offline until a manual restart. A plain
+# GET to each Space root is enough to keep it warm. No secrets are used because
+# the Space URLs are already public in the site frontend.
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # every 6 hours. HF free Spaces sleep after 48h idle, so this keeps wide margin.
+  workflow_dispatch: {}      # lets you run it on demand from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Warm the Spaces
+        run: |
+          for url in \
+            "https://erikmoyer-tts-tool.hf.space/" \
+            "https://erikmoyer-msc-tool.hf.space/"; do
+            echo "Pinging $url"
+            curl -sS -m 90 -o /dev/null -w "  HTTP %{http_code} in %{time_total}s\n" "$url" \
+              || echo "  ping failed, will retry next run"
+          done
