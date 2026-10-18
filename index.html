@@ -75,16 +75,19 @@ img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:
 <img src="images/Erbrik.png" alt="Erbrik">
 <br>
 
+<h2 id="contents" class="collapsible" onclick="toggleSection(this)">Contents<span class="arrow">&#9662;</span></h2>
+<div class="section-content">
 <div class="toc">
 <div class="toc-links">
-<a href="#about">About</a> | <a href="#music">Music</a> | <a href="#books">Books</a> | <a href="#poetry">Poetry</a> | <a href="#fiction">Fiction</a> | <a href="#creative-nonfiction">Creative Nonfiction</a> | <a href="#humor">Humor</a> | <a href="#scholarship">Scholarship</a> | <a href="#readings">Readings</a> | <a href="#gizmos">Gizmos</a> | <a href="#contact">Contact</a>
+<a href="#about">About</a> | <a href="#music">Music</a> | <a href="#books">Books</a> | <a href="#poetry">Poetry</a> | <a href="#fiction">Fiction</a> | <a href="#nonfiction">Nonfiction</a> | <a href="#humor">Humor</a> | <a href="#scholarship">Scholarship</a> | <a href="#readings">Readings</a> | <a href="#gizmos">Gizmos</a> | <a href="#contact">Contact</a>
 </div>
 <div class="toc-controls">
-<button type="button" class="toc-btn" onclick="expandAll()">Expand All</button>
 <button type="button" class="toc-btn" onclick="collapseAll()">Collapse All</button>
+<button type="button" class="toc-btn" onclick="expandAll()">Expand All</button>
 </div>
 </div>
 <br>
+</div>
 
 <h2 id="about" class="collapsible" onclick="toggleSection(this)">About<span class="arrow">&#9662;</span></h2>
 <div class="section-content">
@@ -164,7 +167,7 @@ img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:
 <br>
 </div>
 
-<h2 id="creative-nonfiction" class="collapsible" onclick="toggleSection(this)">Creative Nonfiction<span class="arrow">&#9662;</span></h2>
+<h2 id="nonfiction" class="collapsible" onclick="toggleSection(this)">Nonfiction<span class="arrow">&#9662;</span></h2>
 <div class="section-content">
 <div class="pub-entry"><img src="images/GrubStreet.png" alt="Grub Street"></a><div class="pub-text"><p>"Freddy vs. Jason</a>," <em>Grub Street</em>, Towson University, Flash Personal Narrative, Online & Print, December 2026, Forthcoming</p></div></div>
 <div class="pub-entry"><a href="http://phoebejournal.com/self-portrait-as-baby/"><img src="images/PhoebeJournal.png" alt="Phoebe Journal"></a><div class="pub-text"><p>"<a href="images/SelfPortraitAsBaby.png" alt="Self-Portrait as Baby">Self-Portrait as Baby</a>," <em>Phoebe Journal</em>, George Mason University, Flash Personal Narrative, Online, May 2025</p></div></div>
@@ -208,7 +211,6 @@ img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:
 <div class="pub-entry"><a href="https://erikjosephmoyer.com/scanner/"><img src="images/Favicon.png" alt="OCR Tool"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/scanner/"><u>The Decipherer</u></a>, Optical Character Recognizer, <em>See With Your Eyes</em></p></div></div>
 <div class="pub-entry"><a href="https://erikjosephmoyer.com/translator/"><img src="images/Favicon.png" alt="Interpretive Tool"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/translator/"><u>The Linguifier</u></a>, Interpretive Tool, <em>Speak With Your Tongue</em></p></div></div>
 <div class="pub-entry"><a href="https://erikjosephmoyer.com/musicker/"><img src="images/Favicon.png" alt="Music Decoder"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/musicker/"><u>The Tonalizer</u></a>, Music Decoder, <em>Hear With Your Eyes</em></p></div></div>
-<div class="pub-entry"><a href="https://github.com/ErikJosephMoyer"><img src="images/GitHub.png" alt="GitHub"></a><div class="pub-text"><p><p>GitHub</p></div></div>
 <br>
 </div>
 
@@ -216,6 +218,7 @@ img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:
 <div class="section-content">
 <div class="pub-entry"><a href="mailto:erik@erikjosephmoyer.com"><img src="images/VanGoghThePostman.png" alt="Van Gogh The Postman"></a><div class="pub-text"><p><p>Email</p></div></div>
 <div class="pub-entry"><a href="https://linkedin.com/in/erikmoyer/"><img src="images/MonetCoucherDeSoleil.png" alt="Monet Coucher de Soleil"></a><div class="pub-text"><p><p>LinkedIn</p></div></div>
+<div class="pub-entry"><a href="https://github.com/ErikJosephMoyer"><img src="images/GitHub.png" alt="GitHub"></a><div class="pub-text"><p><p>GitHub</p></div></div>
 <br>
 </div>
 
@@ -244,8 +247,8 @@ function expandAll() {
 }
 
 function collapseAll() {
-  document.querySelectorAll('h2.collapsible').forEach(h => h.classList.add('collapsed'));
-  document.querySelectorAll('.section-content').forEach(c => c.classList.add('collapsed'));
+  document.querySelectorAll('h2.collapsible:not(#contents)').forEach(h => h.classList.add('collapsed'));
+  document.querySelectorAll('h2.collapsible:not(#contents) + .section-content').forEach(c => c.classList.add('collapsed'));
 }
 
 function openModal(imageSource) { const modal = document.getElementById('poemModal'); const poemImage = document.getElementById('poemImage');
