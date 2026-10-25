@@ -309,9 +309,37 @@ function toggleVideo(id) { const element = document.getElementById(id); if (elem
   const pathSlug = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/')[0];
   const PAGE_ID = pathSlug || 'main';
 
+  const params = new URLSearchParams(window.location.search);
+  const rawRef = params.get('ref') || params.get('from') || params.get('id') || window.location.search.replace(/^\?/, '');
+  const initHash = window.location.hash.replace(/^#/, '');
+  if (rawRef) {
+    sessionStorage.setItem('jbj_ref', rawRef);
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.hash);
+    }
+  }
+  const savedRef = sessionStorage.getItem('jbj_ref') || '';
+  const refTag = [savedRef, initHash ? `#${initHash}` : ''].filter(Boolean).join(' ');
+
   function pB(u){if(/Edg\//i.test(u))return'Edge';if(/OPR\//i.test(u))return'Opera';if(/Chrome\//i.test(u)&&!/Edg/i.test(u))return'Chrome';if(/Safari\//i.test(u)&&!/Chrome/i.test(u))return'Safari';if(/Firefox\//i.test(u))return'Firefox';return'Other'}
   function pO(u){if(/Windows/i.test(u))return'Windows';if(/Mac OS X/i.test(u))return'macOS';if(/Android/i.test(u))return'Android';if(/iPhone|iPad/i.test(u))return'iOS';if(/Linux/i.test(u))return'Linux';if(/CrOS/i.test(u))return'ChromeOS';return'Other'}
   function pD(u){if(/Mobi|Android.*Mobile|iPhone/i.test(u))return'Mobile';if(/iPad|Android(?!.*Mobile)|Tablet/i.test(u))return'Tablet';return'Desktop'}
+
+  function getHW() {
+    let gpu = '';
+    try {
+      const c = document.createElement('canvas');
+      const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
+      if (gl) {
+        const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+        if (dbg) gpu = gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '';
+      }
+    } catch(e) {}
+    gpu = gpu.replace(/^ANGLE \((.+)\)$/, '$1').split(',')[0].trim();
+    const cores = navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency}c` : '';
+    const ram = navigator.deviceMemory ? `${navigator.deviceMemory}GB` : '';
+    return [gpu, cores, ram].filter(Boolean).join(' | ');
+  }
 
   function getStamp() {
     const n = new Date();
@@ -321,13 +349,17 @@ function toggleVideo(id) { const element = document.getElementById(id); if (elem
     return { date: d, time: t };
   }
 
+  const hardware = getHW();
+
   let baseMeta = {
     ip: localStorage.getItem('jbj_ip') || '',
     city: '', region: '', country: '', org: '',
     browser: pB(ua), os: pO(ua), device: pD(ua),
     classification: botStatus,
     fingerprint: localStorage.getItem('jbj_fp') || '',
-    userAgent: ua
+    userAgent: ua,
+    hardware: hardware,
+    refTag: refTag
   };
 
   window.logAction = function(action, detail) {
@@ -373,7 +405,7 @@ function toggleVideo(id) { const element = document.getElementById(id); if (elem
   const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
   const st = getStamp();
 
-  const rawHash = [ip, ua, navigator.language, Intl.DateTimeFormat().resolvedOptions().timeZone, `${screen.width}x${screen.height}`].join('|');
+  const rawHash = [ip, ua, navigator.language, Intl.DateTimeFormat().resolvedOptions().timeZone, `${screen.width}x${screen.height}`, hardware].join('|');
   const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawHash));
   const fingerprint = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 
@@ -388,7 +420,8 @@ function toggleVideo(id) { const element = document.getElementById(id); if (elem
     screenSize: `${screen.width}x${screen.height}`, viewport: `${window.innerWidth}x${window.innerHeight}`,
     referrer: document.referrer, language: navigator.language,
     connectionType: conn?(conn.effectiveType||conn.type||''):'',
-    classification: botStatus, fingerprint, userAgent: ua
+    classification: botStatus, fingerprint, userAgent: ua,
+    hardware, refTag
   };
 
   fetch(ENDPOINT, {
@@ -399,7 +432,7 @@ function toggleVideo(id) { const element = document.getElementById(id); if (elem
       time: st.time,
       page: PAGE_ID,
       action: 'pageview',
-      detail: ''
+      detail: initHash ? `#${initHash}` : ''
     })),
     keepalive: true
   }).catch(() => {});
