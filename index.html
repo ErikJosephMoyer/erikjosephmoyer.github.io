@@ -1,125 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Erik Moyer</title>
-<meta name="description" content="A digital cornucopia of poems, songs, stories, & more">
-<meta name="author" content="Erik Moyer">
-<meta property="og:site_name" content="Erik Moyer" />
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Erik Moyer</title><meta name="description" content="A digital cornucopia of poems, songs, stories, & more"><meta name="author" content="Erik Moyer"><meta property="og:site_name" content="Erik Moyer" />
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Erik Moyer","url":"https://ErikJosephMoyer.com"}</script>
-<link rel="icon" href="images/Favicon.png" type="image/png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="icon" href="images/Favicon.png" type="image/png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
-
 body{background:#2a2a2a;color:white;font:normal 16pt/1.2 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
-h1,h2,h3{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 0 16pt}
-h1{font-size:36pt;text-align:center}
-h2{font-size:28pt;text-align:center;margin:8pt 0 16pt}
-h3{font-size:20pt;text-align:center;margin:0 0 8pt}
-p{margin:0 0 8pt}
-
-.about-text{text-align:justify}
-a,a:visited{color:white;text-decoration:underline;cursor:pointer}
-a:hover{color:#ccc}
-a,a *,a img{cursor:pointer}
-
-.toc{text-align:center;margin:0 0 16pt}
-.toc-links{max-width:530px;margin:0 auto 10pt;line-height:1.4}
-.toc-controls{display:flex;justify-content:center;gap:12px}
-.toc-btn{background:transparent;color:white;border:1px solid rgba(255,255,255,0.5);border-radius:8px;font:normal 13pt/1 'EB Garamond',serif;padding:6px 14px;cursor:pointer}
-.toc-btn:hover{color:#ccc;border-color:#ccc}
-
-h2.collapsible{cursor:pointer;user-select:none}
-h2.collapsible:hover{color:#ccc}
-.arrow{display:inline-block;font-size:18pt;margin-left:6px;transition:transform 0.2s ease;vertical-align:middle}
-h2.collapsible.collapsed .arrow{transform:rotate(-90deg)}
-.section-content.collapsed{display:none}
-
-img{max-width:100%;height:auto;object-fit:cover;width:500px}
-img[src*="Favicon"],img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt}
-img[src*="Favicon"]{border-radius:50%;margin-bottom:0}
-img[src*="Logophile"]{border-radius:15px}
-img[src*="Erbrik"]{width:250px;height:250px;border-radius:50%;display:block;margin:0 auto 8pt}
-img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:15px}
-
-.pub-entry{display:flex;align-items:flex-start;margin-bottom:16pt}
-.pub-entry img{width:100px;height:100px;border-radius:8px;margin-right:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1)}
-.pub-entry img[src*="GitHub"]{background:#fff}
-.pub-text{flex:1}
-
+h1,h2,h3{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 0 16pt;text-align:center}
+h1{font-size:36pt} h2{font-size:28pt;margin:8pt 0 16pt} h3{font-size:20pt;margin:0 0 8pt} p{margin:0 0 8pt}
+.about-text{text-align:justify} a,a:visited{color:white;text-decoration:underline;cursor:pointer} a:hover{color:#ccc} a,a *,a img{cursor:pointer}
+.toc{text-align:center;margin:0 0 16pt} .toc-links{max-width:530px;margin:0 auto 10pt;line-height:1.4} .toc-controls{display:flex;justify-content:center;gap:12px}
+.toc-btn{background:transparent;color:white;border:1px solid rgba(255,255,255,0.5);border-radius:8px;font:normal 13pt/1 'EB Garamond',serif;padding:6px 14px;cursor:pointer} .toc-btn:hover{color:#ccc;border-color:#ccc}
+h2.collapsible{cursor:pointer;user-select:none} h2.collapsible:hover{color:#ccc}
+.arrow{display:inline-block;font-size:18pt;margin-left:6px;transition:transform 0.2s ease;vertical-align:middle} h2.collapsible.collapsed .arrow{transform:rotate(-90deg)} .section-content.collapsed{display:none}
+img{max-width:100%;height:auto;object-fit:cover;width:500px} img[src*="Favicon"],img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt}
+img[src*="Favicon"]{border-radius:50%;margin-bottom:0} img[src*="Logophile"]{border-radius:15px} img[src*="Erbrik"]{width:250px;height:250px;border-radius:50%;display:block;margin:0 auto 8pt} img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:15px}
+.pub-entry{display:flex;align-items:flex-start;margin-bottom:16pt} .pub-entry img{width:100px;height:100px;border-radius:8px;margin-right:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1)} .pub-entry img[src*="GitHub"]{background:#fff} .pub-text{flex:1}
 .modal{display:none;position:fixed;z-index:1000;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.9);justify-content:center;align-items:center;padding:20px;box-sizing:border-box}
-.modal-content{display:flex;justify-content:center;align-items:center;max-width:80vw;max-height:90vh}
-#poemImage{max-width:80vw;max-height:90vh;width:auto;height:auto;border-radius:8px;box-shadow:0 0 20px rgba(0,0,0,0.5);object-fit:contain}
-#soundcloud-embed,#spotify-embed,#apple-embed,#youtube-embed,#soundcloud-track-embed,#spotify-artist-embed{display:none;width:100%;max-width:660px;margin:0 0 16pt 0;}
-
-.video-container { position: relative; width: 100%; display: none; padding-bottom: 56.25%; height: 0; margin-bottom: 16pt; overflow: hidden; max-height: 450px; }
-.video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-
-</style>
-</head>
-<body>
-
+.modal-content{display:flex;justify-content:center;align-items:center;max-width:80vw;max-height:90vh} #poemImage{max-width:80vw;max-height:90vh;width:auto;height:auto;border-radius:8px;box-shadow:0 0 20px rgba(0,0,0,0.5);object-fit:contain}
+#soundcloud-embed,#spotify-embed,#apple-embed,#youtube-embed,#soundcloud-track-embed,#spotify-artist-embed{display:none;width:100%;max-width:660px;margin:0 0 16pt 0}
+.video-container{position:relative;width:100%;display:none;padding-bottom:56.25%;height:0;margin-bottom:16pt;overflow:hidden;max-height:450px} .video-container iframe{position:absolute;top:0;left:0;width:100%;height:100%}
+</style></head><body>
 <img src="images/Logophile.png" alt="Logophile">
 <h1>Erik's Very Own Webpage</h1>
-<h3>A digital cornucopia of poems, songs, stories, & more</h3>
-<br>
-<img src="images/Erbrik.png" alt="Erbrik">
-<br>
-
-<h2 id="contents" class="collapsible" onclick="toggleSection(this)">Contents<span class="arrow">&#9662;</span></h2>
-<div class="section-content">
-<div class="toc">
-<div class="toc-links">
-<a href="#about">About</a> | <a href="#music">Music</a> | <a href="#books">Books</a> | <a href="#poetry">Poetry</a> | <a href="#fiction">Fiction</a> | <a href="#nonfiction">Nonfiction</a> | <a href="#humor">Humor</a> | <a href="#scholarship">Scholarship</a> | <a href="#readings">Readings</a> | <a href="#gizmos">Gizmos</a> | <a href="#contact">Contact</a>
-</div>
-<div class="toc-controls">
-<button type="button" id="toggle-all-btn" class="toc-btn" onclick="toggleAll()">Hide All</button>
-</div>
-</div>
-<br>
-</div>
-
-<h2 id="about" class="collapsible" onclick="toggleSection(this)">About<span class="arrow">&#9662;</span></h2>
-<div class="section-content">
-<p class="about-text">Erik Moyer is a writer and data scientist from Hillsborough, New Jersey. He holds a PhD in creative writing from the University of North Texas, an MFA in writing from the University of California, Irvine, an MBA in business analytics from Florida State University, and a BS in systems engineering and poetry writing from the University of Virginia. His work appears in <em>Columbia Journal, The New York Times, Oxford Poetry, The Pinch, The Rumpus</em>, and elsewhere. His manuscript, <em>How to Be Lonely</em>, was a finalist for the 2025 Gerard Cable Book Award from Silverfish Review Press and a semifinalist for the 2026 First Book Contest from Button Poetry. His debut chapbook, <em>A Time Series Analysis</em>, is forthcoming from Gnashing Teeth Publishing. In past lives, he's worked as a university writing instructor, a varsity-certified umpire, and an emergency medical technician, and has done time in New Jersey, Virginia, Washington DC, California, and Texas. In his free time, he enjoys writing songs, playing chess, and convincing his cat, Xena, that shoelaces are, in fact, snakes. He lives in New York City.</p>
-<br>
-</div>
-
-<h2 id="music" class="collapsible" onclick="toggleSection(this)">Music<span class="arrow">&#9662;</span></h2>
-<div class="section-content">
+<h3>A digital cornucopia of poems, songs, stories, & more</h3><br>
+<img src="images/Erbrik.png" alt="Erbrik"><br>
+<h2 id="contents" class="collapsible" onclick="toggleSection(this)">Contents<span class="arrow">&#9662;</span></h2><div class="section-content"><div class="toc">
+<div class="toc-links"><a href="#about">About</a> | <a href="#music">Music</a> | <a href="#books">Books</a> | <a href="#poetry">Poetry</a> | <a href="#fiction">Fiction</a> | <a href="#nonfiction">Nonfiction</a> | <a href="#humor">Humor</a> | <a href="#scholarship">Scholarship</a> | <a href="#readings">Readings</a> | <a href="#gizmos">Gizmos</a> | <a href="#contact">Contact</a></div>
+<div class="toc-controls"><button type="button" id="toggle-all-btn" class="toc-btn" onclick="toggleAll()">Hide All</button></div></div><br></div>
+<h2 id="about" class="collapsible" onclick="toggleSection(this)">About<span class="arrow">&#9662;</span></h2><div class="section-content">
+<p class="about-text">Erik Moyer is a writer and data scientist from Hillsborough, New Jersey. He holds a PhD in creative writing from the University of North Texas, an MFA in writing from the University of California, Irvine, an MBA in business analytics from Florida State University, and a BS in systems engineering and poetry writing from the University of Virginia. His work appears in <em>Columbia Journal, The New York Times, Oxford Poetry, The Pinch, The Rumpus</em>, and elsewhere. His manuscript, <em>How to Be Lonely</em>, was a finalist for the 2025 Gerard Cable Book Award from Silverfish Review Press and a semifinalist for the 2026 First Book Contest from Button Poetry. His debut chapbook, <em>A Time Series Analysis</em>, is forthcoming from Gnashing Teeth Publishing. In past lives, he's worked as a university writing instructor, a varsity-certified umpire, and an emergency medical technician, and has done time in New Jersey, Virginia, Washington DC, California, and Texas. In his free time, he enjoys writing songs, playing chess, and convincing his cat, Xena, that shoelaces are, in fact, snakes. He lives in New York City.</p><br></div>
+<h2 id="music" class="collapsible" onclick="toggleSection(this)">Music<span class="arrow">&#9662;</span></h2><div class="section-content">
 <div class="pub-entry"><img src="images/DeadSouth.png" alt="Dead South"><div class="pub-text"><p><em>Dead South</em>, Erik Moyer, Spotify, LP, Indie Rock, Forthcoming, December 2027</p></div></div>
-<div class="pub-entry"><a href="https://soundcloud.com/erikjosephmoyer/sets/two-minute-warnings"><img src="images/TwoMinuteWarnings.png" alt="Two-Minute Warnings"></a><div class="pub-text"> <p><a href="javascript:void(0)" onclick="togglePlayer('soundcloud-track-embed')" style="text-decoration: underline;"><em>Two-Minute Warnings</em></a>, Erik Moyer, <a href="javascript:void(0)" onclick="togglePlayer('soundcloud-embed')" style="text-decoration: underline;">Soundcloud</a>, Mixtape, Electronica, March 2025</p></div></div>
-
+<div class="pub-entry"><a href="https://soundcloud.com/erikjosephmoyer/sets/two-minute-warnings"><img src="images/TwoMinuteWarnings.png" alt="Two-Minute Warnings"></a><div class="pub-text"><p><a href="javascript:void(0)" onclick="togglePlayer('soundcloud-track-embed')" style="text-decoration: underline;"><em>Two-Minute Warnings</em></a>, Erik Moyer, <a href="javascript:void(0)" onclick="togglePlayer('soundcloud-embed')" style="text-decoration: underline;">Soundcloud</a>, Mixtape, Electronica, March 2025</p></div></div>
 <div id="soundcloud-track-embed"><iframe id="sc-track-iframe" width="100%" height="450" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/soundcloud%253Atracks%253A2225013827&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true" data-original-src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/soundcloud%253Atracks%253A2225013827&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe><div style="font-size: 10px; color: #cccccc;line-break: anywhere;word-break: normal;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif;font-weight: 100;"><a href="https://soundcloud.com/erikjosephmoyer" title="Erik Moyer" target="_blank" style="color: #cccccc; text-decoration: none;">Erik Moyer</a> · <a href="https://soundcloud.com/erikjosephmoyer/never-alone-3" title="Never Alone Pt. I" target="_blank" style="color: #cccccc; text-decoration: none;">Never Alone Pt. I</a></div></div>
 <div id="soundcloud-embed"><iframe id="sc-iframe" width="100%" height="450" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%253Aplaylists%253A1987585080&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true" data-original-src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/soundcloud%253Aplaylists%253A1987585080&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe><div style="font-size: 10px; color: #cccccc;line-break: anywhere;word-break: normal;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif;font-weight: 100;"><a href="https://soundcloud.com/erikjosephmoyer" title="Erik Moyer" target="_blank" style="color: #cccccc; text-decoration: none;">Erik Moyer</a> · <a href="https://soundcloud.com/erikjosephmoyer/sets/two-minute-warnings" title="Two-Minute Warnings" target="_blank" style="color: #cccccc; text-decoration: none;">Two-Minute Warnings</a></div></div>
-
-<div class="pub-entry"><a href="https://album.link/erikjosephmoyer"><img src="images/HonestThomas.png" alt="Honest Thomas"></a><div class="pub-text">
-<p><a href="javascript:void(0)" onclick="togglePlayer('spotify-artist-embed')" style="text-decoration: underline;"><em>Honest Thomas</em></a>, Erik Moyer, <a href="javascript:void(0)" onclick="togglePlayer('spotify-embed')" style="text-decoration: underline;">Spotify</a>, <a href="javascript:void(0)" onclick="togglePlayer('apple-embed')" style="text-decoration: underline;">Apple Music</a>, & <a href="javascript:void(0)" onclick="togglePlayer('youtube-embed')" style="text-decoration: underline;">YouTube</a>, LP, Indie Rock, August 2019</p></div></div>
-
-<div id="spotify-artist-embed"> <iframe id="sp-artist-iframe" data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/artist/2hvoL0QZVzoOrTb7K926bA?utm_source=generator" width="100%" height="450" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" data-original-src="https://open.spotify.com/embed/artist/2hvoL0QZVzoOrTb7K926bA?utm_source=generator"></iframe></div>
+<div class="pub-entry"><a href="https://album.link/erikjosephmoyer"><img src="images/HonestThomas.png" alt="Honest Thomas"></a><div class="pub-text"><p><a href="javascript:void(0)" onclick="togglePlayer('spotify-artist-embed')" style="text-decoration: underline;"><em>Honest Thomas</em></a>, Erik Moyer, <a href="javascript:void(0)" onclick="togglePlayer('spotify-embed')" style="text-decoration: underline;">Spotify</a>, <a href="javascript:void(0)" onclick="togglePlayer('apple-embed')" style="text-decoration: underline;">Apple Music</a>, & <a href="javascript:void(0)" onclick="togglePlayer('youtube-embed')" style="text-decoration: underline;">YouTube</a>, LP, Indie Rock, August 2019</p></div></div>
+<div id="spotify-artist-embed"><iframe id="sp-artist-iframe" data-testid="embed-iframe" style="border-radius:12px" src="https://open.spotify.com/embed/artist/2hvoL0QZVzoOrTb7K926bA?utm_source=generator" width="100%" height="450" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" data-original-src="https://open.spotify.com/embed/artist/2hvoL0QZVzoOrTb7K926bA?utm_source=generator"></iframe></div>
 <div id="spotify-embed"><iframe id="sp-iframe" style="border-radius:12px;width:100%;max-width:660px;" src="https://open.spotify.com/embed/album/2CzK8DO2fzvoDIj2ApYGeG?utm_source=generator" height="450" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" data-original-src="https://open.spotify.com/embed/album/2CzK8DO2fzvoDIj2ApYGeG?utm_source=generator"></iframe></div>
 <div id="apple-embed"><iframe id="ap-iframe" allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write" frameborder="0" height="450" style="width:100%;max-width:660px;overflow:hidden;border-radius:10px;" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" src="https://embed.music.apple.com/us/album/honest-thomas/1590335458" data-original-src="https://embed.music.apple.com/us/album/honest-thomas/1590335458"></iframe></div>
-<div id="youtube-embed"><iframe id="yt-iframe" width="100%" height="450" src="https://www.youtube.com/embed/videoseries?si=PHxfrO24lLAedl6Y&amp;list=OLAK5uy_nD_7P9_P4Q655dFf2afoiFu_R1KWZwBes" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-original-src="https://www.youtube.com/embed/videoseries?si=PHxfrO24lLAedl6Y&list=OLAK5uy_nD_7P9_P4Q655dFf2afoiFu_R1KWZwBes"></iframe></div>
-<br>
-</div>
-
-<h2 id="books" class="collapsible" onclick="toggleSection(this)">Books<span class="arrow">&#9662;</span></h2>
-<div class="section-content">
-<div class="pub-entry"><img src="images/ATimeSeriesAnalysis.png" alt="A Time Series Analysis"><div class="pub-text"><p><em>A Time Series Analysis</em>, Gnashing Teeth Publishing, Poetry Chapbook, Forthcoming, May 2027</p></div></div>
-<br>
-</div>
-
-<h2 id="poetry" class="collapsible" onclick="toggleSection(this)">Poetry<span class="arrow">&#9662;</span></h2>
-<div class="section-content">
+<div id="youtube-embed"><iframe id="yt-iframe" width="100%" height="450" src="https://www.youtube.com/embed/videoseries?si=PHxfrO24lLAedl6Y&amp;list=OLAK5uy_nD_7P9_P4Q655dFf2afoiFu_R1KWZwBes" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-original-src="https://www.youtube.com/embed/videoseries?si=PHxfrO24lLAedl6Y&list=OLAK5uy_nD_7P9_P4Q655dFf2afoiFu_R1KWZwBes"></iframe></div><br></div>
+<h2 id="books" class="collapsible" onclick="toggleSection(this)">Books<span class="arrow">&#9662;</span></h2><div class="section-content">
+<div class="pub-entry"><img src="images/ATimeSeriesAnalysis.png" alt="A Time Series Analysis"><div class="pub-text"><p><em>A Time Series Analysis</em>, Gnashing Teeth Publishing, Poetry Chapbook, Forthcoming, May 2027</p></div></div><br></div>
+<h2 id="poetry" class="collapsible" onclick="toggleSection(this)">Poetry<span class="arrow">&#9662;</span></h2><div class="section-content">
 <div class="pub-entry"><img src="images/TheSouthCarolinaReview.png" alt="The South Carolina Review"><div class="pub-text"><p>"Sit-Down Stand-Up," <em>The South Carolina Review</em>, Clemson University, Print, Forthcoming, October 2026</p></div></div>
 <div class="pub-entry"><img src="images/TheRoundMagazine.png" alt="The Round Magazine"><div class="pub-text"><p>"Clearance," <em>The Round Magazine</em>, Brown University, Print, Forthcoming, October 2026</p></div></div>
 <div class="pub-entry"><a href="https://www.sup.org/books/literary-studies-and-literature/mantis-journal-poetry-criticism-translation-1"><img src="images/Mantis.png" alt="Mantis"></a><div class="pub-text"><p>"<a href="images/AnAcesGracings.png" alt="An Ace's Gracings">An Ace's Gracings</a>," <em>Mantis</em>, Stanford University, Print, August 2026</p></div></div>
@@ -154,52 +79,27 @@ img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:
 <div class="pub-entry"><a href="http://apricitymagazine.com/portfolio/snooze"><img src="images/ApricityMagazine.png" alt="Apricity Magazine"></a><div class="pub-text"><p>"<a href="images/Snooze.png" alt="Snooze">Snooze</a>," <em>Apricity Magazine</em>, University of Texas at Austin, Online, January 2022</p></div></div>
 <div class="pub-entry"><a href="http://constellations-lit.com/issues/vol11.html"><img src="images/ConstellationsJournal.png" alt="Constellations Journal"></a><div class="pub-text"><p>"<a href="images/HIPAAViolations.png" alt="HIPAA Violations">HIPAA Violations</a>," <em>Constellations Journal</em>, 2022 Pushcart Prize Nominee, Print, December 2021</p></div></div>
 <div class="pub-entry"><a href="http://hawaiipacificreview.org/2021/04/05/on-letting-go"><img src="images/HawaiiPacificReview.png" alt="Hawaii Pacific Review"></a><div class="pub-text"><p>"<a href="images/OnLettingGo.png" alt="On Letting Go">On Letting Go</a>," <em>Hawaii Pacific Review</em>, Hawaii Pacific University, Online, April 2021</p></div></div>
-<div class="pub-entry"><img src="images/NewReaderMagazine.png" alt="New Reader Magazine"><div class="pub-text"><p>"<a href="images/BeforeDiFaras.png" alt="Before Di Fara's">Before Di Fara's</a>" & "<a href="images/WatchingEpisodesOfChoppedJunior.png" alt="Watching Episodes of Chopped Junior">Watching Episodes of Chopped Junior</a>," <em>New Reader Magazine</em>, Online, September 2018</p></div></div>
-<br>
-</div>
-
-<h2 id="fiction" class="collapsible" onclick="toggleSection(this)">Fiction<span class="arrow">&#9662;</span></h2>
-<div class="section-content">
+<div class="pub-entry"><img src="images/NewReaderMagazine.png" alt="New Reader Magazine"><div class="pub-text"><p>"<a href="images/BeforeDiFaras.png" alt="Before Di Fara's">Before Di Fara's</a>" & "<a href="images/WatchingEpisodesOfChoppedJunior.png" alt="Watching Episodes of Chopped Junior">Watching Episodes of Chopped Junior</a>," <em>New Reader Magazine</em>, Online, September 2018</p></div></div><br></div>
+<h2 id="fiction" class="collapsible" onclick="toggleSection(this)">Fiction<span class="arrow">&#9662;</span></h2><div class="section-content">
 <div class="pub-entry"><a href="https://casit.bgsu.edu/midamericanreview/latest-issue-2/"><img src="images/MidAmericanReview.png" alt="Mid-American Review"></a><div class="pub-text"><p>"<a href="images/BearInMind.png" alt="Bear in Mind">Bear in Mind</a>," <em>Mid-American Review</em>, Bowling Green State University, Flash Fiction, Print, May 2026</p></div></div>
 <div class="pub-entry"><a href="https://www.columbiajournal.org/fiction-column/dirty-pawlitics"><img src="images/DirtyPawliticsArt.png" alt="Dirty Pawlitics Art"></a><div class="pub-text"><p>"<a href="images/DirtyPawlitics.png" alt="Dirty Pawlitics">Dirty Pawlitics</a>," <em>Columbia Journal</em>, Columbia University, Flash Fiction, Online, November 2025</p></div></div>
-<div class="pub-entry"><a href="http://carteblanchemagazine.com/issue-51/moyer-the-chronicles-of-jackie-flapjacks"><img src="images/CarteBlancheMagazine.png" alt="Carte Blanche Magazine"></a><div class="pub-text"><p>"<a href="images/TheChroniclesOfJackieFlapjacks.png" alt="The Chronicles of Jackie Flapjacks">The Chronicles of Jackie Flapjacks</a>," <em>Carte Blanche Magazine</em>, Flash Fiction, Online, June 2025</p></div></div>
-<br>
-</div>
-
-<h2 id="nonfiction" class="collapsible" onclick="toggleSection(this)">Nonfiction<span class="arrow">&#9662;</span></h2>
-<div class="section-content">
-<div class="pub-entry"><img src="images/GrubStreet.png" alt="Grub Street"></a><div class="pub-text"><p>"Freddy vs. Jason</a>," <em>Grub Street</em>, Towson University, Flash Personal Narrative, Online & Print, May 2027, Forthcoming</p></div></div>
+<div class="pub-entry"><a href="http://carteblanchemagazine.com/issue-51/moyer-the-chronicles-of-jackie-flapjacks"><img src="images/CarteBlancheMagazine.png" alt="Carte Blanche Magazine"></a><div class="pub-text"><p>"<a href="images/TheChroniclesOfJackieFlapjacks.png" alt="The Chronicles of Jackie Flapjacks">The Chronicles of Jackie Flapjacks</a>," <em>Carte Blanche Magazine</em>, Flash Fiction, Online, June 2025</p></div></div><br></div>
+<h2 id="nonfiction" class="collapsible" onclick="toggleSection(this)">Nonfiction<span class="arrow">&#9662;</span></h2><div class="section-content">
+<div class="pub-entry"><img src="images/GrubStreet.png" alt="Grub Street"><div class="pub-text"><p>"Freddy vs. Jason," <em>Grub Street</em>, Towson University, Flash Personal Narrative, Online & Print, May 2027, Forthcoming</p></div></div>
 <div class="pub-entry"><a href="http://phoebejournal.com/self-portrait-as-baby/"><img src="images/PhoebeJournal.png" alt="Phoebe Journal"></a><div class="pub-text"><p>"<a href="images/SelfPortraitAsBaby.png" alt="Self-Portrait as Baby">Self-Portrait as Baby</a>," <em>Phoebe Journal</em>, George Mason University, Flash Personal Narrative, Online, May 2025</p></div></div>
-<div class="pub-entry"><a href="http://nytimes.com/2025/03/05/style/tiny-modern-love-stories-serendipity-still-exists.html"><img src="images/TheNewYorkTimes.png" alt="The New York Times"></a><div class="pub-text"><p>"<a href="images/RideShareRoulette.png" alt="Ride-Share Roulette">Ride-Share Roulette</a>," <em>The New York Times</em>, Modern Love Column, Tiny Love Stories Feature, Micro Personal Narrative, Online & Print, March 2025</p></div></div>
-<br>
-</div>
-
-<h2 id="humor" class="collapsible" onclick="toggleSection(this)">Humor<span class="arrow">&#9662;</span></h2>
-<div class="section-content">
-<div class="pub-entry"><a href="http://pointsincase.com/author/erik-moyer"><img src="images/PointsInCase.png" alt="Points in Case"></a><div class="pub-text"><p>"<a href="images/IrrationalFears.png">Irrational Fears</a>," "<a href="images/DownToEarth.png">Down to Earth</a>," "<a href="images/ArmedToTheTeeth.png">Armed to the Teeth</a>," "<a href="images/StateChampionship.png">State Championship</a>," & "<a href="images/SticksAndStones.png">Sticks & Stones</a>," <em>Points in Case</em>, Jokes, Online, October 2024 – June 2026</p></div></div>
-<br>
-</div>
-
-<h2 id="scholarship" class="collapsible" onclick="toggleSection(this)">Scholarship<span class="arrow">&#9662;</span></h2>
-<div class="section-content">
+<div class="pub-entry"><a href="http://nytimes.com/2025/03/05/style/tiny-modern-love-stories-serendipity-still-exists.html"><img src="images/TheNewYorkTimes.png" alt="The New York Times"></a><div class="pub-text"><p>"<a href="images/RideShareRoulette.png" alt="Ride-Share Roulette">Ride-Share Roulette</a>," <em>The New York Times</em>, Modern Love Column, Tiny Love Stories Feature, Micro Personal Narrative, Online & Print, March 2025</p></div></div><br></div>
+<h2 id="humor" class="collapsible" onclick="toggleSection(this)">Humor<span class="arrow">&#9662;</span></h2><div class="section-content">
+<div class="pub-entry"><a href="http://pointsincase.com/author/erik-moyer"><img src="images/PointsInCase.png" alt="Points in Case"></a><div class="pub-text"><p>"<a href="images/IrrationalFears.png">Irrational Fears</a>," "<a href="images/DownToEarth.png">Down to Earth</a>," "<a href="images/ArmedToTheTeeth.png">Armed to the Teeth</a>," "<a href="images/StateChampionship.png">State Championship</a>," & "<a href="images/SticksAndStones.png">Sticks & Stones</a>," <em>Points in Case</em>, Jokes, Online, October 2024 – June 2026</p></div></div><br></div>
+<h2 id="scholarship" class="collapsible" onclick="toggleSection(this)">Scholarship<span class="arrow">&#9662;</span></h2><div class="section-content">
 <div class="pub-entry"><a href="https://digital.library.unt.edu/ark:/67531/metadc2566455/"><img src="images/UNTDissertation.png" alt="UNT Dissertation"></a><div class="pub-text"><p><em><a href="images/HowToBeLonely.png" alt="How to Be Lonely">How to Be Lonely</a></em>, UNT Digital Library, University of North Texas, Creative Doctoral Dissertation, Critical Preface & Poetry Collection, Online, Under Embargo, December 2025</p></div></div>
 <div class="pub-entry"><a href="https://escholarship.org/uc/item/2m81f9bt"><img src="images/UCIThesis.png" alt="UCI Thesis"></a><div class="pub-text"><p><em><a href="images/SitDownStandUp.png" alt="Sit-Down Stand-Up">Sit-Down Stand-Up</a></em>, eScholarship, University of California, Irvine, Master's Thesis, Poetry Collection, Online, Under Embargo, September 2021</p></div></div>
 <div class="pub-entry"><a href="https://search.lib.virginia.edu/sources/uva_library/items/u6821962"><img src="images/UVAThesis.png" alt="UVA Thesis"></a><div class="pub-text"><p>"<a href="images/RethinkingCommsAndITInEMS.png" alt="Rethinking Communications and Information Technology in Emergency Medicine">Rethinking Communications and Information Technology in Emergency Medicine</a>," UVA Library, University of Virginia, Undergraduate Thesis, Research Paper, Online, May 2016</p></div></div>
-<div class="pub-entry"><img src="images/ATryingToMakeSenseOfThings.png" alt="A Trying to Make Sense of Things"><div class="pub-text"><p><em>A Trying to Make Sense of Things</a></em>, University of Virginia, Undergraduate Poetry Capstone Project, Poetry Chapbook, Print, May 2016</p></div></div>
-<div class="pub-entry"><a href="http://dx.doi.org/10.1109/SIEDS.2016.7489306"><img src="images/UVAEngineeringCapstone.png" alt="UVA Engineering Capstone"></a><div class="pub-text"><p>"<a href="images/FacilitatingPatientCareInfoEMS.png" alt="Facilitating the Collection and Dissemination of Patient Care Information for Emergency Medical Personnel">Facilitating the Collection and Dissemination of Patient Care Information for Emergency Medical Personnel</a>,” <em>SIEDS 2016</em>, IEEE, University of Virginia, Undergraduate Engineering Capstone Project, Design-Prototype Conference Paper, Online, April 2016</p></div></div>
-<br>
-</div>
-
-<h2 id="readings" class="collapsible" onclick="toggleSection(this)">Readings<span class="arrow">&#9662;</span></h2>
-<div class="section-content">
+<div class="pub-entry"><img src="images/ATryingToMakeSenseOfThings.png" alt="A Trying to Make Sense of Things"><div class="pub-text"><p><em>A Trying to Make Sense of Things</em>, University of Virginia, Undergraduate Poetry Capstone Project, Poetry Chapbook, Print, May 2016</p></div></div>
+<div class="pub-entry"><a href="http://dx.doi.org/10.1109/SIEDS.2016.7489306"><img src="images/UVAEngineeringCapstone.png" alt="UVA Engineering Capstone"></a><div class="pub-text"><p>"<a href="images/FacilitatingPatientCareInfoEMS.png" alt="Facilitating the Collection and Dissemination of Patient Care Information for Emergency Medical Personnel">Facilitating the Collection and Dissemination of Patient Care Information for Emergency Medical Personnel</a>,” <em>SIEDS 2016</em>, IEEE, University of Virginia, Undergraduate Engineering Capstone Project, Design-Prototype Conference Paper, Online, April 2016</p></div></div><br></div>
+<h2 id="readings" class="collapsible" onclick="toggleSection(this)">Readings<span class="arrow">&#9662;</span></h2><div class="section-content">
 <div class="pub-entry"><a href="https://www.youtube.com/watch?v=8zkVoLmDIWk"><img src="images/PatchouliJoesReading.png" alt="Patchouli Joe's Reading"></a><div class="pub-text"><p><a href="javascript:void(0)" onclick="toggleVideo('performance-embed')" style="text-decoration: underline;">Five Poems</a>, Patchouli Joe's Books, Denton, Texas, <i>ALR</i> Reading Series, <i>American Literary Review</i>, University of North Texas, September 2025</p></div></div>
-
-<div id="performance-embed" class="video-container"><iframe src="https://www.youtube.com/embed/8zkVoLmDIWk?si=51hCwTwPrT8mDNQE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
-<br>
-</div>
-
-<h2 id="gizmos" class="collapsible" onclick="toggleSection(this)">Gizmos<span class="arrow">&#9662;</span></h2>
-<div class="section-content">
+<div id="performance-embed" class="video-container"><iframe src="https://www.youtube.com/embed/8zkVoLmDIWk?si=51hCwTwPrT8mDNQE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div><br></div>
+<h2 id="gizmos" class="collapsible" onclick="toggleSection(this)">Gizmos<span class="arrow">&#9662;</span></h2><div class="section-content">
 <div class="pub-entry"><a href="https://erikjosephmoyer.com/audiobooker/"><img src="images/Audiobooker.png" alt="Audiobook Player"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/audiobooker/"><u>The Jibberjabberer</u></a>, Audiobook Player, <em>Hear With Your Ears</em></p></div></div>
 <div class="pub-entry"><a href="https://erikjosephmoyer.com/typesetter/"><img src="images/Typesetter.PNG" alt="Typesetter"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/typesetter/"><u>The Prettifier</u></a>, Typesetter, <em>Read With Your Eyes</em></p></div></div>
 <div class="pub-entry"><a href="https://erikjosephmoyer.com/narrator/"><img src="images/TextToSpeecher.png" alt="Text-to-Speech"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/narrator/"><u>The Rhetoricizer</u></a>, Text-to-Speecher, <em>Read With Your Ears</em></p></div></div>
@@ -209,236 +109,81 @@ img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:
 <div class="pub-entry"><a href="https://erikjosephmoyer.com/reader/"><img src="images/Favicon.png" alt="E-Book/Audiobook Readio"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/reader/"><u>The Bookcaster</u></a>, E-Book/Audiobook Readio, <em>Read With Your Brainbox</em></p></div></div>
 <div class="pub-entry"><a href="https://erikjosephmoyer.com/scanner/"><img src="images/Favicon.png" alt="OCR Tool"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/scanner/"><u>The Decipherer</u></a>, Optical Character Recognizer, <em>See With Your Eyes</em></p></div></div>
 <div class="pub-entry"><a href="https://erikjosephmoyer.com/translator/"><img src="images/Favicon.png" alt="Interpretive Tool"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/translator/"><u>The Linguifier</u></a>, Interpretive Tool, <em>Speak With Your Tongue</em></p></div></div>
-<div class="pub-entry"><a href="https://erikjosephmoyer.com/musicker/"><img src="images/Favicon.png" alt="Music Decoder"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/musicker/"><u>The Tonalizer</u></a>, Music Decoder, <em>Hear With Your Eyes</em></p></div></div>
-<br>
-</div>
-
-<h2 id="contact" class="collapsible" onclick="toggleSection(this)">Contact<span class="arrow">&#9662;</span></h2>
-<div class="section-content">
-<div class="pub-entry"><a href="mailto:erik@erikjosephmoyer.com"><img src="images/VanGoghThePostman.png" alt="Van Gogh The Postman"></a><div class="pub-text"><p><p>Email</p></div></div>
-<div class="pub-entry"><a href="https://linkedin.com/in/erikmoyer/"><img src="images/MonetCoucherDeSoleil.png" alt="Monet Coucher de Soleil"></a><div class="pub-text"><p><p>LinkedIn</p></div></div>
-<div class="pub-entry"><a href="https://github.com/ErikJosephMoyer"><img src="images/GitHub.png" alt="GitHub"></a><div class="pub-text"><p><p>GitHub</p></div></div>
-<br>
-</div>
-
-<img src="images/XenaAtRest.png" alt="Xena at Rest">
-<br>
-<div style="text-align:center;margin:0pt 0 0">
-<a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
-<br>
+<div class="pub-entry"><a href="https://erikjosephmoyer.com/musicker/"><img src="images/Favicon.png" alt="Music Decoder"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/musicker/"><u>The Tonalizer</u></a>, Music Decoder, <em>Hear With Your Eyes</em></p></div></div><br></div>
+<h2 id="contact" class="collapsible" onclick="toggleSection(this)">Contact<span class="arrow">&#9662;</span></h2><div class="section-content">
+<div class="pub-entry"><a href="mailto:erik@erikjosephmoyer.com"><img src="images/VanGoghThePostman.png" alt="Van Gogh The Postman"></a><div class="pub-text"><p>Email</p></div></div>
+<div class="pub-entry"><a href="https://linkedin.com/in/erikmoyer/"><img src="images/MonetCoucherDeSoleil.png" alt="Monet Coucher de Soleil"></a><div class="pub-text"><p>LinkedIn</p></div></div>
+<div class="pub-entry"><a href="https://github.com/ErikJosephMoyer"><img src="images/GitHub.png" alt="GitHub"></a><div class="pub-text"><p>GitHub</p></div></div><br></div>
+<img src="images/XenaAtRest.png" alt="Xena at Rest"><br>
+<div style="text-align:center;margin:0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
 <img src="images/Logophile.png" alt="Logophile">
-
 <div id="poemModal" class="modal" onclick="closeModal()"><div class="modal-content"><img id="poemImage" src="" alt="Poem" onclick="event.stopPropagation()"></div></div>
-
 <script>
-
 function toggleSection(header) {
   header.classList.toggle('collapsed');
-  const content = header.nextElementSibling;
-  if (content && content.classList.contains('section-content')) {
-    content.classList.toggle('collapsed');
-  }
-  if (window.logAction && !header.classList.contains('collapsed')) {
-    window.logAction('section', header.id || header.textContent.trim());
-  }
-  const sections = [...document.querySelectorAll('h2.collapsible:not(#contents)')];
-  const btn = document.getElementById('toggle-all-btn');
-  if (sections.every(h => h.classList.contains('collapsed'))) {
-    btn.textContent = 'Show All';
-  } else if (sections.every(h => !h.classList.contains('collapsed'))) {
-    btn.textContent = 'Hide All';
-  }
+  if (header.nextElementSibling && header.nextElementSibling.classList.contains('section-content')) header.nextElementSibling.classList.toggle('collapsed');
+  if (window.logAction && !header.classList.contains('collapsed')) window.logAction('section', header.id || header.textContent.trim());
+  const sections = [...document.querySelectorAll('h2.collapsible:not(#contents)')], btn = document.getElementById('toggle-all-btn');
+  if (sections.every(h => h.classList.contains('collapsed'))) btn.textContent = 'Show All';
+  else if (sections.every(h => !h.classList.contains('collapsed'))) btn.textContent = 'Hide All';
 }
-
 function toggleAll() {
-  const btn = document.getElementById('toggle-all-btn');
-  const shouldHide = btn.textContent === 'Hide All';
-  document.querySelectorAll('h2.collapsible:not(#contents)').forEach(h => h.classList.toggle('collapsed', shouldHide));
-  document.querySelectorAll('h2.collapsible:not(#contents) + .section-content').forEach(c => c.classList.toggle('collapsed', shouldHide));
+  const btn = document.getElementById('toggle-all-btn'), shouldHide = btn.textContent === 'Hide All';
+  document.querySelectorAll('h2.collapsible:not(#contents), h2.collapsible:not(#contents) + .section-content').forEach(el => el.classList.toggle('collapsed', shouldHide));
   btn.textContent = shouldHide ? 'Show All' : 'Hide All';
 }
-
-function openModal(imageSource) { const modal = document.getElementById('poemModal'); const poemImage = document.getElementById('poemImage');
-poemImage.src = imageSource; modal.style.display = "flex"; document.body.style.overflow = "hidden"; }
-
+function openModal(src) { document.getElementById('poemImage').src = src; document.getElementById('poemModal').style.display = "flex"; document.body.style.overflow = "hidden"; }
 function closeModal() { document.getElementById('poemModal').style.display = "none"; document.body.style.overflow = ""; }
 document.addEventListener('keydown', e => e.key === 'Escape' && closeModal());
+function togglePlayer(clickedId) {
+  const iframeMap = {'soundcloud-embed':'sc-iframe','spotify-embed':'sp-iframe','apple-embed':'ap-iframe','youtube-embed':'yt-iframe','soundcloud-track-embed':'sc-track-iframe','spotify-artist-embed':'sp-artist-iframe'};
+  const el = document.getElementById(clickedId), iframe = document.getElementById(iframeMap[clickedId]);
+  if (el.style.display === 'block') { el.style.display = 'none'; return; }
+  Object.keys(iframeMap).forEach(id => { const c = document.getElementById(id), f = document.getElementById(iframeMap[id]); if (c && c.style.display === 'block') { c.style.display = 'none'; if (f) f.src = ''; } });
+  if (iframe) iframe.src = iframe.getAttribute('data-original-src');
+  el.style.display = 'block';
+  if (window.logAction) window.logAction('music', clickedId);
+}
+function toggleVideo(id) {
+  const el = document.getElementById(id), open = el.style.display === 'none' || el.style.display === '';
+  el.style.display = open ? 'block' : 'none';
+  if (open && window.logAction) window.logAction('video', id);
+}
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('a[href^="images/"]').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      openModal(link.href);
-      if (window.logAction) window.logAction('poem', link.textContent.trim() || link.getAttribute('href'));
-    });
-  });
-  document.querySelectorAll('.toc-links a').forEach(link => {
-    link.addEventListener('click', () => {
-      const target = document.querySelector(link.getAttribute('href'));
-      if (target && target.classList.contains('collapsed')) {
-        toggleSection(target);
-      }
-    });
-  });
-  document.querySelectorAll('a[href^="http"], a[href^="mailto:"], a[href^="/"], a[href^="#"]').forEach(link => {
-    link.addEventListener('click', () => {
-      if (window.logAction) window.logAction('link', (link.textContent.trim() || link.getAttribute('href')).slice(0, 60));
-    });
-  });
+  document.querySelectorAll('a[href^="images/"]').forEach(l => l.addEventListener('click', e => { e.preventDefault(); openModal(l.href); if (window.logAction) window.logAction('poem', l.textContent.trim() || l.getAttribute('href')); }));
+  document.querySelectorAll('.toc-links a').forEach(l => l.addEventListener('click', () => { const t = document.querySelector(l.getAttribute('href')); if (t && t.classList.contains('collapsed')) toggleSection(t); }));
+  document.querySelectorAll('a[href^="http"], a[href^="mailto:"], a[href^="/"], a[href^="#"]').forEach(l => l.addEventListener('click', () => { if (window.logAction) window.logAction('link', (l.textContent.trim() || l.getAttribute('href')).slice(0, 60)); }));
 });
-
-function togglePlayer(clickedId) { const playerContainerIds = ['soundcloud-embed', 'spotify-embed', 'apple-embed', 'youtube-embed', 'soundcloud-track-embed', 'spotify-artist-embed']; const iframeMap = { 'soundcloud-embed': 'sc-iframe', 'spotify-embed': 'sp-iframe', 'apple-embed': 'ap-iframe', 'youtube-embed': 'yt-iframe', 'soundcloud-track-embed': 'sc-track-iframe', 'spotify-artist-embed': 'sp-artist-iframe' }; const element = document.getElementById(clickedId); const iframeId = iframeMap[clickedId]; const iframe = document.getElementById(iframeId); const isClickedPlayerOpen = element.style.display === 'block'; if (isClickedPlayerOpen) { element.style.display = 'none'; return; } playerContainerIds.forEach(id => { const playerContainer = document.getElementById(id); const playerIframe = document.getElementById(iframeMap[id]); if (playerContainer && playerContainer.style.display === 'block') { playerContainer.style.display = 'none'; if (playerIframe) { playerIframe.src = ''; } } }); if (iframe) { iframe.src = iframe.getAttribute('data-original-src'); } element.style.display = 'block'; if (window.logAction) window.logAction('music', clickedId); }
-
-function toggleVideo(id) { const element = document.getElementById(id); if (element.style.display === 'none' || element.style.display === '') { element.style.display = 'block'; if (window.logAction) window.logAction('video', id); } else { element.style.display = 'none'; } }
-
-</script>
-
-<script>
 (async () => {
   if (localStorage.getItem('ignoreMe') === '1') return;
-
   const ua = navigator.userAgent;
-  function isBot(u){
-    if (/bot|crawl|spider|slurp|bingpreview|mediapartners|google|yahoo|baidu|yandex|duckduck|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegram|discord|slack|pingdom|uptimerobot|headlesschrome|phantomjs|selenium|puppeteer|playwright|lighthouse|pagespeed|gtmetrix/i.test(u)) return 'bot';
-    if (navigator.webdriver) return 'bot';
-    if (!navigator.languages || navigator.languages.length === 0) return 'likelyBot';
-    return 'human';
-  }
-
-  const botStatus = isBot(ua);
+  const botStatus = (/bot|crawl|spider|slurp|bingpreview|mediapartners|google|yahoo|baidu|yandex|duckduck|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegram|discord|slack|pingdom|uptimerobot|headlesschrome|phantomjs|selenium|puppeteer|playwright|lighthouse|pagespeed|gtmetrix/i.test(ua) || navigator.webdriver) ? 'bot' : (!navigator.languages || !navigator.languages.length) ? 'likelyBot' : 'human';
   if (botStatus === 'bot') return;
-
   const ENDPOINT = "https://script.google.com/macros/s/AKfycbyGOEbCkiWFHZnEcwRAjpV8W2uhB8qvynAOgSmn5IYC4xCwLebSLDcn6CsPt7NmSzsy/exec";
-  const pathSlug = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/')[0];
-  const PAGE_ID = pathSlug || 'main';
-
-  const params = new URLSearchParams(window.location.search);
-  const rawRef = params.get('ref') || params.get('from') || params.get('id') || window.location.search.replace(/^\?/, '');
-  const initHash = window.location.hash.replace(/^#/, '');
-  if (rawRef) {
-    sessionStorage.setItem('jbj_ref', rawRef);
-    if (window.history && window.history.replaceState) {
-      window.history.replaceState(null, '', window.location.pathname + window.location.hash);
-    }
-  }
-  const savedRef = sessionStorage.getItem('jbj_ref') || '';
-  const refTag = [savedRef, initHash ? `#${initHash}` : ''].filter(Boolean).join(' ');
-
-  function pB(u){if(/Edg\//i.test(u))return'Edge';if(/OPR\//i.test(u))return'Opera';if(/Chrome\//i.test(u)&&!/Edg/i.test(u))return'Chrome';if(/Safari\//i.test(u)&&!/Chrome/i.test(u))return'Safari';if(/Firefox\//i.test(u))return'Firefox';return'Other'}
-  function pO(u){if(/Windows/i.test(u))return'Windows';if(/Mac OS X/i.test(u))return'macOS';if(/Android/i.test(u))return'Android';if(/iPhone|iPad/i.test(u))return'iOS';if(/Linux/i.test(u))return'Linux';if(/CrOS/i.test(u))return'ChromeOS';return'Other'}
-  function pD(u){if(/Mobi|Android.*Mobile|iPhone/i.test(u))return'Mobile';if(/iPad|Android(?!.*Mobile)|Tablet/i.test(u))return'Tablet';return'Desktop'}
-
-  function getHW() {
-    let gpu = '';
-    try {
-      const c = document.createElement('canvas');
-      const gl = c.getContext('webgl') || c.getContext('experimental-webgl');
-      if (gl) {
-        const dbg = gl.getExtension('WEBGL_debug_renderer_info');
-        if (dbg) gpu = gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '';
-      }
-    } catch(e) {}
-    gpu = gpu.replace(/^ANGLE \((.+)\)$/, '$1').split(',')[0].trim();
-    const cores = navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency}c` : '';
-    const ram = navigator.deviceMemory ? `${navigator.deviceMemory}GB` : '';
-    return [gpu, cores, ram].filter(Boolean).join(' | ');
-  }
-
-  function getStamp() {
-    const n = new Date();
-    const d = `${String(n.getMonth()+1).padStart(2,'0')}/${String(n.getDate()).padStart(2,'0')}/${String(n.getFullYear()).slice(-2)}`;
-    const h = n.getHours();
-    const t = `${h%12||12}:${String(n.getMinutes()).padStart(2,'0')} ${h<12?'AM':'PM'}`;
-    return { date: d, time: t };
-  }
-
-  const hardware = getHW();
-
-  let baseMeta = {
-    ip: localStorage.getItem('jbj_ip') || '',
-    city: '', region: '', country: '', org: '',
-    browser: pB(ua), os: pO(ua), device: pD(ua),
-    classification: botStatus,
-    fingerprint: localStorage.getItem('jbj_fp') || '',
-    userAgent: ua,
-    hardware: hardware,
-    refTag: refTag
-  };
-
-  window.logAction = function(action, detail) {
-    if (localStorage.getItem('ignoreMe') === '1') return;
-    const st = getStamp();
-    fetch(ENDPOINT, {
-      method: "POST",
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(Object.assign({}, baseMeta, {
-        date: st.date,
-        time: st.time,
-        page: PAGE_ID,
-        action: action,
-        detail: detail || ''
-      })),
-      keepalive: true
-    }).catch(() => {});
-  };
-
-  let ipv4 = '';
+  const PAGE_ID = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/')[0] || 'main';
+  const params = new URLSearchParams(window.location.search), rawRef = params.get('ref') || params.get('from') || params.get('id') || window.location.search.replace(/^\?/, ''), initHash = window.location.hash.replace(/^#/, '');
+  if (rawRef) { sessionStorage.setItem('jbj_ref', rawRef); if (window.history && window.history.replaceState) window.history.replaceState(null, '', window.location.pathname + window.location.hash); }
+  const refTag = [sessionStorage.getItem('jbj_ref') || '', initHash ? `#${initHash}` : ''].filter(Boolean).join(' ');
+  const browser = /Edg\//i.test(ua) ? 'Edge' : /OPR\//i.test(ua) ? 'Opera' : (/Chrome\//i.test(ua) && !/Edg/i.test(ua)) ? 'Chrome' : (/Safari\//i.test(ua) && !/Chrome/i.test(ua)) ? 'Safari' : /Firefox\//i.test(ua) ? 'Firefox' : 'Other';
+  const os = /Windows/i.test(ua) ? 'Windows' : /Mac OS X/i.test(ua) ? 'macOS' : /Android/i.test(ua) ? 'Android' : /iPhone|iPad/i.test(ua) ? 'iOS' : /Linux/i.test(ua) ? 'Linux' : /CrOS/i.test(ua) ? 'ChromeOS' : 'Other';
+  const device = /Mobi|Android.*Mobile|iPhone/i.test(ua) ? 'Mobile' : /iPad|Android(?!.*Mobile)|Tablet/i.test(ua) ? 'Tablet' : 'Desktop';
+  let gpu = '';
+  try { const gl = document.createElement('canvas').getContext('webgl'), dbg = gl && gl.getExtension('WEBGL_debug_renderer_info'); if (dbg) gpu = (gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '').replace(/^ANGLE \((.+)\)$/, '$1').split(',')[0].trim(); } catch(e) {}
+  const hardware = [gpu, navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency}c` : '', navigator.deviceMemory ? `${navigator.deviceMemory}GB` : ''].filter(Boolean).join(' | ');
+  const getStamp = () => { const n = new Date(), h = n.getHours(); return { date: `${String(n.getMonth()+1).padStart(2,'0')}/${String(n.getDate()).padStart(2,'0')}/${String(n.getFullYear()).slice(-2)}`, time: `${h%12||12}:${String(n.getMinutes()).padStart(2,'0')} ${h<12?'AM':'PM'}` }; };
+  const baseMeta = { ip: localStorage.getItem('jbj_ip') || '', city: '', region: '', country: '', org: '', browser, os, device, classification: botStatus, fingerprint: localStorage.getItem('jbj_fp') || '', userAgent: ua, hardware, refTag };
+  window.logAction = (action, detail = '') => { if (localStorage.getItem('ignoreMe') !== '1') fetch(ENDPOINT, { method: "POST", headers: {'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(Object.assign({}, baseMeta, getStamp(), { page: PAGE_ID, action, detail })), keepalive: true }).catch(() => {}); };
+  let ipv4 = '', geo = {};
   try { ipv4 = (await (await fetch('https://api4.ipify.org?format=json')).json()).ip || ''; } catch(e) {}
-
-  let geo = {};
-  const lip = ipv4 || '';
-  try {
-    const r = await fetch(lip ? `https://ipapi.co/${lip}/json/` : 'https://ipapi.co/json/');
-    if (r.ok) { const d = await r.json(); if (d.ip && !d.error) geo = {ip:d.ip,city:d.city,region:d.region,country:d.country_name,org:d.org,lat:d.latitude,lon:d.longitude,postal:d.postal,tz:d.timezone}; }
-  } catch(e) {}
-  if (!geo.city) {
-    try {
-      const r = await fetch(`https://ipwho.is/${lip}`);
-      if (r.ok) { const d = await r.json(); if (d.success) geo = {ip:d.ip,city:d.city,region:d.region,country:d.country,org:(d.connection&&(d.connection.isp||d.connection.org))||'',lat:d.latitude,lon:d.longitude,postal:d.postal,tz:(d.timezone&&d.timezone.id)||''}; }
-    } catch(e) {}
-  }
-  if (!geo.city) {
-    try {
-      const r = await fetch('https://ipinfo.io/json');
-      if (r.ok) { const d = await r.json(); const [la,lo]=(d.loc||',').split(','); geo = {ip:d.ip,city:d.city,region:d.region,country:d.country,org:d.org,lat:la,lon:lo,postal:d.postal,tz:d.timezone}; }
-    } catch(e) {}
-  }
-
-  const ip = ipv4 || geo.ip || '';
-  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  const st = getStamp();
-
-  const rawHash = [ip, ua, navigator.language, Intl.DateTimeFormat().resolvedOptions().timeZone, `${screen.width}x${screen.height}`, hardware].join('|');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawHash));
-  const fingerprint = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-
+  try { const r = await fetch(ipv4 ? `https://ipapi.co/${ipv4}/json/` : 'https://ipapi.co/json/'); if (r.ok) { const d = await r.json(); if (d.ip && !d.error) geo = {ip:d.ip,city:d.city,region:d.region,country:d.country_name,org:d.org,lat:d.latitude,lon:d.longitude,postal:d.postal,tz:d.timezone}; } } catch(e) {}
+  if (!geo.city) { try { const r = await fetch(`https://ipwho.is/${ipv4}`); if (r.ok) { const d = await r.json(); if (d.success) geo = {ip:d.ip,city:d.city,region:d.region,country:d.country,org:(d.connection&&(d.connection.isp||d.connection.org))||'',lat:d.latitude,lon:d.longitude,postal:d.postal,tz:(d.timezone&&d.timezone.id)||''}; } } catch(e) {} }
+  if (!geo.city) { try { const r = await fetch('https://ipinfo.io/json'); if (r.ok) { const d = await r.json(), [la,lo]=(d.loc||',').split(','); geo = {ip:d.ip,city:d.city,region:d.region,country:d.country,org:d.org,lat:la,lon:lo,postal:d.postal,tz:d.timezone}; } } catch(e) {} }
+  const ip = ipv4 || geo.ip || '', conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection, tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  const hashBuf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode([ip, ua, navigator.language, tz, `${screen.width}x${screen.height}`, hardware].join('|')));
+  const fingerprint = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
   localStorage.setItem('jbj_fp', fingerprint);
   if (ip) localStorage.setItem('jbj_ip', ip);
-
-  baseMeta = {
-    ip, city: geo.city||'', region: geo.region||'', country: geo.country||'',
-    org: geo.org||'', latitude: geo.lat||'', longitude: geo.lon||'', postal: geo.postal||'',
-    timezone: geo.tz||Intl.DateTimeFormat().resolvedOptions().timeZone||'',
-    browser: pB(ua), os: pO(ua), device: pD(ua),
-    screenSize: `${screen.width}x${screen.height}`, viewport: `${window.innerWidth}x${window.innerHeight}`,
-    referrer: document.referrer, language: navigator.language,
-    connectionType: conn?(conn.effectiveType||conn.type||''):'',
-    classification: botStatus, fingerprint, userAgent: ua,
-    hardware, refTag
-  };
-
-  fetch(ENDPOINT, {
-    method: "POST",
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(Object.assign({}, baseMeta, {
-      date: st.date,
-      time: st.time,
-      page: PAGE_ID,
-      action: 'pageview',
-      detail: initHash ? `#${initHash}` : ''
-    })),
-    keepalive: true
-  }).catch(() => {});
+  Object.assign(baseMeta, { ip, city: geo.city||'', region: geo.region||'', country: geo.country||'', org: geo.org||'', latitude: geo.lat||'', longitude: geo.lon||'', postal: geo.postal||'', timezone: geo.tz||tz, screenSize: `${screen.width}x${screen.height}`, viewport: `${window.innerWidth}x${window.innerHeight}`, referrer: document.referrer, language: navigator.language, connectionType: conn?(conn.effectiveType||conn.type||''):'', fingerprint });
+  window.logAction('pageview', initHash ? `#${initHash}` : '');
 })();
-</script>
-</body>
-</html>
+</script></body></html>
