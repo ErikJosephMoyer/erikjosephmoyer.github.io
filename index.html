@@ -261,7 +261,13 @@ poemImage.src = imageSource; modal.style.display = "flex"; document.body.style.o
 function closeModal() { document.getElementById('poemModal').style.display = "none"; document.body.style.overflow = ""; }
 document.addEventListener('keydown', e => e.key === 'Escape' && closeModal());
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('a[href^="images/"]').forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); openModal(link.href); }); });
+  document.querySelectorAll('a[href^="images/"]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModal(link.href);
+      if (window.logAction) window.logAction('poem', link.textContent.trim() || link.getAttribute('href'));
+    });
+  });
   document.querySelectorAll('.toc-links a').forEach(link => {
     link.addEventListener('click', () => {
       const target = document.querySelector(link.getAttribute('href'));
@@ -270,11 +276,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+  document.querySelectorAll('a[href^="http"], a[href^="mailto:"], a[href^="/"]').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.logAction) window.logAction('link', (link.textContent.trim() || link.getAttribute('href')).slice(0, 60));
+    });
+  });
 });
 
-function togglePlayer(clickedId) { const playerContainerIds = ['soundcloud-embed', 'spotify-embed', 'apple-embed', 'youtube-embed', 'soundcloud-track-embed', 'spotify-artist-embed']; const iframeMap = { 'soundcloud-embed': 'sc-iframe', 'spotify-embed': 'sp-iframe', 'apple-embed': 'ap-iframe', 'youtube-embed': 'yt-iframe', 'soundcloud-track-embed': 'sc-track-iframe', 'spotify-artist-embed': 'sp-artist-iframe' }; const element = document.getElementById(clickedId); const iframeId = iframeMap[clickedId]; const iframe = document.getElementById(iframeId); const isClickedPlayerOpen = element.style.display === 'block'; if (isClickedPlayerOpen) { element.style.display = 'none'; return; } playerContainerIds.forEach(id => { const playerContainer = document.getElementById(id); const playerIframe = document.getElementById(iframeMap[id]); if (playerContainer && playerContainer.style.display === 'block') { playerContainer.style.display = 'none'; if (playerIframe) { playerIframe.src = ''; } } }); if (iframe) { iframe.src = iframe.getAttribute('data-original-src'); } element.style.display = 'block'; }
+function togglePlayer(clickedId) { const playerContainerIds = ['soundcloud-embed', 'spotify-embed', 'apple-embed', 'youtube-embed', 'soundcloud-track-embed', 'spotify-artist-embed']; const iframeMap = { 'soundcloud-embed': 'sc-iframe', 'spotify-embed': 'sp-iframe', 'apple-embed': 'ap-iframe', 'youtube-embed': 'yt-iframe', 'soundcloud-track-embed': 'sc-track-iframe', 'spotify-artist-embed': 'sp-artist-iframe' }; const element = document.getElementById(clickedId); const iframeId = iframeMap[clickedId]; const iframe = document.getElementById(iframeId); const isClickedPlayerOpen = element.style.display === 'block'; if (isClickedPlayerOpen) { element.style.display = 'none'; return; } playerContainerIds.forEach(id => { const playerContainer = document.getElementById(id); const playerIframe = document.getElementById(iframeMap[id]); if (playerContainer && playerContainer.style.display === 'block') { playerContainer.style.display = 'none'; if (playerIframe) { playerIframe.src = ''; } } }); if (iframe) { iframe.src = iframe.getAttribute('data-original-src'); } element.style.display = 'block'; if (window.logAction) window.logAction('music', clickedId); }
 
-function toggleVideo(id) { const element = document.getElementById(id); if (element.style.display === 'none' || element.style.display === '') { element.style.display = 'block'; } else { element.style.display = 'none'; } }
+function toggleVideo(id) { const element = document.getElementById(id); if (element.style.display === 'none' || element.style.display === '') { element.style.display = 'block'; if (window.logAction) window.logAction('video', id); } else { element.style.display = 'none'; } }
 
 </script>
 
@@ -282,22 +293,55 @@ function toggleVideo(id) { const element = document.getElementById(id); if (elem
 (async () => {
   if (localStorage.getItem('ignoreMe') === '1') return;
 
+  const ua = navigator.userAgent;
+  function isBot(u){
+    if (/bot|crawl|spider|slurp|bingpreview|mediapartners|google|yahoo|baidu|yandex|duckduck|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegram|discord|slack|pingdom|uptimerobot|headlesschrome|phantomjs|selenium|puppeteer|playwright|lighthouse|pagespeed|gtmetrix/i.test(u)) return 'bot';
+    if (navigator.webdriver) return 'bot';
+    if (!navigator.languages || navigator.languages.length === 0) return 'likelyBot';
+    return 'human';
+  }
+
+  const botStatus = isBot(ua);
+  if (botStatus === 'bot') return;
+
   const ENDPOINT = "https://script.google.com/macros/s/AKfycbyGOEbCkiWFHZnEcwRAjpV8W2uhB8qvynAOgSmn5IYC4xCwLebSLDcn6CsPt7NmSzsy/exec";
   const pathSlug = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/')[0];
   const PAGE_ID = pathSlug || 'main';
 
+  function pB(u){if(/Edg\//i.test(u))return'Edge';if(/OPR\//i.test(u))return'Opera';if(/Chrome\//i.test(u)&&!/Edg/i.test(u))return'Chrome';if(/Safari\//i.test(u)&&!/Chrome/i.test(u))return'Safari';if(/Firefox\//i.test(u))return'Firefox';return'Other'}
+  function pO(u){if(/Windows/i.test(u))return'Windows';if(/Mac OS X/i.test(u))return'macOS';if(/Android/i.test(u))return'Android';if(/iPhone|iPad/i.test(u))return'iOS';if(/Linux/i.test(u))return'Linux';if(/CrOS/i.test(u))return'ChromeOS';return'Other'}
+  function pD(u){if(/Mobi|Android.*Mobile|iPhone/i.test(u))return'Mobile';if(/iPad|Android(?!.*Mobile)|Tablet/i.test(u))return'Tablet';return'Desktop'}
+
+  function getStamp() {
+    const n = new Date();
+    const d = `${String(n.getMonth()+1).padStart(2,'0')}/${String(n.getDate()).padStart(2,'0')}/${String(n.getFullYear()).slice(-2)}`;
+    const h = n.getHours();
+    const t = `${h%12||12}:${String(n.getMinutes()).padStart(2,'0')} ${h<12?'AM':'PM'}`;
+    return { date: d, time: t };
+  }
+
+  let baseMeta = {
+    ip: localStorage.getItem('jbj_ip') || '',
+    city: '', region: '', country: '', org: '',
+    browser: pB(ua), os: pO(ua), device: pD(ua),
+    classification: botStatus,
+    fingerprint: localStorage.getItem('jbj_fp') || '',
+    userAgent: ua
+  };
+
   window.logAction = function(action, detail) {
     if (localStorage.getItem('ignoreMe') === '1') return;
+    const st = getStamp();
     fetch(ENDPOINT, {
       method: "POST",
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
+      body: JSON.stringify(Object.assign({}, baseMeta, {
+        date: st.date,
+        time: st.time,
         page: PAGE_ID,
         action: action,
-        detail: detail || '',
-        ip: localStorage.getItem('jbj_ip') || '',
-        fingerprint: localStorage.getItem('jbj_fp') || ''
-      }),
+        detail: detail || ''
+      })),
       keepalive: true
     }).catch(() => {});
   };
@@ -325,23 +369,8 @@ function toggleVideo(id) { const element = document.getElementById(id); if (elem
   }
 
   const ip = ipv4 || geo.ip || '';
-  const ua = navigator.userAgent;
-
-  function pB(u){if(/Edg\//i.test(u))return'Edge';if(/OPR\//i.test(u))return'Opera';if(/Chrome\//i.test(u)&&!/Edg/i.test(u))return'Chrome';if(/Safari\//i.test(u)&&!/Chrome/i.test(u))return'Safari';if(/Firefox\//i.test(u))return'Firefox';return'Other'}
-  function pO(u){if(/Windows/i.test(u))return'Windows';if(/Mac OS X/i.test(u))return'macOS';if(/Android/i.test(u))return'Android';if(/iPhone|iPad/i.test(u))return'iOS';if(/Linux/i.test(u))return'Linux';if(/CrOS/i.test(u))return'ChromeOS';return'Other'}
-  function pD(u){if(/Mobi|Android.*Mobile|iPhone/i.test(u))return'Mobile';if(/iPad|Android(?!.*Mobile)|Tablet/i.test(u))return'Tablet';return'Desktop'}
-  function isBot(u){
-    if (/bot|crawl|spider|slurp|bingpreview|mediapartners|google|yahoo|baidu|yandex|duckduck|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegram|discord|slack|pingdom|uptimerobot|headlesschrome|phantomjs|selenium|puppeteer|playwright|lighthouse|pagespeed|gtmetrix/i.test(u)) return 'bot';
-    if (!navigator.languages || navigator.languages.length === 0) return 'likelyBot';
-    if (navigator.webdriver) return 'bot';
-    return 'human';
-  }
-
   const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  const now = new Date();
-  const date = `${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}/${String(now.getFullYear()).slice(-2)}`;
-  const hours = now.getHours();
-  const time = `${hours%12||12}:${String(now.getMinutes()).padStart(2,'0')} ${hours<12?'AM':'PM'}`;
+  const st = getStamp();
 
   const rawHash = [ip, ua, navigator.language, Intl.DateTimeFormat().resolvedOptions().timeZone, `${screen.width}x${screen.height}`].join('|');
   const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rawHash));
@@ -350,22 +379,27 @@ function toggleVideo(id) { const element = document.getElementById(id); if (elem
   localStorage.setItem('jbj_fp', fingerprint);
   if (ip) localStorage.setItem('jbj_ip', ip);
 
-  const payload = {
-    date, time, ip, city: geo.city||'', region: geo.region||'', country: geo.country||'',
+  baseMeta = {
+    ip, city: geo.city||'', region: geo.region||'', country: geo.country||'',
     org: geo.org||'', latitude: geo.lat||'', longitude: geo.lon||'', postal: geo.postal||'',
     timezone: geo.tz||Intl.DateTimeFormat().resolvedOptions().timeZone||'',
     browser: pB(ua), os: pO(ua), device: pD(ua),
     screenSize: `${screen.width}x${screen.height}`, viewport: `${window.innerWidth}x${window.innerHeight}`,
     referrer: document.referrer, language: navigator.language,
     connectionType: conn?(conn.effectiveType||conn.type||''):'',
-    classification: isBot(ua), fingerprint, userAgent: ua,
-    page: PAGE_ID, action: 'pageview'
+    classification: botStatus, fingerprint, userAgent: ua
   };
 
   fetch(ENDPOINT, {
     method: "POST",
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(Object.assign({}, baseMeta, {
+      date: st.date,
+      time: st.time,
+      page: PAGE_ID,
+      action: 'pageview',
+      detail: ''
+    })),
     keepalive: true
   }).catch(() => {});
 })();
