@@ -238,6 +238,9 @@ function toggleSection(header) {
   if (content && content.classList.contains('section-content')) {
     content.classList.toggle('collapsed');
   }
+  if (window.logAction && !header.classList.contains('collapsed')) {
+    window.logAction('section', header.id || header.textContent.trim());
+  }
   const sections = [...document.querySelectorAll('h2.collapsible:not(#contents)')];
   const btn = document.getElementById('toggle-all-btn');
   if (sections.every(h => h.classList.contains('collapsed'))) {
@@ -261,13 +264,11 @@ poemImage.src = imageSource; modal.style.display = "flex"; document.body.style.o
 function closeModal() { document.getElementById('poemModal').style.display = "none"; document.body.style.overflow = ""; }
 document.addEventListener('keydown', e => e.key === 'Escape' && closeModal());
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('a[href^="images/"]').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      openModal(link.href);
-      if (window.logAction) window.logAction('poem', link.textContent.trim() || link.getAttribute('href'));
-    });
+  document.querySelectorAll('a[href^="http"], a[href^="mailto:"], a[href^="/"], a[href^="#"]').forEach(link => {
+  link.addEventListener('click', () => {
+    if (window.logAction) window.logAction('link', (link.textContent.trim() || link.getAttribute('href')).slice(0, 60));
   });
+});
   document.querySelectorAll('.toc-links a').forEach(link => {
     link.addEventListener('click', () => {
       const target = document.querySelector(link.getAttribute('href'));
