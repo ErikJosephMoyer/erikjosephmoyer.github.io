@@ -143,14 +143,33 @@ function toggleVideo(id) {
   const el = document.getElementById(id), open = el.style.display === 'none' || el.style.display === '';
   el.style.display = open ? 'block' : 'none';
   if (open && window.logAction) window.logAction('video', id);}
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('a[href^="images/"]').forEach(l => l.addEventListener('click', e => { e.preventDefault(); openModal(l.href); if (window.logAction) window.logAction('poem', l.textContent.trim() || l.getAttribute('href')); }));
-  document.querySelectorAll('.toc-links a').forEach(l => l.addEventListener('click', () => { const t = document.querySelector(l.getAttribute('href')); if (t && t.classList.contains('collapsed')) toggleSection(t); }));
-  document.querySelectorAll('a[href^="http"], a[href^="mailto:"], a[href^="/"], a[href^="#"]').forEach(l => l.addEventListener('click', () => { if (window.logAction) window.logAction('link', (l.textContent.trim() || l.getAttribute('href')).slice(0, 60)); }));});
+document.addEventListener('click', e => {
+  if (localStorage.getItem('ignoreMe') === '1' || !window.logAction) return;
+  const t = e.target, btn = t.closest('.toc-btn'), hdr = t.closest('h2.collapsible');
+  if (btn) return window.logAction('button', btn.textContent.trim());
+  if (hdr) return window.logAction('section', hdr.textContent.replace('▾','').trim());
+  if (t.tagName === 'A' && t.href) {
+    if (t.href.includes('/') && t.closest('div[style*="text-align:center"]')) return window.logAction('subpage', t.pathname.replace(/^\/|\/$/g, '') || 'home');
+    if (!t.href.includes(window.location.hostname)) return window.logAction('external', t.href); }
+  const pub = t.closest('.pub-entry');
+  if (pub && (t.tagName === 'A' || t.tagName === 'IMG' || t.tagName === 'P')) {
+    if (t.tagName === 'A' && t.href.includes('images/')) { e.preventDefault(); openModal(t.href); }
+    const sec = pub.closest('.section-content'), cat = sec && sec.previousElementSibling ? sec.previousElementSibling.textContent.replace('▾','').trim().toLowerCase() : 'content';
+    const txt = pub.querySelector('.pub-text') ? pub.querySelector('.pub-text').textContent.trim().split(',')[0].replace(/"/g, '') : t.textContent.trim();
+    return window.logAction(cat, txt || (t.tagName === 'IMG' ? t.getAttribute('src').split('/').pop() : 'item')); }
+  if (t.tagName === 'IMG') return window.logAction('image', t.getAttribute('src').split('/').pop());});
 (async () => {
   if (localStorage.getItem('ignoreMe') === '1') return;
   const ua = navigator.userAgent;
-  const botStatus = (/bot|crawl|spider|slurp|bingpreview|mediapartners|google|yahoo|baidu|yandex|duckduck|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegram|discord|slack|pingdom|uptimerobot|headlesschrome|phantomjs|selenium|puppeteer|playwright|lighthouse|pagespeed|gtmetrix/i.test(ua) || navigator.webdriver) ? 'bot' : (!navigator.languages || !navigator.languages.length) ? 'likelyBot' : 'human';
+  let gpu = '';
+  try { const gl = document.createElement('canvas').getContext('webgl'), dbg = gl && gl.getExtension('WEBGL_debug_renderer_info'); if (dbg) gpu = (gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '').replace(/^ANGLE \((.+)\)$/, '$1').split(',')[0].trim(); } catch(e) {}
+  function checkBot() {
+    if (/bot|crawl|spider|slurp|bingpreview|mediapartners|googlebot|yahoo|baidu|yandex|duckduck|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegram|discord|slack|pingdom|uptimerobot|headlesschrome|phantomjs|selenium|puppeteer|playwright|lighthouse|pagespeed|gtmetrix/i.test(ua)) return 'bot';
+    if (navigator.webdriver || /swiftshader|llvmpipe|software rasterizer/i.test(gpu)) return 'bot';
+    if (!navigator.languages || !navigator.languages.length) return 'bot';
+    if (/Chrome/.test(ua) && !window.chrome) return 'likelyBot';
+    return 'human'; }
+  const botStatus = checkBot();
   if (botStatus === 'bot') return;
   const ENDPOINT = "https://script.google.com/macros/s/AKfycbyGOEbCkiWFHZnEcwRAjpV8W2uhB8qvynAOgSmn5IYC4xCwLebSLDcn6CsPt7NmSzsy/exec";
   const PAGE_ID = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/')[0] || 'main';
@@ -160,8 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const browser = /Edg\//i.test(ua) ? 'Edge' : /OPR\//i.test(ua) ? 'Opera' : (/Chrome\//i.test(ua) && !/Edg/i.test(ua)) ? 'Chrome' : (/Safari\//i.test(ua) && !/Chrome/i.test(ua)) ? 'Safari' : /Firefox\//i.test(ua) ? 'Firefox' : 'Other';
   const os = /Windows/i.test(ua) ? 'Windows' : /Mac OS X/i.test(ua) ? 'macOS' : /Android/i.test(ua) ? 'Android' : /iPhone|iPad/i.test(ua) ? 'iOS' : /Linux/i.test(ua) ? 'Linux' : /CrOS/i.test(ua) ? 'ChromeOS' : 'Other';
   const device = /Mobi|Android.*Mobile|iPhone/i.test(ua) ? 'Mobile' : /iPad|Android(?!.*Mobile)|Tablet/i.test(ua) ? 'Tablet' : 'Desktop';
-  let gpu = '';
-  try { const gl = document.createElement('canvas').getContext('webgl'), dbg = gl && gl.getExtension('WEBGL_debug_renderer_info'); if (dbg) gpu = (gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '').replace(/^ANGLE \((.+)\)$/, '$1').split(',')[0].trim(); } catch(e) {}
   const hardware = [gpu, navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency}c` : '', navigator.deviceMemory ? `${navigator.deviceMemory}GB` : ''].filter(Boolean).join(' | ');
   const getStamp = () => { const n = new Date(), h = n.getHours(); return { date: `${String(n.getMonth()+1).padStart(2,'0')}/${String(n.getDate()).padStart(2,'0')}/${String(n.getFullYear()).slice(-2)}`, time: `${h%12||12}:${String(n.getMinutes()).padStart(2,'0')} ${h<12?'AM':'PM'}` }; };
   const baseMeta = { ip: localStorage.getItem('jbj_ip') || '', city: '', region: '', country: '', org: '', browser, os, device, classification: botStatus, fingerprint: localStorage.getItem('jbj_fp') || '', userAgent: ua, hardware, refTag };
