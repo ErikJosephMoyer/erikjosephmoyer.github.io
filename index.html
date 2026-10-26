@@ -147,17 +147,19 @@ document.addEventListener('click', e => {
   if (localStorage.getItem('ignoreMe') === '1' || !window.logAction) return;
   const t = e.target, btn = t.closest('.toc-btn'), hdr = t.closest('h2.collapsible');
   if (btn) return window.logAction('button', btn.textContent.trim());
-  if (hdr) return window.logAction('section', hdr.textContent.replace('▾','').trim());
+  if (hdr) return window.logAction('section', hdr.id || hdr.textContent.replace('▾','').trim());
   if (t.tagName === 'A' && t.href) {
-    if (t.href.includes('/') && t.closest('div[style*="text-align:center"]')) return window.logAction('subpage', t.pathname.replace(/^\/|\/$/g, '') || 'home');
+    if (t.href.includes('/') && t.closest('.toc-links, div[style*="text-align:center"]')) return window.logAction('subpage', t.pathname.replace(/^\/|\/$/g, '') || 'home');
     if (!t.href.includes(window.location.hostname)) return window.logAction('external', t.href); }
   const pub = t.closest('.pub-entry');
   if (pub && (t.tagName === 'A' || t.tagName === 'IMG' || t.tagName === 'P')) {
     if (t.tagName === 'A' && t.href.includes('images/')) { e.preventDefault(); openModal(t.href); }
-    const sec = pub.closest('.section-content'), cat = sec && sec.previousElementSibling ? sec.previousElementSibling.textContent.replace('▾','').trim().toLowerCase() : 'content';
-    const txt = pub.querySelector('.pub-text') ? pub.querySelector('.pub-text').textContent.trim().split(',')[0].replace(/"/g, '') : t.textContent.trim();
-    return window.logAction(cat, txt || (t.tagName === 'IMG' ? t.getAttribute('src').split('/').pop() : 'item')); }
-  if (t.tagName === 'IMG') return window.logAction('image', t.getAttribute('src').split('/').pop());});
+    const sec = pub.closest('.section-content'), cat = sec && sec.previousElementSibling ? (sec.previousElementSibling.id || sec.previousElementSibling.textContent.replace('▾','').trim().toLowerCase()) : 'content';
+    let txt = ''; const pt = pub.querySelector('.pub-text');
+    if (pt) { const m = pt.innerHTML.match(/"([^"]+)"|<em>([^<]+)<\\/em>/); txt = m ? (m[1] || m[2]) : pt.textContent.trim().split(',')[0]; }
+    if (!txt) txt = t.getAttribute('alt') || (t.tagName === 'IMG' ? t.getAttribute('src').split('/').pop() : t.textContent.trim());
+    return window.logAction(cat, txt); }
+  if (t.tagName === 'IMG' && !pub) return window.logAction('image', t.getAttribute('alt') || t.getAttribute('src').split('/').pop());});
 (async () => {
   if (localStorage.getItem('ignoreMe') === '1') return;
   const ua = navigator.userAgent;
