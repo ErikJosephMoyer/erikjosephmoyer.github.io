@@ -7,20 +7,16 @@
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 body{background:#2a2a2a;color:white;font:normal 16pt/1.2 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
-h1,h2,h3{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 0 16pt;text-align:center}
-h1{font-size:36pt} h2{font-size:28pt;margin:8pt 0 16pt} h3{font-size:20pt;margin:0 0 8pt} p{margin:0 0 8pt}
+h1,h2,h3{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 0 16pt;text-align:center} h1{font-size:36pt} h2{font-size:28pt;margin:8pt 0 16pt} h3{font-size:20pt;margin:0 0 8pt} p{margin:0 0 8pt}
 .about-text{text-align:justify} a,a:visited{color:white;text-decoration:underline;cursor:pointer} a:hover{color:#ccc} a,a *,a img{cursor:pointer}
 .toc{text-align:center;margin:0 0 16pt} .toc-links{max-width:530px;margin:0 auto 10pt;line-height:1.4} .toc-controls{display:flex;justify-content:center;gap:12px}
 .toc-btn{background:transparent;color:white;border:1px solid rgba(255,255,255,0.5);border-radius:8px;font:normal 13pt/1 'EB Garamond',serif;padding:6px 14px;cursor:pointer} .toc-btn:hover{color:#ccc;border-color:#ccc}
-h2.collapsible{cursor:pointer;user-select:none} h2.collapsible:hover{color:#ccc}
-.arrow{display:inline-block;font-size:18pt;margin-left:6px;transition:transform 0.2s ease;vertical-align:middle} h2.collapsible.collapsed .arrow{transform:rotate(-90deg)} .section-content.collapsed{display:none}
-img{max-width:100%;height:auto;object-fit:cover;width:500px} img[src*="Favicon"],img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt}
-img[src*="Favicon"]{border-radius:50%;margin-bottom:0} img[src*="Logophile"]{border-radius:15px} img[src*="Erbrik"]{width:250px;height:250px;border-radius:50%;display:block;margin:0 auto 8pt} img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:15px}
+h2.collapsible{cursor:pointer;user-select:none} h2.collapsible:hover{color:#ccc} .arrow{display:inline-block;font-size:18pt;margin-left:6px;transition:transform 0.2s ease;vertical-align:middle} h2.collapsible.collapsed .arrow{transform:rotate(-90deg)} .section-content.collapsed{display:none}
+img{max-width:100%;height:auto;object-fit:cover;width:500px} img[src*="Favicon"],img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt} img[src*="Favicon"]{border-radius:50%;margin-bottom:0} img[src*="Logophile"]{border-radius:15px} img[src*="Erbrik"]{width:250px;height:250px;border-radius:50%;display:block;margin:0 auto 8pt} img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:15px}
 .pub-entry{display:flex;align-items:flex-start;margin-bottom:16pt} .pub-entry img{width:100px;height:100px;border-radius:8px;margin-right:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1)} .pub-entry img[src*="GitHub"]{background:#fff} .pub-text{flex:1}
-.modal{display:none;position:fixed;z-index:1000;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,0.9);justify-content:center;align-items:center;padding:20px;box-sizing:border-box}
-.modal-content{display:flex;justify-content:center;align-items:center;max-width:80vw;max-height:90vh} #poemImage{max-width:80vw;max-height:90vh;width:auto;height:auto;border-radius:8px;box-shadow:0 0 20px rgba(0,0,0,0.5);object-fit:contain}
-#soundcloud-embed,#spotify-embed,#apple-embed,#youtube-embed,#soundcloud-track-embed,#spotify-artist-embed{display:none;width:100%;max-width:660px;margin:0 0 16pt 0}
-.video-container{position:relative;width:100%;display:none;padding-bottom:56.25%;height:0;margin-bottom:16pt;overflow:hidden;max-height:450px} .video-container iframe{position:absolute;top:0;left:0;width:100%;height:100%}
+.inline-image-container{display:none;width:100%;text-align:center;margin:4pt 0 16pt 0}
+.inline-poem-img{max-width:min(100%,1000px);max-height:min(100vh,1000px);width:auto;height:auto;object-fit:contain;cursor:pointer;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.6);display:inline-block}
+#soundcloud-embed,#spotify-embed,#apple-embed,#youtube-embed,#soundcloud-track-embed,#spotify-artist-embed{display:none;width:100%;max-width:660px;margin:0 0 16pt 0} .video-container{position:relative;width:100%;display:none;padding-bottom:56.25%;height:0;margin-bottom:16pt;overflow:hidden;max-height:450px} .video-container iframe{position:absolute;top:0;left:0;width:100%;height:100%}
 </style></head><body>
 <img src="images/Logophile.png" alt="Logophile">
 <h1>Erik's Very Own Webpage</h1>
@@ -115,7 +111,6 @@ img[src*="Favicon"]{border-radius:50%;margin-bottom:0} img[src*="Logophile"]{bor
 <img src="images/XenaAtRest.png" alt="Xena at Rest"><br>
 <div style="text-align:center;margin:0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
 <img src="images/Logophile.png" alt="Logophile">
-<div id="poemModal" class="modal" onclick="closeModal()"><div class="modal-content"><img id="poemImage" src="" alt="Poem" onclick="event.stopPropagation()"></div></div>
 <script>
 function toggleSection(header) {
   header.classList.toggle('collapsed');
@@ -128,13 +123,10 @@ function toggleAll() {
   const btn = document.getElementById('toggle-all-btn'), shouldHide = btn.textContent === 'Hide All';
   document.querySelectorAll('h2.collapsible:not(#contents), h2.collapsible:not(#contents) + .section-content').forEach(el => el.classList.toggle('collapsed', shouldHide));
   btn.textContent = shouldHide ? 'Show All' : 'Hide All';}
-function openModal(src) { document.getElementById('poemImage').src = src; document.getElementById('poemModal').style.display = "flex"; document.body.style.overflow = "hidden"; }
-function closeModal() { document.getElementById('poemModal').style.display = "none"; document.body.style.overflow = ""; }
-document.addEventListener('keydown', e => e.key === 'Escape' && closeModal());
 function togglePlayer(clickedId) {
   const iframeMap = {'soundcloud-embed':'sc-iframe','spotify-embed':'sp-iframe','apple-embed':'ap-iframe','youtube-embed':'yt-iframe','soundcloud-track-embed':'sc-track-iframe','spotify-artist-embed':'sp-artist-iframe'};
   const el = document.getElementById(clickedId), iframe = document.getElementById(iframeMap[clickedId]);
-  if (el.style.display === 'block') { el.style.display = 'none'; return; }
+  if (el.style.display === 'block') { el.style.display = 'none'; if (iframe) iframe.src = ''; return; }
   Object.keys(iframeMap).forEach(id => { const c = document.getElementById(id), f = document.getElementById(iframeMap[id]); if (c && c.style.display === 'block') { c.style.display = 'none'; if (f) f.src = ''; } });
   if (iframe) iframe.src = iframe.getAttribute('data-original-src');
   el.style.display = 'block';
@@ -143,23 +135,55 @@ function toggleVideo(id) {
   const el = document.getElementById(id), open = el.style.display === 'none' || el.style.display === '';
   el.style.display = open ? 'block' : 'none';
   if (open && window.logAction) window.logAction('video', id);}
-document.addEventListener('click', e => {
-  if (localStorage.getItem('ignoreMe') === '1' || !window.logAction) return;
-  const t = e.target, btn = t.closest('.toc-btn'), hdr = t.closest('h2.collapsible');
-  if (btn) return window.logAction('button', btn.textContent.trim());
-  if (hdr) return window.logAction('section', hdr.id || hdr.textContent.replace('▾','').trim());
-  if (t.tagName === 'A' && t.href) {
-    if (t.href.includes('/') && t.closest('.toc-links, div[style*="text-align:center"]')) return window.logAction('subpage', t.pathname.replace(/^\/|\/$/g, '') || 'home');
-    if (!t.href.includes(window.location.hostname)) return window.logAction('external', t.href); }
-  const pub = t.closest('.pub-entry');
-  if (pub && (t.tagName === 'A' || t.tagName === 'IMG' || t.tagName === 'P')) {
-    if (t.tagName === 'A' && t.href.includes('images/')) { e.preventDefault(); openModal(t.href); }
-    const sec = pub.closest('.section-content'), cat = sec && sec.previousElementSibling ? (sec.previousElementSibling.id || sec.previousElementSibling.textContent.replace('▾','').trim().toLowerCase()) : 'content';
-    let txt = ''; const pt = pub.querySelector('.pub-text');
-    if (pt) { const m = pt.innerHTML.match(/"([^"]+)"|<em>([^<]+)<\\/em>/); txt = m ? (m[1] || m[2]) : pt.textContent.trim().split(',')[0]; }
-    if (!txt) txt = t.getAttribute('alt') || (t.tagName === 'IMG' ? t.getAttribute('src').split('/').pop() : t.textContent.trim());
-    return window.logAction(cat, txt); }
-  if (t.tagName === 'IMG' && !pub) return window.logAction('image', t.getAttribute('alt') || t.getAttribute('src').split('/').pop());});
+
+function toggleInlineImage(linkEl) {
+  const href = linkEl.getAttribute('href'), entry = linkEl.closest('.pub-entry');
+  if (!entry) return;
+  const existingContainer = entry.nextElementSibling && entry.nextElementSibling.classList.contains('inline-image-container') ? entry.nextElementSibling : null;
+  if (existingContainer && existingContainer.dataset.src === href && existingContainer.style.display === 'block') {
+    existingContainer.style.display = 'none';
+    return;
+  }
+  document.querySelectorAll('.inline-image-container').forEach(c => c.style.display = 'none');
+  let container = existingContainer;
+  if (!container || container.dataset.src !== href) {
+    if (container) container.remove();
+    container = document.createElement('div');
+    container.className = 'inline-image-container';
+    container.dataset.src = href;
+    const img = document.createElement('img');
+    img.className = 'inline-poem-img';
+    img.src = href;
+    img.alt = linkEl.textContent.trim() || 'Poem';
+    img.onclick = () => { container.style.display = 'none'; };
+    container.appendChild(img);
+    entry.parentNode.insertBefore(container, entry.nextSibling);
+  }
+  container.style.display = 'block';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('a[href^="images/"]').forEach(l => {
+    l.addEventListener('click', e => {
+      e.preventDefault();
+      toggleInlineImage(l);
+      if (window.logAction) {
+        const pub = l.closest('.pub-entry'), sec = pub ? pub.closest('.section-content') : null;
+        const cat = sec && sec.previousElementSibling ? (sec.previousElementSibling.id || sec.previousElementSibling.textContent.replace('▾','').trim().toLowerCase()) : 'content';
+        window.logAction(cat, l.textContent.trim() || l.getAttribute('href')); }});});
+  document.querySelectorAll('.toc-links a').forEach(l => l.addEventListener('click', () => { const t = document.querySelector(l.getAttribute('href')); if (t && t.classList.contains('collapsed')) toggleSection(t); }));
+  document.querySelectorAll('div[style*="text-align:center"] a').forEach(l => l.addEventListener('click', () => { if (window.logAction) window.logAction('subpage', l.pathname.replace(/^\/|\/$/g, '') || 'home'); }));
+  document.querySelectorAll('a[href^="http"], a[href^="mailto:"]').forEach(l => l.addEventListener('click', () => { if (window.logAction && !l.href.includes(window.location.hostname)) window.logAction('external', (l.textContent.trim() || l.getAttribute('href')).slice(0, 60)); }));
+  document.querySelectorAll('img:not(.inline-poem-img)').forEach(img => {
+    img.addEventListener('click', () => {
+      if (!window.logAction || img.closest('a')) return;
+      const pub = img.closest('.pub-entry');
+      if (pub) {
+        const sec = pub.closest('.section-content'), cat = sec && sec.previousElementSibling ? (sec.previousElementSibling.id || sec.previousElementSibling.textContent.replace('▾','').trim().toLowerCase()) : 'content';
+        window.logAction(cat, img.getAttribute('alt') || img.getAttribute('src').split('/').pop());
+      } else { window.logAction('image', img.getAttribute('alt') || img.getAttribute('src').split('/').pop()); }});});
+});
+
 (async () => {
   if (localStorage.getItem('ignoreMe') === '1') return;
   const ua = navigator.userAgent;
