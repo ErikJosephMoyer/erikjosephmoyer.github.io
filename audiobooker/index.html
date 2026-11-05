@@ -1,90 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="icon" href="/images/Favicon.png" type="image/png">
-<link rel="apple-touch-icon" href="/images/Favicon-192.png">
-<link rel="manifest" href="/manifest.json">
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="/images/Favicon.png" type="image/png"><link rel="apple-touch-icon" href="/images/Favicon-192.png"><link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2a2a2a">
 <title>Erik's Jibberjabberer</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
-
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
-h1{font-size:28pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
-h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
-
+h1{font-size:28pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1} h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
 button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 6px;white-space:nowrap;height:51px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
-button svg{display:block;width:20px;height:20px;flex-shrink:0;margin:auto}
-button:hover{background:#ccc}
-button:disabled{background:#555;color:#888;cursor:default}
-#all-btn-row{display:flex;gap:4px;margin:0 0 8pt}
-#all-btn-row button{flex:1;min-width:0}
-#all-btn-row #skipb-btn,#all-btn-row #skipf-btn{flex:2}
-#all-btn-row #play-btn{flex:3}
-#all-btn-row .mob-break{display:none}
-@media(max-width:600px){
-  #all-btn-row{flex-wrap:wrap}
-  #all-btn-row .transport{order:1}
-  #all-btn-row .mob-break{display:block;order:2;flex-basis:100%;height:0;margin:0;padding:0;background:transparent;border:none;pointer-events:none}
-  #all-btn-row .modifier{order:3}
-}
-
+button svg{display:block;width:20px;height:20px;flex-shrink:0;margin:auto} button:hover{background:#ccc} button:disabled{background:#555;color:#888;cursor:default}
+#all-btn-row{display:flex;gap:4px;margin:0 0 8pt} #all-btn-row button{flex:1;min-width:0} #all-btn-row #skipb-btn,#all-btn-row #skipf-btn{flex:2} #all-btn-row #play-btn{flex:3} #all-btn-row .mob-break{display:none}
+@media(max-width:600px){#all-btn-row{flex-wrap:wrap}#all-btn-row .transport{order:1}#all-btn-row .mob-break{display:block;order:2;flex-basis:100%;height:0;margin:0;padding:0;background:transparent;border:none;pointer-events:none}#all-btn-row .modifier{order:3}}
 .btn-row{display:flex;justify-content:center;gap:8px;margin:0 0 8pt;flex-wrap:wrap}
-.btn-row button{}
 #file-info{text-align:center;font-size:14pt;color:#fff;margin:0 0 8pt}
-
-#cover-wrap{width:33%;max-width:231px;aspect-ratio:1;overflow:hidden;margin:0 auto 8pt;display:none}
-#cover-img{width:100%;height:100%;object-fit:cover;object-position:center}
-
+#cover-wrap{width:33%;max-width:231px;aspect-ratio:1;overflow:hidden;margin:0 auto 8pt;display:none} #cover-img{width:100%;height:100%;object-fit:cover;object-position:center}
 #book-title{display:none}
-
-#chapter-select{
-  width:100%;background:transparent;border:1px solid #fff;
-  color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;
-  appearance:auto;margin:0 0 8pt;
-}
-#chapter-select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
-#chapter-select:focus{outline:none}
-
+#chapter-select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 8pt}
+#chapter-select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif} #chapter-select:focus{outline:none}
 #book-progress{text-align:center;font-size:16pt;color:#fff;margin:0 0 8pt}
-
-/* Chapter progress bar (replaces waveform) */
-#ch-bar{width:100%;height:16px;background:#555;cursor:pointer;margin:0 0 4px;position:relative}
-#ch-fill{height:100%;background:#fff;width:0%;pointer-events:none}
+#ch-bar{width:100%;height:16px;background:#555;cursor:pointer;margin:0 0 4px;position:relative} #ch-fill{height:100%;background:#fff;width:0%;pointer-events:none}
 #time-row{display:flex;justify-content:space-between;font-size:14pt;color:#fff;margin:0 0 8pt}
-
-/* Button row: speed (left) | transport (center) | pitch (right) */
-#btn-row{display:flex;align-items:center;justify-content:space-between;width:100%}
-#btn-row button{
-  width:40px;height:40px;padding:0;display:flex;
-  align-items:center;justify-content:center;background:#fff;overflow:hidden;
-}
-#speed-btn,#pitch-btn{width:50px !important}
-#btn-row button svg{width:20px;height:20px;fill:#2a2a2a;stroke:#2a2a2a}
-#btn-row button:disabled svg{fill:#888;stroke:#888}
-#play-btn{width:80px !important}
-#play-btn svg{width:28px;height:28px}
-#transport{display:flex;align-items:center;gap:4px}
-#btn-row{flex-wrap:wrap;gap:4px}
-
 .hidden-input{display:none}
-@media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
-</style>
-</head>
-<body>
-
+body.embedded>img:first-of-type,body.embedded>h1,body.embedded>h2:first-of-type,body.embedded>div[style*="text-align:center"],body.embedded>img[src*="Logophile"],body.embedded>br{display:none!important}
+body.embedded{padding:4px 0!important;background:transparent!important;max-width:100%!important}
+</style></head><body>
 <img src="/images/AudiobookerLogo.png" alt="ABP" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Jibberjabberer</h1>
-<h2><em>Hear With Your Ears</em>:<span class="sub-break"> </span>An Audiobook Player</h2>
-
+<h2><em>Hear With Your Ears</em>: An Audiobook Player</h2>
 <div class="btn-row">
   <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
   <button id="folder-btn" onclick="document.getElementById('folder-input').click()">Upload Folder</button>
@@ -93,1111 +38,538 @@ button:disabled{background:#555;color:#888;cursor:default}
 <input type="file" id="file-input" class="hidden-input" accept="audio/*,.m4b,.mp3,.m4a,.ogg,.wav,.mp4,.webm,.aac,.flac,.opus">
 <input type="file" id="folder-input" class="hidden-input" webkitdirectory>
 <input type="file" id="cover-input" class="hidden-input" accept="image/*">
-
 <div id="file-info">No file selected</div>
-
 <select id="chapter-select" disabled><option>No audiobook loaded</option></select>
-
 <div id="book-progress">Read 0:00:00 of 0:00:00 (0%), 0:00:00 Left</div>
-
 <div id="cover-wrap"><img id="cover-img" src="" alt="Cover"></div>
-
 <h2 id="book-title"></h2>
-
 <div id="ch-bar" onclick="seekChapter(event)"><div id="ch-fill"></div></div>
 <div id="time-row"><span id="cur-time">0:00</span><span id="tot-time">0:00</span></div>
-
 <div id="all-btn-row">
-  <button id="speed-btn" class="modifier" title="Speed" disabled onclick="cycleSpeed()">
-    <span id="speed-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">1x</span>
-  </button>
-  <button id="pitch-btn" class="modifier" title="Pitch" disabled onclick="cyclePitch()">
-    <span id="pitch-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">0</span>
-  </button>
-  <button id="prev-btn" class="transport" title="Previous Chapter (Shift+Left)" disabled onclick="prevChapter()">
-    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16" fill="#2a2a2a"/><polygon points="20,4 9,12 20,20" fill="#2a2a2a"/></svg>
-  </button>
-  <button id="skipb-btn" class="transport" title="Back 10s (Left)" disabled onclick="skip(-10)">
-    <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="#2a2a2a" stroke="none"/></svg>
-  </button>
-  <button id="play-btn" class="transport" title="Play / Pause (Space)" disabled onclick="togglePlay()">
-    <svg viewBox="0 0 24 24" id="play-icon"><polygon points="8,5 19,12 8,19" fill="#2a2a2a" stroke="none"/></svg>
-    <svg viewBox="0 0 24 24" id="pause-icon" style="display:none"><rect x="6" y="4" width="4" height="16" fill="#2a2a2a"/><rect x="14" y="4" width="4" height="16" fill="#2a2a2a"/></svg>
-  </button>
-  <button id="skipf-btn" class="transport" title="Forward 10s (Right)" disabled onclick="skip(10)">
-    <svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z" fill="#2a2a2a" stroke="none"/></svg>
-  </button>
-  <button id="next-btn" class="transport" title="Next Chapter (Shift+Right)" disabled onclick="nextChapter()">
-    <svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20" fill="#2a2a2a"/><rect x="17" y="4" width="3" height="16" fill="#2a2a2a"/></svg>
-  </button>
-  <button id="mute-btn" class="modifier" title="Mute" disabled onclick="toggleMute()">
-    <svg id="unmuted-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#2a2a2a"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="#2a2a2a"/></svg>
-    <svg id="muted-icon" viewBox="0 0 24 24" style="display:none"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#2a2a2a"/></svg>
-  </button>
-  <button id="boost-btn" class="modifier" title="Volume Boost" disabled onclick="cycleBoost()">
-    <span id="boost-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">0</span>
-  </button>
+  <button id="speed-btn" class="modifier" title="Speed (S)" disabled onclick="cycleSpeed()"><span id="speed-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">1x</span></button>
+  <button id="pitch-btn" class="modifier" title="Pitch (P)" disabled onclick="cyclePitch()"><span id="pitch-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">0</span></button>
+  <button id="prev-btn" class="transport" title="Previous Chapter (Shift+Left / Shift+Down)" disabled onclick="prevChapter()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16" fill="#2a2a2a"/><polygon points="20,4 9,12 20,20" fill="#2a2a2a"/></svg></button>
+  <button id="skipb-btn" class="transport" title="Back 10s (Left / Down)" disabled onclick="skip(-10)"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="#2a2a2a" stroke="none"/></svg></button>
+  <button id="play-btn" class="transport" title="Play / Pause (Space)" disabled onclick="togglePlay()"><svg viewBox="0 0 24 24" id="play-icon"><polygon points="8,5 19,12 8,19" fill="#2a2a2a" stroke="none"/></svg><svg viewBox="0 0 24 24" id="pause-icon" style="display:none"><rect x="6" y="4" width="4" height="16" fill="#2a2a2a"/><rect x="14" y="4" width="4" height="16" fill="#2a2a2a"/></svg></button>
+  <button id="skipf-btn" class="transport" title="Forward 10s (Right / Up)" disabled onclick="skip(10)"><svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z" fill="#2a2a2a" stroke="none"/></svg></button>
+  <button id="next-btn" class="transport" title="Next Chapter (Shift+Right / Shift+Up)" disabled onclick="nextChapter()"><svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20" fill="#2a2a2a"/><rect x="17" y="4" width="3" height="16" fill="#2a2a2a"/></svg></button>
+  <button id="mute-btn" class="modifier" title="Mute (M)" disabled onclick="toggleMute()"><svg id="unmuted-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#2a2a2a"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="#2a2a2a"/></svg><svg id="muted-icon" viewBox="0 0 24 24" style="display:none"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#2a2a2a"/></svg></button>
+  <button id="boost-btn" class="modifier" title="Volume Boost (V)" disabled onclick="cycleBoost()"><span id="boost-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">0</span></button>
   <div class="mob-break"></div>
 </div>
 
 <script>
-let audio = new Audio();
-let audioCtx = null;
-let sourceNode = null;
-let biquadFilter = null;
-let chapters = [];
-let currentChapter = 0;
-let totalBookDuration = 0;
-let fileKey = '';
-let multiFileMode = false;
-let speedIdx = 0;
-const speeds = [1, 1.2, 1.5, 2, 0.5, 0.8];
-let toneIdx = 2;
-const toneLevels = [
-  {label:'--', freq:200}, {label:'-', freq:400}, {label:'0', freq:0},
-  {label:'+', freq:2000}, {label:'++', freq:4000},
-];
-let baseSpeed = 1;
+if (window.self !== window.top || window.location.search.includes('embed=1')) { document.body.classList.add('embedded'); }
+let audio = new Audio(), audioCtx = null, sourceNode = null, gainNode = null;
+let chapters = [], currentChapter = 0, totalBookDuration = 0, fileKey = '', multiFileMode = false;
+let speedIdx = 0; const speeds = [1, 1.2, 1.5, 2, 0.5, 0.8]; let baseSpeed = 1;
+let pitchIdx = 2; const pitchLevels = [{label:'-2',rate:0.85},{label:'-1',rate:0.92},{label:'0',rate:1.0},{label:'1',rate:1.04},{label:'2',rate:1.08}];
+let boostIdx = 0, boostLevels = [0, 6, 12];
+let hasCover = false, wasPlaying = false, manualUpload = false, pendingRestore = null;
 
-let gainNode = null;
-let boostIdx = 0;
-let boostLevels = [0, 6, 12];
+window.hasActiveFile = () => !!(audio && audio.src && chapters.length > 0);
+
 function ensureAudioCtx(){
   if(audioCtx) return;
-  audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  sourceNode = audioCtx.createMediaElementSource(audio);
-  biquadFilter = audioCtx.createBiquadFilter();
-  biquadFilter.type = 'peaking';
-  biquadFilter.gain.value = 0;
-  biquadFilter.Q.value = 1;
-  gainNode = audioCtx.createGain();
-  gainNode.gain.value = 1;
-  sourceNode.connect(biquadFilter);
-  biquadFilter.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
+  try {
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    sourceNode = audioCtx.createMediaElementSource(audio);
+    gainNode = audioCtx.createGain(); gainNode.gain.value = 1;
+    sourceNode.connect(gainNode); gainNode.connect(audioCtx.destination);
+  } catch(e){}
 }
-function applyTone(){
-  if(!biquadFilter) return;
-  const t = toneLevels[toneIdx];
-  if(t.freq === 0){
-    biquadFilter.gain.value = 0;
-  } else if(t.freq < 1000){
-    biquadFilter.type = 'lowshelf';
-    biquadFilter.frequency.value = t.freq;
-    biquadFilter.gain.value = t.freq < 300 ? 25 : 18;
-  } else {
-    biquadFilter.type = 'highshelf';
-    biquadFilter.frequency.value = t.freq;
-    biquadFilter.gain.value = t.freq > 3000 ? 25 : 18;
-  }
-}
-let hasCover = false;
-let wasPlaying = false;
 function fmtHMS(s){
   if(!s||isNaN(s)||s<0) return '0:00:00';
   const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=Math.floor(s%60);
-  return h+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
-}
+  return h+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');}
 function fmtMS(s){
   if(!s||isNaN(s)||s<0) return '0:00';
   const m=Math.floor(s/60),sec=Math.floor(s%60);
-  return m+':'+String(sec).padStart(2,'0');
-}
+  return m+':'+String(sec).padStart(2,'0');}
 function truncate(s,n){ return (!s)?'': s.length>n ? s.substring(0,n)+'...' : s; }
 function fmtSize(bytes){
   const mb=bytes/1048576;
-  if(mb<0.05) return '0.1MB';
-  if(mb<0.5) return mb.toFixed(1)+'MB';
-  return Math.round(mb)+'MB';
-}
+  if(mb<0.05) return '0.1MB'; if(mb<0.5) return mb.toFixed(1)+'MB'; return Math.round(mb)+'MB';}
 async function makeFileKey(str){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').substring(0,16);
-}
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').substring(0,16);}
 function openDB(){
   return new Promise((resolve,reject)=>{
     const req = indexedDB.open('jbj_audiobooks', 1);
     req.onupgradeneeded = (e) => {
       const db = e.target.result;
-      if(!db.objectStoreNames.contains('files')) db.createObjectStore('files');
-    };
+      if(!db.objectStoreNames.contains('files')) db.createObjectStore('files'); };
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
+    req.onerror = () => reject(req.error); });}
 async function storeFile(key, blob, meta){
   const db = await openDB();
   return new Promise((resolve,reject)=>{
     const tx = db.transaction('files','readwrite');
     tx.objectStore('files').put({blob, meta}, key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
+    tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error); });}
 async function loadFile(key){
   const db = await openDB();
   return new Promise((resolve,reject)=>{
     const tx = db.transaction('files','readonly');
     const req = tx.objectStore('files').get(key);
-    req.onsuccess = () => resolve(req.result || null);
-    req.onerror = () => reject(req.error);
-  });
-}
+    req.onsuccess = () => resolve(req.result || null); req.onerror = () => reject(req.error); });}
 function saveProgress(){
   if(!fileKey) return;
   try {
-    const time = audio.currentTime || 0;
-    const data = {
-      ch: currentChapter,
-      time: time,
-      ts: Date.now(),
-      spd: speedIdx,
-      pit: pitchIdx,
-      muted: audio.muted ? 1 : 0,
-      boost: typeof boostIdx==='number' ? boostIdx : 0,
-      tone: typeof toneIdx==='number' ? toneIdx : 2
-    };
-    localStorage.setItem('jbj_'+fileKey, JSON.stringify(data));
+    const data = { ch: currentChapter, time: audio.currentTime || 0, ts: Date.now(), spd: speedIdx, pit: pitchIdx, muted: audio.muted ? 1 : 0, boost: boostIdx };
+    localStorage.setItem('jbj_' + fileKey, JSON.stringify(data));
     localStorage.setItem('jbj_last', fileKey);
+    localStorage.setItem('ebr_audio_' + fileKey, JSON.stringify(data));
+    localStorage.setItem('ebr_audio_last', fileKey);
     if (window.EMSync) window.EMSync.push();
-  } catch(e) { console.warn('saveProgress failed', e); }
+  } catch(e) {}
 }
 function restoreProgress(){
   if(!fileKey) return null;
-  try{return JSON.parse(localStorage.getItem('jbj_'+fileKey));}catch(e){return null;}
+  try{ return JSON.parse(localStorage.getItem('jbj_' + fileKey) || localStorage.getItem('ebr_audio_' + fileKey)); } catch(e){ return null; }
 }
-// Save aggressively for mobile reliability
 setInterval(saveProgress, 2000);
-// Save on every event we can - mobile browsers fire some but not others
 window.addEventListener('beforeunload', saveProgress);
 window.addEventListener('pagehide', saveProgress);
 window.addEventListener('blur', saveProgress);
-document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden') saveProgress(); });
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'hidden') saveProgress(); });
 audio.addEventListener('pause', saveProgress);
 audio.addEventListener('seeking', saveProgress);
-// Throttled save during playback (every ~5s of audio time)
 let _lastTimeSave = 0;
-audio.addEventListener('timeupdate', function(){
-  if(Math.abs(audio.currentTime - _lastTimeSave) > 5){
-    _lastTimeSave = audio.currentTime;
-    saveProgress();
-  }
+audio.addEventListener('timeupdate', () => {
+  if(Math.abs(audio.currentTime - _lastTimeSave) > 5){ _lastTimeSave = audio.currentTime; saveProgress(); }
 });
 
-let pendingRestore = null;
-let manualUpload = false;
+function setBlobSrc(el, blob){
+  if (el._blobUrl) { try { URL.revokeObjectURL(el._blobUrl); } catch(e){} }
+  el._blobUrl = URL.createObjectURL(blob); el.src = el._blobUrl;}
+function resetUI(){
+  for (const c of chapters) { if (c && c.fileUrl) { try { URL.revokeObjectURL(c.fileUrl); } catch(e){} } }
+  if (audio && audio.src && audio.src.indexOf('blob:') === 0) { try { URL.revokeObjectURL(audio.src); } catch(e){} }
+  chapters = []; hasCover = false; currentChapter = 0;
+  document.getElementById('cover-wrap').style.display = 'none';
+  document.getElementById('cover-upload-btn').textContent = 'Upload Cover';
+  document.getElementById('book-title').style.display = 'none';}
+
 document.getElementById('file-input').onchange = async function(){
-  const file = this.files[0];
-  if(!file) return;
-  pendingRestore = null;
-  manualUpload = true;
-  multiFileMode = false;
-  try { await loadSingleFile(file); } catch(e){ console.error('loadSingleFile error:', e); }
-};
+  const file = this.files[0]; if(!file) return;
+  pendingRestore = null; manualUpload = true; multiFileMode = false;
+  try { await loadSingleFile(file); } catch(e){ console.error(e); }};
 
 async function loadSingleFile(file){
   const sizeStr = fmtSize(file.size);
   const displayName = truncate(file.name,50)+', '+sizeStr;
   document.getElementById('file-info').textContent = displayName+' (loading...)';
   document.getElementById('upload-btn').textContent = 'Replace File';
-
   fileKey = await makeFileKey(file.name+'|'+file.size);
   resetUI();
-  try { await parseMetadata(file); } catch(e) {  }
-
+  try { await parseMetadata(file); } catch(e) {}
   const url = URL.createObjectURL(file);
   if(file.size < 2000*1024*1024){
     const ext = file.name.split('.').pop().toLowerCase();
     const mimeMap = {mp3:'audio/mpeg',m4b:'audio/mp4',m4a:'audio/mp4',ogg:'audio/ogg',wav:'audio/wav',mp4:'audio/mp4',webm:'audio/webm',aac:'audio/aac',flac:'audio/flac',opus:'audio/ogg'};
     const blob = new Blob([file], {type: file.type || mimeMap[ext] || 'audio/mpeg'});
-    storeFile(fileKey, blob, {fileName:file.name, displayName, multiFile:false}).catch(()=>{});
-  }
+    storeFile(fileKey, blob, {fileName:file.name, displayName, multiFile:false}).catch(()=>{}); }
   let metadataLoaded = false;
   audio.onloadedmetadata = () => {
     if(metadataLoaded) return;
     metadataLoaded = true;
     totalBookDuration = audio.duration;
-    if(chapters.length === 0){
-      chapters = [{title:file.name.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}];
-    }
+    if(chapters.length === 0){ chapters = [{title:file.name.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}]; }
     for(let i=0; i<chapters.length; i++){
       if(chapters[i].endTime === 0 || chapters[i].duration === 0){
         const end = (i+1 < chapters.length) ? chapters[i+1].startTime : audio.duration;
-        chapters[i].endTime = end;
-        chapters[i].duration = end - chapters[i].startTime;
-      }
-    }
+        chapters[i].endTime = end; chapters[i].duration = end - chapters[i].startTime; } }
     document.getElementById('file-info').textContent = displayName;
-    finishLoad();
-  };
-  audio.onerror = () => {
-    if(!metadataLoaded) mobileReadyFallback(file, displayName, url);
-  };
-  audio.src = url;
-  audio.load();
-  setTimeout(() => {
-    if(!metadataLoaded) mobileReadyFallback(file, displayName, url);
-  }, 3000);
+    finishLoad(); };
+  audio.onerror = () => { if(!metadataLoaded) mobileReadyFallback(file, displayName, url); };
+  audio.src = url; audio.load();
+  setTimeout(() => { if(!metadataLoaded) mobileReadyFallback(file, displayName, url); }, 3000);
 }
 
 function mobileReadyFallback(file, displayName, url){
-  if(chapters.length === 0){
-    chapters = [{title:file.name.replace(/\.[^.]+$/,''), startTime:0, endTime:0, duration:0}];
-  }
+  if(chapters.length === 0){ chapters = [{title:file.name.replace(/\.[^.]+$/,''), startTime:0, endTime:0, duration:0}]; }
   document.getElementById('file-info').textContent = displayName+' (tap Play)';
-  populateChapterDropdown();
-  enablePlayer();
+  populateChapterDropdown(); enablePlayer();
   pendingRestore = {url, needsLoad:true};
   const saved = restoreProgress();
   if(saved) currentChapter = saved.ch || 0;
 }
+
 document.getElementById('folder-input').onchange = async function(){
   const files = Array.from(this.files);
   const audioExts = ['.mp3','.m4a','.m4b','.ogg','.wav','.mp4','.webm','.aac','.flac'];
   const audioFiles = files.filter(f => audioExts.some(ext => f.name.toLowerCase().endsWith(ext)));
-
-  if(audioFiles.length === 0){
-    document.getElementById('file-info').textContent = 'Error: No audio files found in folder';
-    return;
-  }
-
+  if(audioFiles.length === 0){ document.getElementById('file-info').textContent = 'Error: No audio files found'; return; }
   audioFiles.sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
-  multiFileMode = true;
-  resetUI();
-
+  multiFileMode = true; resetUI();
   fileKey = await makeFileKey(audioFiles.map(f=>f.name+'|'+f.size).join('||'));
-
   const folderName = audioFiles[0].webkitRelativePath.split('/')[0] || 'Audiobook';
   const totalSize = audioFiles.reduce((s,f)=>s+f.size, 0);
-  const sizeStr = fmtSize(totalSize);
-  const displayName = truncate(folderName,50)+', '+audioFiles.length+' files, '+sizeStr;
+  const displayName = truncate(folderName,50)+', '+audioFiles.length+' files, '+fmtSize(totalSize);
   document.getElementById('file-info').textContent = displayName;
   document.getElementById('folder-btn').textContent = 'Replace Folder';
-
   try { await parseMetadata(audioFiles[0]); } catch(e) {}
-
-  const imgExts = ['.jpg','.jpeg','.png','.webp','.bmp'];
-  const imgFile = files.find(f => imgExts.some(ext => f.name.toLowerCase().endsWith(ext)));
-  if(imgFile){
-    setBlobSrc(document.getElementById('cover-img'), imgFile);
-    document.getElementById('cover-wrap').style.display = 'block';
-    document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
-    hasCover = true;
-  }
-
+  const imgFile = files.find(f => ['.jpg','.jpeg','.png','.webp','.bmp'].some(ext => f.name.toLowerCase().endsWith(ext)));
+  if(imgFile){ setBlobSrc(document.getElementById('cover-img'), imgFile); document.getElementById('cover-wrap').style.display = 'block'; document.getElementById('cover-upload-btn').textContent = 'Replace Cover'; hasCover = true; }
   document.getElementById('file-info').textContent = displayName+' (loading...)';
-  chapters = [];
-  let cumulative = 0;
-
+  chapters = []; let cumulative = 0;
   for(let i=0; i<audioFiles.length; i++){
-    const f = audioFiles[i];
-    const url = URL.createObjectURL(f);
-    const dur = await getAudioDuration(url);
+    const f = audioFiles[i], url = URL.createObjectURL(f), dur = await getAudioDuration(url);
     const title = f.name.replace(/\.[^.]+$/,'').replace(/^\d+[\s._-]*/,'');
     chapters.push({title:title||'Chapter '+(i+1), startTime:cumulative, endTime:cumulative+dur, duration:dur, fileUrl:url, fileIndex:i});
-    cumulative += dur;
-  }
-
-  totalBookDuration = cumulative;
-  document.getElementById('file-info').textContent = displayName;
-
+    cumulative += dur; }
+  totalBookDuration = cumulative; document.getElementById('file-info').textContent = displayName;
   audio.onloadedmetadata = () => finishLoad();
   audio.onerror = () => { document.getElementById('file-info').textContent = 'Error: Could not load audio'; };
-  audio.src = chapters[0].fileUrl;
-  audio.load();
-}
+  audio.src = chapters[0].fileUrl; audio.load();
+};
 
 function getAudioDuration(url){
   return new Promise(resolve => {
-    const a = new Audio();
-    a.preload = 'metadata';
-    a.src = url;
-    a.onloadedmetadata = () => resolve(a.duration || 0);
-    a.onerror = () => resolve(0);
-    setTimeout(() => resolve(0), 5000);
-  });
-}
-// Helper: assign a blob URL to an element, freeing the previous one.
-// Without this every cover-replace / book-replace leaks a Blob URL until
-// the page is closed.
-function setBlobSrc(el, blob){
-  if (el._blobUrl) { try { URL.revokeObjectURL(el._blobUrl); } catch(e){} }
-  el._blobUrl = URL.createObjectURL(blob);
-  el.src = el._blobUrl;
-}
-
-function resetUI(){
-  // Free all per-chapter blob URLs from the previous book before clearing.
-  // Also free the single-file audio.src URL (autoReload in single-file mode
-  // assigns directly to audio.src without storing in chapters[]).
-  for (const c of chapters) {
-    if (c && c.fileUrl) { try { URL.revokeObjectURL(c.fileUrl); } catch(e){} }
-  }
-  if (audio && audio.src && audio.src.indexOf('blob:') === 0) {
-    try { URL.revokeObjectURL(audio.src); } catch(e){}
-  }
-  chapters = []; hasCover = false; currentChapter = 0;
-  document.getElementById('cover-wrap').style.display = 'none';
-  document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
-  document.getElementById('book-title').style.display = 'none';
-}
-
+    const a = new Audio(); a.preload = 'metadata'; a.src = url;
+    a.onloadedmetadata = () => resolve(a.duration || 0); a.onerror = () => resolve(0);
+    setTimeout(() => resolve(0), 5000); });}
 function finishLoad(){
-  populateChapterDropdown();
-  enablePlayer();
-  localStorage.setItem('jbj_last', fileKey);
-
-  setTimeout(()=>{
-    if(!hasCover) document.getElementById('cover-upload-btn').style.display = '';
-  }, 1500);
-
+  populateChapterDropdown(); enablePlayer();
+  localStorage.setItem('jbj_last', fileKey); localStorage.setItem('ebr_audio_last', fileKey);
   const saved = restoreProgress();
   if(saved && saved.ch < chapters.length){
     currentChapter = saved.ch;
     document.getElementById('chapter-select').value = currentChapter;
     if(typeof saved.spd==='number'){ speedIdx=saved.spd; baseSpeed=speeds[speedIdx]||1; document.getElementById('speed-label').textContent=baseSpeed+'x'; }
     if(typeof saved.pit==='number'){ pitchIdx=saved.pit; document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label; }
-    audio.preservesPitch=true;
-    audio.playbackRate=baseSpeed;
-    if(typeof saved.pit==='number'){
-      var pr=pitchLevels[saved.pit].rate;
-      if(pr!==1.0){ audio.preservesPitch=false; audio.playbackRate=pr; }
-    }
+    audio.preservesPitch = true; audio.playbackRate = baseSpeed;
+    if(typeof saved.pit==='number' && pitchLevels[saved.pit].rate !== 1.0){ audio.preservesPitch=false; audio.playbackRate=pitchLevels[saved.pit].rate; }
     if(saved.muted){ audio.muted=true; document.getElementById('unmuted-icon').style.display='none'; document.getElementById('muted-icon').style.display=''; }
-    if(typeof saved.boost==='number' && saved.boost>0){
-      try { ensureAudioCtx(); boostIdx=saved.boost; gainNode.gain.value=Math.pow(10,(boostLevels[boostIdx]||0)/20); document.getElementById('boost-label').textContent=['0','+','++'][boostIdx]; } catch(e){}
-    }
-    if(typeof saved.tone==='number'){ toneIdx=saved.tone; }
+    if(typeof saved.boost==='number' && saved.boost>0){ try { ensureAudioCtx(); boostIdx=saved.boost; gainNode.gain.value=Math.pow(10,(boostLevels[boostIdx]||0)/20); document.getElementById('boost-label').textContent=['0','+','++'][boostIdx]; } catch(e){} }
     if(multiFileMode && chapters[currentChapter].fileUrl){
       audio.onloadedmetadata = () => { audio.currentTime = saved.time || 0; };
-      audio.src = chapters[currentChapter].fileUrl;
-      audio.load();
+      audio.src = chapters[currentChapter].fileUrl; audio.load();
     } else {
       var seekTo = saved.time || chapters[saved.ch].startTime;
-      if(audio.readyState >= 1){
-        audio.currentTime = seekTo;
-      } else {
-        audio.addEventListener('loadedmetadata', function seekOnce(){ audio.currentTime=seekTo; audio.removeEventListener('loadedmetadata',seekOnce); });
-      }
-    }
-  } else {
-    currentChapter = 0;
-    if(!multiFileMode) audio.currentTime = chapters[0].startTime;
-  }
+      if(audio.readyState >= 1){ audio.currentTime = seekTo; }
+      else { audio.addEventListener('loadedmetadata', function seekOnce(){ audio.currentTime=seekTo; audio.removeEventListener('loadedmetadata',seekOnce); }); } }
+  } else { currentChapter = 0; if(!multiFileMode) audio.currentTime = chapters[0].startTime; }
   updateBookProgress();
 }
+
 function parseMetadata(file){
   const ext = file.name.split('.').pop().toLowerCase();
-  if(['m4b','m4a','mp4','aac'].includes(ext)){
-    return parseM4BMetadata(file);
-  }
-  return parseID3Metadata(file);
-}
+  if(['m4b','m4a','mp4','aac'].includes(ext)) return parseM4BMetadata(file);
+  return parseID3Metadata(file);}
 function parseM4BMetadata(file){
   return new Promise(async(resolve)=>{
     try{
-      // Find moov atom
       let moovStart=-1,moovSize=0,scanPos=0;
       while(scanPos<file.size-8){
         const hdr=new Uint8Array(await readSlice(file,scanPos,8));
-        const sz=(hdr[0]<<24)|(hdr[1]<<16)|(hdr[2]<<8)|hdr[3];
-        const tp=String.fromCharCode(hdr[4],hdr[5],hdr[6],hdr[7]);
-        if(sz<8)break;
-        if(tp==='moov'){moovStart=scanPos;moovSize=sz;break;}
-        scanPos+=sz;
-      }
+        const sz=(hdr[0]<<24)|(hdr[1]<<16)|(hdr[2]<<8)|hdr[3], tp=String.fromCharCode(hdr[4],hdr[5],hdr[6],hdr[7]);
+        if(sz<8)break; if(tp==='moov'){moovStart=scanPos;moovSize=sz;break;} scanPos+=sz; }
       if(moovStart<0){resolve();return;}
-      const moovBuf=new Uint8Array(await readSlice(file,moovStart,Math.min(moovSize,16*1024*1024)));
-      const mv=new DataView(moovBuf.buffer);
-      let title='',album='';
-      let chapTimescale=0,chapDurations=[],chapOffsets=[],chapSizes=[];
+      const moovBuf=new Uint8Array(await readSlice(file,moovStart,Math.min(moovSize,16*1024*1024))), mv=new DataView(moovBuf.buffer);
+      let title='',album='',chapTimescale=0,chapDurations=[],chapOffsets=[],chapSizes=[];
       function getType(p){return String.fromCharCode(moovBuf[p+4],moovBuf[p+5],moovBuf[p+6],moovBuf[p+7]);}
-      // Find trak boundaries
-      let traks=[];
-      let p=8;
-      while(p<moovBuf.length-8){
-        const sz=mv.getUint32(p);
-        if(sz<8||p+sz>moovBuf.length)break;
-        if(getType(p)==='trak')traks.push([p,p+sz]);
-        p+=sz;
-      }
-      // Find text track (small trak with hdlr=text)
+      let traks=[], p=8;
+      while(p<moovBuf.length-8){ const sz=mv.getUint32(p); if(sz<8||p+sz>moovBuf.length)break; if(getType(p)==='trak')traks.push([p,p+sz]); p+=sz; }
       let textStart=-1,textEnd=-1;
-      for(const[ts,te]of traks){
-        if(te-ts>100000)continue;
-        for(let q=ts;q<te-20;q++){
-          if(moovBuf[q]===0x68&&moovBuf[q+1]===0x64&&moovBuf[q+2]===0x6C&&moovBuf[q+3]===0x72&&
-             moovBuf[q+12]===0x74&&moovBuf[q+13]===0x65&&moovBuf[q+14]===0x78&&moovBuf[q+15]===0x74){
-            textStart=ts;textEnd=te;break;
-          }
-        }
-        if(textStart>=0)break;
-      }
-      // Scan text track for mdhd/stts/stsz/stco
+      for(const[ts,te]of traks){ if(te-ts>100000)continue;
+        for(let q=ts;q<te-20;q++){ if(moovBuf[q]===0x68&&moovBuf[q+1]===0x64&&moovBuf[q+2]===0x6C&&moovBuf[q+3]===0x72&&moovBuf[q+12]===0x74&&moovBuf[q+13]===0x65&&moovBuf[q+14]===0x78&&moovBuf[q+15]===0x74){ textStart=ts;textEnd=te;break; } }
+        if(textStart>=0)break; }
       if(textStart>=0){
         for(let q=textStart;q<textEnd-12;q++){
           const a=moovBuf[q],b=moovBuf[q+1],c2=moovBuf[q+2],d=moovBuf[q+3];
-          if(a===0x6D&&b===0x64&&c2===0x68&&d===0x64&&chapTimescale===0){
-            const ver=moovBuf[q+4];
-            chapTimescale=ver===0?mv.getUint32(q+16):mv.getUint32(q+24);
-          }
+          if(a===0x6D&&b===0x64&&c2===0x68&&d===0x64&&chapTimescale===0){ chapTimescale=moovBuf[q+4]===0?mv.getUint32(q+16):mv.getUint32(q+24); }
           if(a===0x73&&b===0x74&&c2===0x74&&d===0x73&&chapDurations.length===0){
-            const asz=mv.getUint32(q-4);
-            if(asz>16&&asz<200000){const cnt=mv.getUint32(q+8);if(cnt>0&&cnt<50000){
-              for(let i=0;i<cnt;i++){const sc=mv.getUint32(q+12+i*8),sd=mv.getUint32(q+16+i*8);for(let j=0;j<sc;j++)chapDurations.push(sd);}
-            }}
-          }
+            const asz=mv.getUint32(q-4); if(asz>16&&asz<200000){ const cnt=mv.getUint32(q+8); if(cnt>0&&cnt<50000){ for(let i=0;i<cnt;i++){ const sc=mv.getUint32(q+12+i*8),sd=mv.getUint32(q+16+i*8); for(let j=0;j<sc;j++)chapDurations.push(sd); } } } }
           if(a===0x73&&b===0x74&&c2===0x73&&d===0x7A&&chapSizes.length===0){
-            const asz=mv.getUint32(q-4);
-            if(asz>16&&asz<200000){const def2=mv.getUint32(q+8),cnt=mv.getUint32(q+12);if(cnt>0&&cnt<50000){
-              for(let i=0;i<cnt;i++)chapSizes.push(def2||mv.getUint32(q+16+i*4));
-            }}
-          }
+            const asz=mv.getUint32(q-4); if(asz>16&&asz<200000){ const def2=mv.getUint32(q+8),cnt=mv.getUint32(q+12); if(cnt>0&&cnt<50000){ for(let i=0;i<cnt;i++)chapSizes.push(def2||mv.getUint32(q+16+i*4)); } } }
           if(a===0x73&&b===0x74&&c2===0x63&&d===0x6F&&chapOffsets.length===0){
-            const asz=mv.getUint32(q-4);
-            if(asz>16&&asz<200000){const cnt=mv.getUint32(q+8);if(cnt>0&&cnt<50000){
-              for(let i=0;i<cnt;i++)chapOffsets.push(mv.getUint32(q+12+i*4));
-            }}
-          }
-        }
-      }
-      console.log('M4B: ts='+chapTimescale+' dur='+chapDurations.length+' off='+chapOffsets.length);
-      // Scan moov for metadata (title, album, cover art)
+            const asz=mv.getUint32(q-4); if(asz>16&&asz<200000){ const cnt=mv.getUint32(q+8); if(cnt>0&&cnt<50000){ for(let i=0;i<cnt;i++)chapOffsets.push(mv.getUint32(q+12+i*4)); } } } } }
       function scanMeta(start,end){
         let p=start;
         while(p<end-8){
-          const sz=mv.getUint32(p),tp=getType(p);
-          if(sz<8||p+sz>end)break;
-          if(['udta','meta','ilst','©nam','©alb','covr'].includes(tp)){
-            scanMeta(tp==='meta'?p+12:p+8,p+sz);
-          }
+          const sz=mv.getUint32(p),tp=getType(p); if(sz<8||p+sz>end)break;
+          if(['udta','meta','ilst','©nam','©alb','covr'].includes(tp)) scanMeta(tp==='meta'?p+12:p+8,p+sz);
           if(tp==='©nam'||tp==='©alb'){
-            let di=p+8;
-            while(di<p+sz-8){const ds=mv.getUint32(di);const dt=getType(di);
-              if(dt==='data'&&ds>16){const txt=new TextDecoder('utf-8').decode(moovBuf.slice(di+16,di+ds));
-                if(tp==='©nam')title=txt;if(tp==='©alb')album=txt;}
-              if(ds<8)break;di+=ds;}
-          }
+            let di=p+8; while(di<p+sz-8){ const ds=mv.getUint32(di),dt=getType(di); if(dt==='data'&&ds>16){ const txt=new TextDecoder('utf-8').decode(moovBuf.slice(di+16,di+ds)); if(tp==='©nam')title=txt; if(tp==='©alb')album=txt; } if(ds<8)break; di+=ds; } }
           if(tp==='covr'&&!hasCover){
-            let di=p+8;
-            while(di<p+sz-8){const ds=mv.getUint32(di);const dt=getType(di);
-              if(dt==='data'&&ds>16){const img=moovBuf.slice(di+16,di+ds);
-                const mime=(img[0]===0xFF&&img[1]===0xD8)?'image/jpeg':'image/png';
-                setBlobSrc(document.getElementById('cover-img'), new Blob([img],{type:mime}));
-                document.getElementById('cover-wrap').style.display='block';
-                document.getElementById('cover-upload-btn').textContent='Replace Cover';hasCover=true;}
-              if(ds<8)break;di+=ds;}
-          }
-          p+=sz;
-        }
-      }
+            let di=p+8; while(di<p+sz-8){ const ds=mv.getUint32(di),dt=getType(di); if(dt==='data'&&ds>16){ const img=moovBuf.slice(di+16,di+ds),mime=(img[0]===0xFF&&img[1]===0xD8)?'image/jpeg':'image/png'; setBlobSrc(document.getElementById('cover-img'), new Blob([img],{type:mime})); document.getElementById('cover-wrap').style.display='block'; document.getElementById('cover-upload-btn').textContent='Replace Cover'; hasCover=true; } if(ds<8)break; di+=ds; } }
+          p+=sz; } }
       scanMeta(8,moovBuf.length);
-      const bookTitle=album||title||'';
-      if(bookTitle){document.getElementById('book-title').textContent=bookTitle;document.getElementById('book-title').style.display='block';}
-      // Build chapters from Apple chapter track
+      const bookTitle=album||title||''; if(bookTitle){ document.getElementById('book-title').textContent=bookTitle; document.getElementById('book-title').style.display='block'; }
       if(chapDurations.length>0&&chapTimescale>0){
-        chapters=[];
-        let cumTime=0;
-        for(let i=0;i<chapDurations.length;i++){
-          const ss=cumTime/chapTimescale,ds=chapDurations[i]/chapTimescale;
-          chapters.push({title:'Chapter '+(i+1),startTime:ss,endTime:ss+ds,duration:ds});
-          cumTime+=chapDurations[i];
-        }
-        // Try to read chapter names (non-blocking)
+        chapters=[]; let cumTime=0;
+        for(let i=0;i<chapDurations.length;i++){ const ss=cumTime/chapTimescale,ds=chapDurations[i]/chapTimescale; chapters.push({title:'Chapter '+(i+1),startTime:ss,endTime:ss+ds,duration:ds}); cumTime+=chapDurations[i]; }
         if(chapOffsets.length>0&&chapSizes.length>0){
           const co=chapOffsets.slice(),cs=chapSizes.slice();
-          setTimeout(async()=>{try{
-            const f0=co[0],fL=co[co.length-1],sL=cs[cs.length-1]||256;
-            const buf=new Uint8Array(await readSlice(file,f0,fL-f0+sL));
-            for(let i=0;i<chapters.length&&i<co.length;i++){
-              const loc=co[i]-f0,sz=i<cs.length?cs[i]:0;
-              if(loc>=0&&loc+2<=buf.length&&sz>2){const sl=(buf[loc]<<8)|buf[loc+1];
-                if(sl>0&&loc+2+sl<=buf.length)chapters[i].title=new TextDecoder('utf-8').decode(buf.slice(loc+2,loc+2+sl));}
-            }
-            populateChapterDropdown();
-          }catch(e){}},100);
-        }
-      }
+          setTimeout(async()=>{ try{
+            const f0=co[0],fL=co[co.length-1],sL=cs[cs.length-1]||256,buf=new Uint8Array(await readSlice(file,f0,fL-f0+sL));
+            for(let i=0;i<chapters.length&&i<co.length;i++){ const loc=co[i]-f0,sz=i<cs.length?cs[i]:0; if(loc>=0&&loc+2<=buf.length&&sz>2){ const sl=(buf[loc]<<8)|buf[loc+1]; if(sl>0&&loc+2+sl<=buf.length)chapters[i].title=new TextDecoder('utf-8').decode(buf.slice(loc+2,loc+2+sl)); } }
+            populateChapterDropdown(); } catch(e){} }, 100); } }
       resolve();
-    }catch(e){console.error('M4B error:',e);resolve();}
-  });
+    }catch(e){ resolve(); }});
 }
 function readSlice(file, offset, length){
-  return new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=()=>resolve(r.result);
-    r.onerror=()=>reject(r.error);
-    r.readAsArrayBuffer(file.slice(offset, offset+length));
-  });
-}
+  return new Promise((resolve,reject)=>{ const r=new FileReader(); r.onload=()=>resolve(r.result); r.onerror=()=>reject(r.error); r.readAsArrayBuffer(file.slice(offset, offset+length)); });}
 function parseID3Metadata(file){
   return new Promise((resolve) => {
-  const reader = new FileReader();
-  const slice = file.slice(0, 512*1024);
-  reader.onerror = () => resolve();
-  reader.onload = function(){
-    const buf = new Uint8Array(reader.result);
-    if(buf[0]!==0x49||buf[1]!==0x44||buf[2]!==0x33){ resolve(); return; }
-    const ver = buf[3]; // ID3 version (3 or 4)
-    const tagSize = ((buf[6]&0x7f)<<21)|((buf[7]&0x7f)<<14)|((buf[8]&0x7f)<<7)|(buf[9]&0x7f);
-    let pos = 10;
-    const end = Math.min(10+tagSize, buf.length);
-    let title='', album='';
-    const parsedChapters = [];
-
-    while(pos < end-10){
-      const fid = String.fromCharCode(buf[pos],buf[pos+1],buf[pos+2],buf[pos+3]);
-      if(fid==='\0\0\0\0') break; // padding
-      let fsize;
-      if(ver===4){ // ID3v2.4 syncsafe
-        fsize=((buf[pos+4]&0x7f)<<21)|((buf[pos+5]&0x7f)<<14)|((buf[pos+6]&0x7f)<<7)|(buf[pos+7]&0x7f);
-      } else { // ID3v2.3
-        fsize=(buf[pos+4]<<24)|(buf[pos+5]<<16)|(buf[pos+6]<<8)|buf[pos+7];
-      }
-      if(fsize<=0||fsize>tagSize) break;
-      const fdata = buf.slice(pos+10, pos+10+fsize);
-      pos += 10+fsize;
-
-      if(fid==='TIT2'){ title = decodeID3Text(fdata); }
-      if(fid==='TALB'){ album = decodeID3Text(fdata); }
-
-      if(fid==='APIC' && !hasCover){
-        let i=1; // skip encoding byte
-        let mime='';
-        while(i<fdata.length && fdata[i]!==0) mime+=String.fromCharCode(fdata[i++]);
-        i++; // null terminator
-        i++; // picture type byte
-        while(i<fdata.length && fdata[i]!==0) i++; // skip description
-        i++; // null terminator
-        if(i<fdata.length){
-          const imgBytes = fdata.slice(i);
-          const blob = new Blob([imgBytes], {type:mime||'image/jpeg'});
-          setBlobSrc(document.getElementById('cover-img'), blob);
-          document.getElementById('cover-wrap').style.display = 'block';
-          document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
-          hasCover = true;
-        }
-      }
-
-      if(fid==='CHAP' && !multiFileMode){
-        let i=0;
-        while(i<fdata.length && fdata[i]!==0) i++; // skip element ID
-        i++; // null terminator
-        if(i+16<=fdata.length){
-          const startMs=(fdata[i]<<24)|(fdata[i+1]<<16)|(fdata[i+2]<<8)|fdata[i+3];
-          const endMs=(fdata[i+4]<<24)|(fdata[i+5]<<16)|(fdata[i+6]<<8)|fdata[i+7];
-          i+=16; // skip startTime+endTime+startOffset+endOffset
-          let chapTitle='';
-          while(i<fdata.length-10){
-            const sfid=String.fromCharCode(fdata[i],fdata[i+1],fdata[i+2],fdata[i+3]);
-            if(sfid==='\0\0\0\0') break;
-            let sfsize;
-            if(ver===4){ sfsize=((fdata[i+4]&0x7f)<<21)|((fdata[i+5]&0x7f)<<14)|((fdata[i+6]&0x7f)<<7)|(fdata[i+7]&0x7f); }
-            else { sfsize=(fdata[i+4]<<24)|(fdata[i+5]<<16)|(fdata[i+6]<<8)|fdata[i+7]; }
-            if(sfsize<=0||sfsize>fdata.length-i) break;
-            const sfdata=fdata.slice(i+10, i+10+sfsize);
-            if(sfid==='TIT2') chapTitle=decodeID3Text(sfdata);
-            i+=10+sfsize;
-          }
-          parsedChapters.push({
-            title: chapTitle||'Chapter '+(parsedChapters.length+1),
-            startTime: startMs/1000,
-            endTime: endMs/1000,
-            duration: (endMs-startMs)/1000
-          });
-        }
-      }
-    }
-    const bookTitle = album || title || '';
-    if(bookTitle){
-      document.getElementById('book-title').textContent = bookTitle;
-      document.getElementById('book-title').style.display = 'block';
-    }
-    if(parsedChapters.length > 0 && !multiFileMode){
-      parsedChapters.sort((a,b)=>a.startTime-b.startTime);
-      chapters = parsedChapters;
-    }
-    resolve();
-  };
-  reader.readAsArrayBuffer(slice);
-  });
-}
-
+    const reader = new FileReader(), slice = file.slice(0, 512*1024);
+    reader.onerror = () => resolve();
+    reader.onload = function(){
+      const buf = new Uint8Array(reader.result);
+      if(buf[0]!==0x49||buf[1]!==0x44||buf[2]!==0x33){ resolve(); return; }
+      const ver = buf[3], tagSize = ((buf[6]&0x7f)<<21)|((buf[7]&0x7f)<<14)|((buf[8]&0x7f)<<7)|(buf[9]&0x7f);
+      let pos = 10; const end = Math.min(10+tagSize, buf.length);
+      let title='', album=''; const parsedChapters = [];
+      while(pos < end-10){
+        const fid = String.fromCharCode(buf[pos],buf[pos+1],buf[pos+2],buf[pos+3]);
+        if(fid==='\0\0\0\0') break;
+        let fsize = ver===4 ? (((buf[pos+4]&0x7f)<<21)|((buf[pos+5]&0x7f)<<14)|((buf[pos+6]&0x7f)<<7)|(buf[pos+7]&0x7f)) : ((buf[pos+4]<<24)|(buf[pos+5]<<16)|(buf[pos+6]<<8)|buf[pos+7]);
+        if(fsize<=0||fsize>tagSize) break;
+        const fdata = buf.slice(pos+10, pos+10+fsize); pos += 10+fsize;
+        if(fid==='TIT2') title = decodeID3Text(fdata);
+        if(fid==='TALB') album = decodeID3Text(fdata);
+        if(fid==='APIC' && !hasCover){
+          let i=1, mime=''; while(i<fdata.length && fdata[i]!==0) mime+=String.fromCharCode(fdata[i++]);
+          i+=2; while(i<fdata.length && fdata[i]!==0) i++; i++;
+          if(i<fdata.length){ setBlobSrc(document.getElementById('cover-img'), new Blob([fdata.slice(i)], {type:mime||'image/jpeg'})); document.getElementById('cover-wrap').style.display='block'; document.getElementById('cover-upload-btn').textContent='Replace Cover'; hasCover=true; } }
+        if(fid==='CHAP' && !multiFileMode){
+          let i=0; while(i<fdata.length && fdata[i]!==0) i++; i++;
+          if(i+16<=fdata.length){
+            const startMs=(fdata[i]<<24)|(fdata[i+1]<<16)|(fdata[i+2]<<8)|fdata[i+3], endMs=(fdata[i+4]<<24)|(fdata[i+5]<<16)|(fdata[i+6]<<8)|fdata[i+7];
+            i+=16; let chapTitle='';
+            while(i<fdata.length-10){
+              const sfid=String.fromCharCode(fdata[i],fdata[i+1],fdata[i+2],fdata[i+3]); if(sfid==='\0\0\0\0') break;
+              let sfsize=ver===4?(((fdata[i+4]&0x7f)<<21)|((fdata[i+5]&0x7f)<<14)|((fdata[i+6]&0x7f)<<7)|(fdata[i+7]&0x7f)):((fdata[i+4]<<24)|(fdata[i+5]<<16)|(fdata[i+6]<<8)|fdata[i+7]);
+              if(sfsize<=0||sfsize>fdata.length-i) break;
+              if(sfid==='TIT2') chapTitle=decodeID3Text(fdata.slice(i+10, i+10+sfsize));
+              i+=10+sfsize; }
+            parsedChapters.push({title:chapTitle||'Chapter '+(parsedChapters.length+1), startTime:startMs/1000, endTime:endMs/1000, duration:(endMs-startMs)/1000}); } } }
+      const bookTitle = album || title || '';
+      if(bookTitle){ document.getElementById('book-title').textContent = bookTitle; document.getElementById('book-title').style.display = 'block'; }
+      if(parsedChapters.length > 0 && !multiFileMode){ parsedChapters.sort((a,b)=>a.startTime-b.startTime); chapters = parsedChapters; }
+      resolve(); };
+    reader.readAsArrayBuffer(slice); });}
 function decodeID3Text(data){
   if(!data||data.length<2) return '';
-  const enc=data[0];
-  const raw=data.slice(1);
-  if(enc===0||enc===3){ // ISO-8859-1 or UTF-8
-    return new TextDecoder(enc===3?'utf-8':'iso-8859-1').decode(raw).replace(/\0/g,'');
-  }
-  if(enc===1||enc===2){ // UTF-16 with/without BOM
-    return new TextDecoder('utf-16').decode(raw).replace(/\0/g,'');
-  }
-  return new TextDecoder('utf-8').decode(raw).replace(/\0/g,'');
-}
+  const enc=data[0], raw=data.slice(1);
+  if(enc===0||enc===3) return new TextDecoder(enc===3?'utf-8':'iso-8859-1').decode(raw).replace(/\0/g,'');
+  if(enc===1||enc===2) return new TextDecoder('utf-16').decode(raw).replace(/\0/g,'');
+  return new TextDecoder('utf-8').decode(raw).replace(/\0/g,'');}
+
 document.getElementById('cover-input').onchange = async function(){
   const f = this.files[0]; if(!f) return;
   setBlobSrc(document.getElementById('cover-img'), f);
   document.getElementById('cover-wrap').style.display = 'block';
   document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
   hasCover = true;
-  if(fileKey){
-    try {
-      const blob = new Blob([f], {type: f.type || 'image/jpeg'});
-      await storeCover(fileKey, blob);
-    } catch(e){}
-  }
-};
-
+  if(fileKey){ try { await storeCover(fileKey, new Blob([f], {type: f.type || 'image/jpeg'})); } catch(e){} }};
 async function storeCover(key, blob){
   const db = await openDB();
   return new Promise((resolve,reject)=>{
     const tx = db.transaction('files','readwrite');
     tx.objectStore('files').put({blob}, 'cover_'+key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject();
-  });
-}
-
+    tx.oncomplete = () => resolve(); tx.onerror = () => reject(); });}
 async function loadCover(key){
   try {
     const db = await openDB();
     return new Promise((resolve)=>{
       const tx = db.transaction('files','readonly');
       const req = tx.objectStore('files').get('cover_'+key);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => resolve(null);
-    });
-  } catch(e){ return null; }
-}
-// Part/Chapter label formatter — recognizes "Part N" / "Chapter N" headings
-// (Arabic / Roman / English-word numbers); when a Part marker is encountered
-// while iterating chapters, all subsequent chapters get a "Part N, ..." prefix.
-const _ABP_WORD_INT = {ONE:1,TWO:2,THREE:3,FOUR:4,FIVE:5,SIX:6,SEVEN:7,EIGHT:8,NINE:9,TEN:10,
-  ELEVEN:11,TWELVE:12,THIRTEEN:13,FOURTEEN:14,FIFTEEN:15,SIXTEEN:16,SEVENTEEN:17,
-  EIGHTEEN:18,NINETEEN:19,TWENTY:20};
-function _abpRomanToInt(s){
-  if (!/^[IVXLCDM]+$/i.test(s)) return null;
-  const R={I:1,V:5,X:10,L:50,C:100,D:500,M:1000};
-  s=s.toUpperCase(); let n=0;
-  for (let i=0;i<s.length;i++){ const c=R[s[i]],nx=R[s[i+1]]; n+=(nx&&c<nx)?-c:c; }
-  return n;
-}
-function _abpParseNum(t){
-  if (!t) return null;
-  if (/^\d+$/.test(t)) return parseInt(t,10);
-  const r=_abpRomanToInt(t); if (r) return r;
-  const w=_ABP_WORD_INT[t.toUpperCase()]; if (w) return w;
-  return null;
-}
-function _abpParseChTitle(title){
-  const t=(title||'').trim(); if (!t) return {type:'other',num:null};
-  let m=t.match(/^(?:PART|BOOK|VOLUME)\s+([IVXLCDM]+|\d+|[A-Z][A-Z\-]+)\b/i);
-  if (m){ const n=_abpParseNum(m[1]); if (n!=null) return {type:'part',num:n}; }
-  m=t.match(/^CHAPTER\s+([IVXLCDM]+|\d+|[A-Z][A-Z\-]+)\b/i);
-  if (m){ const n=_abpParseNum(m[1]); if (n!=null) return {type:'chapter',num:n}; }
-  return {type:'other',num:null};
-}
-function _abpTruncate(s){
-  const max = window.innerWidth < 600 ? 25 : 40;
-  return s.length > max ? s.substring(0, max - 1) + '…' : s;
-}
+      req.onsuccess = () => resolve(req.result || null); req.onerror = () => resolve(null); });
+  } catch(e){ return null; }}
 
 function populateChapterDropdown(){
   const sel = document.getElementById('chapter-select');
   sel.innerHTML=''; sel.disabled=false;
-  let currentPart = null;
   chapters.forEach((ch,i)=>{
     let raw = (ch.title || '').trim();
-    // Numeric-only chapter titles like "001" → "Chapter 1"
     if (/^0*\d+$/.test(raw)) raw = 'Chapter ' + parseInt(raw, 10);
     if (!raw) raw = 'Chapter ' + (i+1);
-    const info = _abpParseChTitle(raw);
-    let label;
-    if (info.type === 'part') {
-      currentPart = info; label = 'Part ' + info.num;
-    } else if (info.type === 'chapter') {
-      label = (currentPart ? 'Part ' + currentPart.num + ', ' : '') + 'Chapter ' + info.num;
-    } else {
-      label = (currentPart ? 'Part ' + currentPart.num + ', ' : '') + raw;
-    }
-    if (ch.duration && !isNaN(ch.duration)) {
-      const durStr = ch.duration >= 3600 ? fmtHMS(ch.duration) : fmtMS(ch.duration);
-      label += ' (' + durStr + ')';
-    }
+    if (ch.duration && !isNaN(ch.duration)) { raw += ' (' + (ch.duration >= 3600 ? fmtHMS(ch.duration) : fmtMS(ch.duration)) + ')'; }
     const o=document.createElement('option'); o.value=i;
-    o.textContent = _abpTruncate(label);
-    sel.appendChild(o);
-  });
+    o.textContent = raw.length > 35 ? raw.substring(0, 34) + '…' : raw;
+    sel.appendChild(o); });
   sel.value = currentChapter;
-  sel.onchange=()=>{ goToChapter(parseInt(sel.value)); };
-}
-
+  sel.onchange=()=>{ goToChapter(parseInt(sel.value)); };}
 function goToChapter(idx){
   if(idx<0||idx>=chapters.length) return;
-  wasPlaying = !audio.paused;
-  currentChapter = idx;
+  wasPlaying = !audio.paused; currentChapter = idx;
   document.getElementById('chapter-select').value = idx;
   if(multiFileMode && chapters[idx].fileUrl){
-    audio.onloadedmetadata = () => {
-      audio.currentTime = 0;
-      audio.preservesPitch=true; audio.playbackRate=baseSpeed;
-      if(wasPlaying) audio.play();
-    };
-    audio.src = chapters[idx].fileUrl;
-    audio.load();
-  } else {
-    audio.currentTime = chapters[idx].startTime;
-  }
-  updateBookProgress();
-  saveProgress();
-}
+    audio.onloadedmetadata = () => { audio.currentTime = 0; audio.preservesPitch=true; audio.playbackRate=baseSpeed; if(wasPlaying) audio.play(); };
+    audio.src = chapters[idx].fileUrl; audio.load();
+  } else { audio.currentTime = chapters[idx].startTime; }
+  updateBookProgress(); saveProgress();}
 function enablePlayer(){
   ['speed-btn','pitch-btn','prev-btn','skipb-btn','play-btn','skipf-btn','next-btn','mute-btn','boost-btn'].forEach(id=>{
-    document.getElementById(id).disabled=false;
-  });
-}
+    document.getElementById(id).disabled=false; });}
 
 function togglePlay(){
   if(pendingRestore && pendingRestore.url){
-    const pr = pendingRestore;
-    pendingRestore = null;
+    const pr = pendingRestore; pendingRestore = null;
     audio.onloadedmetadata = () => {
       totalBookDuration = audio.duration;
-      if(chapters.length===1 && chapters[0].duration===0){
-        chapters[0].endTime = audio.duration;
-        chapters[0].duration = audio.duration;
-        populateChapterDropdown();
-      }
-      if(pr.stored){
-        document.getElementById('file-info').textContent=pr.stored.meta.displayName;
-      }
+      if(chapters.length===1 && chapters[0].duration===0){ chapters[0].endTime = audio.duration; chapters[0].duration = audio.duration; populateChapterDropdown(); }
+      if(pr.stored) document.getElementById('file-info').textContent=pr.stored.meta.displayName;
       const saved = restoreProgress();
-      if(saved){
-        currentChapter = saved.ch||0;
-        document.getElementById('chapter-select').value=currentChapter;
-        audio.currentTime = saved.time||chapters[currentChapter].startTime;
-      }
-      audio.play();
-      document.getElementById('play-icon').style.display='none';
-      document.getElementById('pause-icon').style.display='';
-      updateBookProgress();
-    };
+      if(saved){ currentChapter = saved.ch||0; document.getElementById('chapter-select').value=currentChapter; audio.currentTime = saved.time||chapters[currentChapter].startTime; }
+      audio.play(); document.getElementById('play-icon').style.display='none'; document.getElementById('pause-icon').style.display='';
+      updateBookProgress(); };
     if(pr.needsLoad){
-      audio.play().then(()=>{
-        document.getElementById('play-icon').style.display='none';
-        document.getElementById('pause-icon').style.display='';
-      }).catch(()=>{
-        audio.src = pr.url;
-        audio.load();
-      });
-      return;
-    }
-    audio.src = pr.url;
-    audio.load();
-    return;
-  }
+      audio.play().then(()=>{ document.getElementById('play-icon').style.display='none'; document.getElementById('pause-icon').style.display=''; }).catch(()=>{ audio.src = pr.url; audio.load(); });
+      return; }
+    audio.src = pr.url; audio.load(); return; }
   ensureAudioCtx();
-  if(audioCtx.state==='suspended') audioCtx.resume();
+  if(audioCtx && audioCtx.state==='suspended') audioCtx.resume();
   if(audio.paused){
-    audio.play();
-    document.getElementById('play-icon').style.display='none';
-    document.getElementById('pause-icon').style.display='';
-    updateMediaSession();
+    audio.play(); document.getElementById('play-icon').style.display='none'; document.getElementById('pause-icon').style.display='';
   } else {
-    audio.pause();
-    document.getElementById('play-icon').style.display='';
-    document.getElementById('pause-icon').style.display='none';
-  }
-}
-function updateMediaSession(){
-  if(!('mediaSession' in navigator)) return;
-  const ch = chapters[currentChapter];
-  navigator.mediaSession.metadata = new MediaMetadata({
-    title: ch ? ch.title : 'Audiobook',
-    artist: document.getElementById('book-title').textContent || 'Audiobook',
-    album: document.getElementById('book-title').textContent || '',
-  });
-  navigator.mediaSession.setActionHandler('play', ()=>{audio.play();document.getElementById('play-icon').style.display='none';document.getElementById('pause-icon').style.display='';});
-  navigator.mediaSession.setActionHandler('pause', ()=>{audio.pause();document.getElementById('play-icon').style.display='';document.getElementById('pause-icon').style.display='none';});
-  navigator.mediaSession.setActionHandler('seekbackward', ()=>{skip(-10);});
-  navigator.mediaSession.setActionHandler('seekforward', ()=>{skip(10);});
-  navigator.mediaSession.setActionHandler('previoustrack', ()=>{skip(-10);});
-  navigator.mediaSession.setActionHandler('nexttrack', ()=>{skip(10);});
-  if(audio.duration && navigator.mediaSession.setPositionState){
-    navigator.mediaSession.setPositionState({duration:audio.duration,playbackRate:audio.playbackRate,position:audio.currentTime});
-  }
-}
+    audio.pause(); document.getElementById('play-icon').style.display=''; document.getElementById('pause-icon').style.display='none'; }}
+
 function skip(s){
   if(!audio.src||!chapters.length) return;
   const ch=chapters[currentChapter];
   if(multiFileMode){
     const newTime=audio.currentTime+s;
-    if(s<0 && audio.currentTime<3 && currentChapter>0){
-      // Less than 3s in: jump to previous chapter, position s seconds before end
-      var prevIdx = currentChapter-1;
-      var overflow = audio.currentTime + s; // negative
-      goToChapterAtOffset(prevIdx, overflow);
-      return;
-    }
-    if(s<0 && audio.currentTime<Math.abs(s)){
-      audio.currentTime = 0;
-      saveProgress();
-      return;
-    }
+    if(s<0 && audio.currentTime<3 && currentChapter>0){ goToChapterAtOffset(currentChapter-1, audio.currentTime + s); return; }
+    if(s<0 && audio.currentTime<Math.abs(s)){ audio.currentTime = 0; saveProgress(); return; }
     if(newTime<0) audio.currentTime=0;
     else if(newTime>audio.duration) nextChapter();
     else audio.currentTime=newTime;
   } else {
     const inChapterTime = audio.currentTime - ch.startTime;
     if(s<0 && inChapterTime<3 && currentChapter>0){
-      // <3s into chapter: go back to previous chapter, |s|-inChapterTime before its end
-      var prevCh = chapters[currentChapter-1];
-      var backInto = Math.abs(s) - inChapterTime;
-      currentChapter = currentChapter-1;
-      document.getElementById('chapter-select').value = currentChapter;
-      audio.currentTime = Math.max(prevCh.startTime, prevCh.endTime - backInto);
-      updateBookProgress();
-      saveProgress();
-      return;
-    }
-    if(s<0 && inChapterTime<Math.abs(s)){
-      audio.currentTime = ch.startTime;
-      saveProgress();
-      return;
-    }
+      const prevCh = chapters[currentChapter-1];
+      currentChapter--; document.getElementById('chapter-select').value = currentChapter;
+      audio.currentTime = Math.max(prevCh.startTime, prevCh.endTime - (Math.abs(s) - inChapterTime));
+      updateBookProgress(); saveProgress(); return; }
+    if(s<0 && inChapterTime<Math.abs(s)){ audio.currentTime = ch.startTime; saveProgress(); return; }
     const newTime=audio.currentTime+s;
     if(newTime<ch.startTime) audio.currentTime=ch.startTime;
     else if(newTime>=ch.endTime&&currentChapter<chapters.length-1) goToChapter(currentChapter+1);
-    else audio.currentTime=Math.max(0,Math.min(audio.duration||0,newTime));
-  }
-  saveProgress();
-}
+    else audio.currentTime=Math.max(0,Math.min(audio.duration||0,newTime)); }
+  saveProgress();}
 function goToChapterAtOffset(idx, offsetFromEnd){
-  // For multi-file mode: go to chapter idx and seek (offsetFromEnd) seconds before its end
   if(idx<0||idx>=chapters.length) return;
-  wasPlaying = !audio.paused;
-  currentChapter = idx;
+  wasPlaying = !audio.paused; currentChapter = idx;
   document.getElementById('chapter-select').value = idx;
   if(multiFileMode && chapters[idx].fileUrl){
-    audio.onloadedmetadata = () => {
-      var endTime = audio.duration;
-      audio.currentTime = Math.max(0, endTime + offsetFromEnd);
-      audio.preservesPitch=true; audio.playbackRate=baseSpeed;
-      if(wasPlaying) audio.play();
-      saveProgress();
-    };
-    audio.src = chapters[idx].fileUrl;
-    audio.load();
-  } else {
-    audio.currentTime = Math.max(chapters[idx].startTime, chapters[idx].endTime + offsetFromEnd);
-    saveProgress();
-  }
-  updateBookProgress();
-}
+    audio.onloadedmetadata = () => { audio.currentTime = Math.max(0, audio.duration + offsetFromEnd); audio.preservesPitch=true; audio.playbackRate=baseSpeed; if(wasPlaying) audio.play(); saveProgress(); };
+    audio.src = chapters[idx].fileUrl; audio.load();
+  } else { audio.currentTime = Math.max(chapters[idx].startTime, chapters[idx].endTime + offsetFromEnd); saveProgress(); }
+  updateBookProgress();}
 function prevChapter(){
-  // If >5s into current chapter, restart current chapter; else go to previous chapter
   if(!chapters.length) return;
-  const ch = chapters[currentChapter];
-  const inChapterTime = multiFileMode ? audio.currentTime : (audio.currentTime - ch.startTime);
-  if(inChapterTime > 5){
-    if(multiFileMode) audio.currentTime = 0;
-    else audio.currentTime = ch.startTime;
-    saveProgress();
-  } else {
-    goToChapter(currentChapter-1);
-  }
-}
+  const inChapterTime = multiFileMode ? audio.currentTime : (audio.currentTime - chapters[currentChapter].startTime);
+  if(inChapterTime > 5){ if(multiFileMode) audio.currentTime = 0; else audio.currentTime = chapters[currentChapter].startTime; saveProgress(); }
+  else { goToChapter(currentChapter-1); }}
 function nextChapter(){ goToChapter(currentChapter+1); }
 
 function cycleSpeed(){
   speedIdx=(speedIdx+1)%speeds.length; baseSpeed=speeds[speedIdx];
-  pitchIdx=2;
-  document.getElementById('pitch-label').textContent='0';
-  audio.preservesPitch=true;
-  audio.playbackRate=baseSpeed;
+  pitchIdx=2; document.getElementById('pitch-label').textContent='0';
+  audio.preservesPitch=true; audio.playbackRate=baseSpeed;
   document.getElementById('speed-label').textContent=speeds[speedIdx]+'x';
-  saveProgress();
-}
-var pitchIdx=2;
-var pitchLevels=[
-  {label:'-2',rate:0.85},{label:'-1',rate:0.92},{label:'0',rate:1.0},
-  {label:'1',rate:1.04},{label:'2',rate:1.08}
-];
+  saveProgress();}
 function cyclePitch(){
   pitchIdx=(pitchIdx+1)%pitchLevels.length;
-  var pr=pitchLevels[pitchIdx].rate;
-  if(pr===1.0){
-    audio.preservesPitch=true;
-    audio.playbackRate=baseSpeed;
-  } else {
-    speedIdx=0; baseSpeed=1;
-    document.getElementById('speed-label').textContent='1x';
-    audio.preservesPitch=false;
-    audio.playbackRate=pr;
-  }
+  const pr=pitchLevels[pitchIdx].rate;
+  if(pr===1.0){ audio.preservesPitch=true; audio.playbackRate=baseSpeed; }
+  else { speedIdx=0; baseSpeed=1; document.getElementById('speed-label').textContent='1x'; audio.preservesPitch=false; audio.playbackRate=pr; }
   document.getElementById('pitch-label').textContent=pitchLevels[pitchIdx].label;
-  saveProgress();
-}
+  saveProgress();}
 function toggleMute(){
   audio.muted = !audio.muted;
   document.getElementById('unmuted-icon').style.display = audio.muted ? 'none' : '';
   document.getElementById('muted-icon').style.display = audio.muted ? '' : 'none';
-  saveProgress();
-}
+  saveProgress();}
 function cycleBoost(){
   ensureAudioCtx();
   boostIdx = (boostIdx + 1) % boostLevels.length;
-  var db = boostLevels[boostIdx];
-  gainNode.gain.value = Math.pow(10, db / 20);
-  var labels = ['0', '+', '++'];
-  document.getElementById('boost-label').textContent = labels[boostIdx];
-  saveProgress();
-}
-
+  if(gainNode) gainNode.gain.value = Math.pow(10, boostLevels[boostIdx] / 20);
+  document.getElementById('boost-label').textContent = ['0', '+', '++'][boostIdx];
+  saveProgress();}
 function seekChapter(e){
-  const ch=chapters[currentChapter];
-  if(!ch) return;
+  const ch=chapters[currentChapter]; if(!ch) return;
   const bar=document.getElementById('ch-bar');
   const pct=(e.clientX-bar.getBoundingClientRect().left)/bar.clientWidth;
-  if(multiFileMode){
-    audio.currentTime = pct * (audio.duration || 0);
-  } else {
-    audio.currentTime = ch.startTime + pct * ch.duration;
-  }
-}
+  if(multiFileMode){ audio.currentTime = pct * (audio.duration || 0); }
+  else { audio.currentTime = ch.startTime + pct * ch.duration; }}
+
 audio.ontimeupdate = ()=>{
   if(!chapters.length) return;
   const ch = chapters[currentChapter];
-  if('mediaSession' in navigator && navigator.mediaSession.setPositionState && audio.duration){
-    try{navigator.mediaSession.setPositionState({duration:audio.duration,playbackRate:audio.playbackRate,position:audio.currentTime});}catch(e){}
-  }
-  if(!multiFileMode && audio.currentTime >= ch.endTime - 0.1 && currentChapter < chapters.length-1){
-    goToChapter(currentChapter + 1);
-    return;
-  }
+  if(!multiFileMode && audio.currentTime >= ch.endTime - 0.1 && currentChapter < chapters.length-1){ goToChapter(currentChapter + 1); return; }
   requestAnimationFrame(() => {
-    let chTime, chDur;
-    if(multiFileMode){ chTime = audio.currentTime; chDur = audio.duration || ch.duration; }
-    else { chTime = Math.max(0, audio.currentTime - ch.startTime); chDur = ch.duration; }
+    let chTime = multiFileMode ? audio.currentTime : Math.max(0, audio.currentTime - ch.startTime);
+    let chDur = multiFileMode ? (audio.duration || ch.duration) : ch.duration;
     document.getElementById('cur-time').textContent = fmtMS(chTime);
     document.getElementById('tot-time').textContent = fmtMS(chDur);
     if(chDur > 0) document.getElementById('ch-fill').style.width = (chTime/chDur*100)+'%';
-    if(!totalBookDuration) return;
-    let listened = 0;
-    for(let i=0;i<currentChapter;i++) listened+=chapters[i].duration;
-    if(multiFileMode) listened += audio.currentTime || 0;
-    else listened += Math.max(0,(audio.currentTime||0)-chapters[currentChapter].startTime);
-    const remaining = Math.max(0,totalBookDuration-listened);
-    let pct = (listened/totalBookDuration)*100;
-    if(pct>=99.5&&pct<100) pct=99;
-    pct = Math.min(100,Math.round(pct));
-    document.getElementById('book-progress').textContent =
-      `Read ${fmtHMS(listened)} of ${fmtHMS(totalBookDuration)} (${pct}%), ${fmtHMS(remaining)} Left`;
-  });
-};
-
+    updateBookProgress(); });};
 audio.onended = ()=>{
-  if(multiFileMode && currentChapter < chapters.length-1){
-    goToChapter(currentChapter + 1);
-    wasPlaying = true; // keep playing
-    return;
-  }
-  document.getElementById('play-icon').style.display='';
-  document.getElementById('pause-icon').style.display='none';
-  saveProgress();
-};
-
+  if(multiFileMode && currentChapter < chapters.length-1){ goToChapter(currentChapter + 1); wasPlaying = true; return; }
+  document.getElementById('play-icon').style.display=''; document.getElementById('pause-icon').style.display='none'; saveProgress();};
 function updateBookProgress(){
   if(!chapters.length||!totalBookDuration) return;
-  let listened=0;
-  for(let i=0;i<currentChapter;i++) listened+=chapters[i].duration;
-  if(multiFileMode){
-    listened += audio.currentTime || 0;
-  } else {
-    listened += Math.max(0,(audio.currentTime||0)-chapters[currentChapter].startTime);
-  }
+  let listened=0; for(let i=0;i<currentChapter;i++) listened+=chapters[i].duration;
+  listened += multiFileMode ? (audio.currentTime || 0) : Math.max(0,(audio.currentTime||0)-chapters[currentChapter].startTime);
   const remaining=Math.max(0,totalBookDuration-listened);
   let pct=totalBookDuration>0?(listened/totalBookDuration)*100:0;
-  if(pct>=99.5&&pct<100) pct=99;
-  pct=Math.min(100,Math.round(pct));
-  document.getElementById('book-progress').textContent=
-    `Read ${fmtHMS(listened)} of ${fmtHMS(totalBookDuration)} (${pct}%), ${fmtHMS(remaining)} Left`;
-}
+  if(pct>=99.5&&pct<100) pct=99; pct=Math.min(100,Math.round(pct));
+  document.getElementById('book-progress').textContent=`Read ${fmtHMS(listened)} of ${fmtHMS(totalBookDuration)} (${pct}%), ${fmtHMS(remaining)} Left`;}
+
 document.addEventListener('keydown',(e)=>{
-  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
-  if(e.key===' '){e.preventDefault();togglePlay();}
-  if(e.key==='ArrowLeft'&&(e.shiftKey||e.ctrlKey||e.metaKey)){e.preventDefault();prevChapter();}
-  else if(e.key==='ArrowRight'&&(e.shiftKey||e.ctrlKey||e.metaKey)){e.preventDefault();nextChapter();}
-  else if(e.key==='ArrowLeft'){e.preventDefault();skip(-10);}
-  else if(e.key==='ArrowRight'){e.preventDefault();skip(10);}
-});
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA') return;
+  const k=e.key, hasMod=e.ctrlKey||e.metaKey||e.altKey;
+  if(k===' ' && !hasMod){ e.preventDefault(); togglePlay(); }
+  else if((k==='ArrowLeft'||k==='ArrowDown') && (e.shiftKey)){ e.preventDefault(); prevChapter(); }
+  else if((k==='ArrowRight'||k==='ArrowUp') && (e.shiftKey)){ e.preventDefault(); nextChapter(); }
+  else if((k==='ArrowLeft'||k==='ArrowDown') && !hasMod){ e.preventDefault(); skip(-10); }
+  else if((k==='ArrowRight'||k==='ArrowUp') && !hasMod){ e.preventDefault(); skip(10); }
+  else if(k.toLowerCase()==='m' && !hasMod){ e.preventDefault(); toggleMute(); }
+  else if(k.toLowerCase()==='s' && !hasMod){ e.preventDefault(); cycleSpeed(); }
+  else if(k.toLowerCase()==='p' && !hasMod){ e.preventDefault(); cyclePitch(); }
+  else if(k.toLowerCase()==='v' && !hasMod){ e.preventDefault(); cycleBoost(); }});
+
 (async function autoReload(){
-  const lastKey = localStorage.getItem('jbj_last');
+  const lastKey = localStorage.getItem('jbj_last') || localStorage.getItem('ebr_audio_last');
   if(!lastKey) return;
   try {
     const stored = await loadFile(lastKey);
-    if(!stored || !stored.blob) return;
-    if(manualUpload) return;
-    pendingRestore = {key: lastKey, stored};
-    fileKey = lastKey;
-    multiFileMode = stored.meta.multiFile || false;
+    if(!stored || !stored.blob || manualUpload) return;
+    pendingRestore = {key: lastKey, stored}; fileKey = lastKey; multiFileMode = stored.meta.multiFile || false;
     document.getElementById('file-info').textContent = stored.meta.displayName+' (tap Play to resume)';
     document.getElementById('upload-btn').textContent = 'Replace File';
-
-    if(manualUpload) return;
     const file = new File([stored.blob], stored.meta.fileName, {type: stored.blob.type || 'audio/mpeg'});
     resetUI();
-    if(manualUpload) return;
     try { await parseMetadata(file); } catch(e) {}
-
     if(!hasCover){
       const savedCover = await loadCover(lastKey);
-      if(savedCover && savedCover.blob){
-        setBlobSrc(document.getElementById('cover-img'), savedCover.blob);
-        document.getElementById('cover-wrap').style.display = 'block';
-        document.getElementById('cover-upload-btn').textContent = 'Replace Cover';
-        hasCover = true;
-      }
-    }
-
-    const url = URL.createObjectURL(stored.blob);
-    audio.preload = 'metadata';
+      if(savedCover && savedCover.blob){ setBlobSrc(document.getElementById('cover-img'), savedCover.blob); document.getElementById('cover-wrap').style.display = 'block'; document.getElementById('cover-upload-btn').textContent = 'Replace Cover'; hasCover = true; } }
+    const url = URL.createObjectURL(stored.blob); audio.preload = 'metadata';
     audio.onloadedmetadata = () => {
       totalBookDuration = audio.duration;
-      if(chapters.length === 0){
-        chapters = [{title:stored.meta.fileName.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}];
-      }
+      if(chapters.length === 0){ chapters = [{title:stored.meta.fileName.replace(/\.[^.]+$/,''), startTime:0, endTime:audio.duration, duration:audio.duration}]; }
       for(let i=0;i<chapters.length;i++){
         if(chapters[i].endTime===0||chapters[i].duration===0){
-          const end=(i+1<chapters.length)?chapters[i+1].startTime:audio.duration;
-          chapters[i].endTime=end; chapters[i].duration=end-chapters[i].startTime;
-        }
-      }
+          const end=(i+1<chapters.length)?chapters[i+1].startTime:audio.duration; chapters[i].endTime=end; chapters[i].duration=end-chapters[i].startTime; } }
       document.getElementById('file-info').textContent = stored.meta.displayName;
-      pendingRestore = null;
-      finishLoad();
-    };
+      pendingRestore = null; finishLoad(); };
     audio.onerror = () => {
       if(chapters.length > 0){
         document.getElementById('file-info').textContent = stored.meta.displayName;
-        populateChapterDropdown();
-        enablePlayer();
-        const saved = restoreProgress();
-        if(saved) currentChapter = saved.ch || 0;
-        pendingRestore = {key:lastKey, stored, url, savedTime: saved?.time||0};
-      }
-    };
-    audio.src = url;
-    audio.load();
-  } catch(e) { console.error('autoReload error:', e); }
+        populateChapterDropdown(); enablePlayer();
+        const saved = restoreProgress(); if(saved) currentChapter = saved.ch || 0;
+        pendingRestore = {key:lastKey, stored, url, savedTime: saved?.time||0}; } };
+    audio.src = url; audio.load();
+  } catch(e) {}
 })();
 </script>
-<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
-<br>
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
 <img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:8pt auto 8pt;border-radius:50%">
 <script src="/sync.js"></script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>
-</body>
-</html>
-<!-- v -->
+</body></html>
