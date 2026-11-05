@@ -6,7 +6,7 @@
 <link rel="icon" href="images/Favicon.png" type="image/png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-body{background:#2a2a2a;color:white;font:normal 16pt/1.2 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
+body{background:#2a2a2a;color:white;font:normal 16pt/1.2 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px;position:relative}
 h1,h2,h3{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 0 16pt;text-align:center} h1{font-size:36pt} h2{font-size:28pt;margin:8pt 0 16pt} h3{font-size:20pt;margin:0 0 8pt} p{margin:0 0 8pt}
 .about-text{text-align:justify} a,a:visited{color:white;text-decoration:underline;cursor:pointer} a:hover{color:#ccc} a,a *,a img{cursor:pointer}
 .toc{text-align:center;margin:0 0 16pt} .toc-links{max-width:530px;margin:0 auto 10pt;line-height:1.4} .toc-controls{display:flex;justify-content:center;gap:12px}
@@ -14,10 +14,17 @@ h1,h2,h3{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 
 h2.collapsible{cursor:pointer;user-select:none} h2.collapsible:hover{color:#ccc} .arrow{display:inline-block;font-size:18pt;margin-left:6px;transition:transform 0.2s ease;vertical-align:middle} h2.collapsible.collapsed .arrow{transform:rotate(-90deg)} .section-content.collapsed{display:none}
 img{max-width:100%;height:auto;object-fit:cover;width:500px} img[src*="Favicon"],img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt} img[src*="Favicon"]{border-radius:50%;margin-bottom:0} img[src*="Logophile"]{border-radius:15px} img[src*="Erbrik"]{width:250px;height:250px;border-radius:50%;display:block;margin:0 auto 8pt} img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:15px}
 .pub-entry{display:flex;align-items:flex-start;margin-bottom:16pt} .pub-entry img{width:100px;height:100px;border-radius:8px;margin-right:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1)} .pub-entry img[src*="GitHub"]{background:#fff} .pub-text{flex:1}
-.inline-image-container{display:none;width:100%;text-align:center;margin:4pt 0 16pt 0}
-.inline-poem-img{max-width:min(100%,1000px);max-height:min(100vh,1000px);width:auto;height:auto;object-fit:contain;cursor:pointer;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.6);display:inline-block}
+.inline-image-container,.inline-gizmo-container{display:none;width:100%;text-align:center;margin:4pt 0 16pt 0}
+.inline-poem-img{max-width:min(100%,1000px);max-height:min(90vh,1000px);width:auto;height:auto;object-fit:contain;cursor:pointer;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.6);display:inline-block}
+.inline-gizmo-iframe{width:100%;height:500px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:#2a2a2a}
 #soundcloud-embed,#spotify-embed,#apple-embed,#youtube-embed,#soundcloud-track-embed,#spotify-artist-embed{display:none;width:100%;max-width:660px;margin:0 0 16pt 0} .video-container{position:relative;width:100%;display:none;padding-bottom:56.25%;height:0;margin-bottom:16pt;overflow:hidden;max-height:450px} .video-container iframe{position:absolute;top:0;left:0;width:100%;height:100%}
+.nav-arrow-btn{display:none;position:fixed;top:50%;transform:translateY(-50%);z-index:999;background:rgba(42,42,42,0.8);color:#fff;border:1px solid rgba(255,255,255,0.4);width:44px;height:44px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;align-items:center;justify-content:center;transition:background 0.2s,border-color 0.2s;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);user-select:none}
+.nav-arrow-btn:hover{background:rgba(255,255,255,0.95);color:#2a2a2a;border-color:#fff}
+@media(min-width:820px){.nav-arrow-left{left:calc(50% - 350px - 58px)}.nav-arrow-right{right:calc(50% - 350px - 58px)}}
+@media(max-width:819px){.nav-arrow-btn{width:38px;height:38px;font-size:16px;background:rgba(0,0,0,0.55)}.nav-arrow-left{left:8px}.nav-arrow-right{right:8px}}
 </style></head><body>
+<button id="nav-prev-btn" class="nav-arrow-btn nav-arrow-left" onclick="navigateEmbedded(-1)" title="Previous (Left Arrow)">&#10094;</button>
+<button id="nav-next-btn" class="nav-arrow-btn nav-arrow-right" onclick="navigateEmbedded(1)" title="Next (Right Arrow)">&#10095;</button>
 <img src="images/Logophile.png" alt="Logophile">
 <h1>Erik's Very Own Webpage</h1>
 <h3>A digital cornucopia of poems, songs, stories, & more</h3><br>
@@ -94,16 +101,17 @@ img{max-width:100%;height:auto;object-fit:cover;width:500px} img[src*="Favicon"]
 <div class="pub-entry"><a href="https://www.youtube.com/watch?v=8zkVoLmDIWk"><img src="images/PatchouliJoesReading.png" alt="Patchouli Joe's Reading"></a><div class="pub-text"><p><a href="javascript:void(0)" onclick="toggleVideo('performance-embed')" style="text-decoration: underline;">Five Poems</a>, Patchouli Joe's Books, Denton, Texas, <i>ALR</i> Reading Series, <i>American Literary Review</i>, University of North Texas, September 2025</p></div></div>
 <div id="performance-embed" class="video-container"><iframe src="https://www.youtube.com/embed/8zkVoLmDIWk?si=51hCwTwPrT8mDNQE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div><br></div>
 <h2 id="gizmos" class="collapsible" onclick="toggleSection(this)">Gizmos<span class="arrow">&#9662;</span></h2><div class="section-content">
-<div class="pub-entry"><a href="https://erikjosephmoyer.com/audiobooker/"><img src="images/Audiobooker.png" alt="Audiobook Player"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/audiobooker/"><u>The Jibberjabberer</u></a>, Audiobook Player, <em>Hear With Your Ears</em></p></div></div>
-<div class="pub-entry"><a href="https://erikjosephmoyer.com/typesetter/"><img src="images/Typesetter.PNG" alt="Typesetter"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/typesetter/"><u>The Prettifier</u></a>, Typesetter, <em>Read With Your Eyes</em></p></div></div>
-<div class="pub-entry"><a href="https://erikjosephmoyer.com/narrator/"><img src="images/TextToSpeecher.png" alt="Text-to-Speech"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/narrator/"><u>The Rhetoricizer</u></a>, Text-to-Speecher, <em>Read With Your Ears</em></p></div></div>
-<div class="pub-entry"><a href="https://erikjosephmoyer.com/dictator/"><img src="images/SpeechToTexter.png" alt="Speech-to-Text"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/dictator/"><u>The Textualizer</u></a>, Speech-to-Texter, <em>Write With Your Mouth</em></p></div></div>
-<div class="pub-entry"><a href="https://erikjosephmoyer.com/converter/"><img src="images/Converter.PNG" alt="File Converter"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/converter/"><u>The Transmogrifier</u></a>, File Converter, <em>Knead With Your Hands</em></p></div></div>
-<div class="pub-entry"><a href="https://erikjosephmoyer.com/suite/"><img src="images/Favicon.png" alt="All-in-One Media Suite"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/suite/"><u>The Alphomegenator</u></a>, All-in-One Media Suite, <em>Imbibe With Your Senses</em></p></div></div>
-<div class="pub-entry"><a href="https://erikjosephmoyer.com/reader/"><img src="images/Favicon.png" alt="E-Book/Audiobook Readio"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/reader/"><u>The Bookcaster</u></a>, E-Book/Audiobook Readio, <em>Read With Your Brainbox</em></p></div></div>
-<div class="pub-entry"><a href="https://erikjosephmoyer.com/scanner/"><img src="images/Favicon.png" alt="OCR Tool"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/scanner/"><u>The Decipherer</u></a>, Optical Character Recognizer, <em>See With Your Eyes</em></p></div></div>
-<div class="pub-entry"><a href="https://erikjosephmoyer.com/translator/"><img src="images/Favicon.png" alt="Interpretive Tool"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/translator/"><u>The Linguifier</u></a>, Interpretive Tool, <em>Speak With Your Tongue</em></p></div></div>
-<div class="pub-entry"><a href="https://erikjosephmoyer.com/musicker/"><img src="images/Favicon.png" alt="Music Decoder"></a><div class="pub-text"><p><a href="https://erikjosephmoyer.com/musicker/"><u>The Tonalizer</u></a>, Music Decoder, <em>Hear With Your Eyes</em></p></div></div><br></div>
+<div class="pub-entry"><a href="https://erikjosephmoyer.com/audiobooker/"><img src="images/Audiobooker.png" alt="Audiobook Player"></a><div class="pub-text"><p><a href="javascript:void(0)" class="gizmo-link" data-src="/audiobooker/?embed=1"><u>The Jibberjabberer</u></a>, Audiobook Player, <em>Hear With Your Ears</em></p></div></div>
+<div class="pub-entry"><a href="https://erikjosephmoyer.com/typesetter/"><img src="images/Typesetter.PNG" alt="Typesetter"></a><div class="pub-text"><p><a href="javascript:void(0)" class="gizmo-link" data-src="/typesetter/?embed=1"><u>The Prettifier</u></a>, Typesetter, <em>Read With Your Eyes</em></p></div></div>
+<div class="pub-entry"><a href="https://erikjosephmoyer.com/narrator/"><img src="images/TextToSpeecher.png" alt="Text-to-Speech"></a><div class="pub-text"><p><a href="javascript:void(0)" class="gizmo-link" data-src="/narrator/?embed=1"><u>The Rhetoricizer</u></a>, Text-to-Speecher, <em>Read With Your Ears</em></p></div></div>
+<div class="pub-entry"><a href="https://erikjosephmoyer.com/dictator/"><img src="images/SpeechToTexter.png" alt="Speech-to-Text"></a><div class="pub-text"><p><a href="javascript:void(0)" class="gizmo-link" data-src="/dictator/?embed=1"><u>The Textualizer</u></a>, Speech-to-Texter, <em>Write With Your Mouth</em></p></div></div>
+<div class="pub-entry"><a href="https://erikjosephmoyer.com/converter/"><img src="images/Converter.PNG" alt="File Converter"></a><div class="pub-text"><p><a href="javascript:void(0)" class="gizmo-link" data-src="/converter/?embed=1"><u>The Transmogrifier</u></a>, File Converter, <em>Knead With Your Hands</em></p></div></div>
+<div class="pub-entry"><a href="https://erikjosephmoyer.com/suite/"><img src="images/Favicon.png" alt="All-in-One Media Suite"></a><div class="pub-text"><p>The Alphomegenator, All-in-One Media Suite, <em>Imbibe With Your Senses</em></p></div></div>
+<div class="pub-entry"><a href="https://erikjosephmoyer.com/reader/"><img src="images/Favicon.png" alt="E-Book/Audiobook Readio"></a><div class="pub-text"><p><a href="javascript:void(0)" class="gizmo-link" data-src="/reader/?embed=1"><u>The Bookcaster</u></a>, E-Book/Audiobook Readio, <em>Read With Your Brainbox</em></p></div></div>
+<div class="pub-entry"><a href="https://erikjosephmoyer.com/scanner/"><img src="images/Favicon.png" alt="OCR Tool"></a><div class="pub-text"><p><a href="javascript:void(0)" class="gizmo-link" data-src="/scanner/?embed=1"><u>The Decipherer</u></a>, Optical Character Recognizer, <em>See With Your Eyes</em></p></div></div>
+<div class="pub-entry"><a href="https://erikjosephmoyer.com/translator/"><img src="images/Favicon.png" alt="Interpretive Tool"></a><div class="pub-text"><p><a href="javascript:void(0)" class="gizmo-link" data-src="/translator/?embed=1"><u>The Linguifier</u></a>, Interpretive Tool, <em>Speak With Your Tongue</em></p></div></div>
+<div class="pub-entry"><a href="https://erikjosephmoyer.com/musicker/"><img src="images/Favicon.png" alt="Music Decoder"></a><div class="pub-text"><p><a href="javascript:void(0)" class="gizmo-link" data-src="/musicker/?embed=1"><u>The Tonalizer</u></a>, Music Decoder, <em>Hear With Your Eyes</em></p></div></div>
+<div class="pub-entry" id="app-entry"><a href="https://erikjosephmoyer.com/app/"><img src="images/Favicon.png" alt="Progressive Web App"></a><div class="pub-text"><p><span id="app-title-container"><a href="javascript:void(0)" id="app-entry-title" onclick="installPWA();return false;"><u>The Bibliotecher</u></a></span>, Web App, <span id="app-entry-tagline"><em>Install With Your Finger</em></span></p></div></div><br></div>
 <h2 id="contact" class="collapsible" onclick="toggleSection(this)">Contact<span class="arrow">&#9662;</span></h2><div class="section-content">
 <div class="pub-entry"><a href="mailto:erik@erikjosephmoyer.com"><img src="images/VanGoghThePostman.png" alt="Van Gogh The Postman"></a><div class="pub-text"><p>Email</p></div></div>
 <div class="pub-entry"><a href="https://linkedin.com/in/erikmoyer/"><img src="images/MonetCoucherDeSoleil.png" alt="Monet Coucher de Soleil"></a><div class="pub-text"><p>LinkedIn</p></div></div>
@@ -111,7 +119,12 @@ img{max-width:100%;height:auto;object-fit:cover;width:500px} img[src*="Favicon"]
 <img src="images/XenaAtRest.png" alt="Xena at Rest"><br>
 <div style="text-align:center;margin:0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
 <img src="images/Logophile.png" alt="Logophile">
+
 <script>
+let currentOpenIndex = -1;
+let embeddedItems = [];
+const iframeMap = {'soundcloud-embed':'sc-iframe','spotify-embed':'sp-iframe','apple-embed':'ap-iframe','youtube-embed':'yt-iframe','soundcloud-track-embed':'sc-track-iframe','spotify-artist-embed':'sp-artist-iframe'};
+
 function toggleSection(header) {
   header.classList.toggle('collapsed');
   if (header.nextElementSibling && header.nextElementSibling.classList.contains('section-content')) header.nextElementSibling.classList.toggle('collapsed');
@@ -123,65 +136,223 @@ function toggleAll() {
   const btn = document.getElementById('toggle-all-btn'), shouldHide = btn.textContent === 'Hide All';
   document.querySelectorAll('h2.collapsible:not(#contents), h2.collapsible:not(#contents) + .section-content').forEach(el => el.classList.toggle('collapsed', shouldHide));
   btn.textContent = shouldHide ? 'Show All' : 'Hide All';}
+
+function closeAllEmbedded(exceptId) {
+  Object.keys(iframeMap).forEach(id => {
+    if (id !== exceptId) {
+      const c = document.getElementById(id), f = document.getElementById(iframeMap[id]);
+      if (c && c.style.display === 'block') { c.style.display = 'none'; if (f) f.src = ''; } } });
+  const vid = document.getElementById('performance-embed');
+  if (vid && vid.id !== exceptId && vid.style.display === 'block') {
+    vid.style.display = 'none';
+    const vf = vid.querySelector('iframe');
+    if (vf) { const vs = vf.src; vf.src = ''; vf.src = vs; } }
+  document.querySelectorAll('.inline-image-container, .inline-gizmo-container').forEach(c => {
+    if (c.id !== exceptId) c.style.display = 'none'; });
+}
+
+function updateNavArrows() {
+  const prevBtn = document.getElementById('nav-prev-btn'), nextBtn = document.getElementById('nav-next-btn');
+  if (!prevBtn || !nextBtn) return;
+  if (currentOpenIndex === -1) { prevBtn.style.display = 'none'; nextBtn.style.display = 'none'; return; }
+  prevBtn.style.display = currentOpenIndex > 0 ? 'flex' : 'none';
+  nextBtn.style.display = currentOpenIndex < embeddedItems.length - 1 ? 'flex' : 'none';
+}
+
+function scrollToEntry(entryEl) {
+  if (!entryEl) return;
+  const sec = entryEl.closest('.section-content');
+  if (sec && sec.previousElementSibling && sec.previousElementSibling.classList.contains('collapsed')) {
+    toggleSection(sec.previousElementSibling); }
+  entryEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function togglePlayer(clickedId) {
-  const iframeMap = {'soundcloud-embed':'sc-iframe','spotify-embed':'sp-iframe','apple-embed':'ap-iframe','youtube-embed':'yt-iframe','soundcloud-track-embed':'sc-track-iframe','spotify-artist-embed':'sp-artist-iframe'};
   const el = document.getElementById(clickedId), iframe = document.getElementById(iframeMap[clickedId]);
-  if (el.style.display === 'block') { el.style.display = 'none'; if (iframe) iframe.src = ''; return; }
-  Object.keys(iframeMap).forEach(id => { const c = document.getElementById(id), f = document.getElementById(iframeMap[id]); if (c && c.style.display === 'block') { c.style.display = 'none'; if (f) f.src = ''; } });
+  if (el.style.display === 'block') {
+    el.style.display = 'none'; if (iframe) iframe.src = '';
+    currentOpenIndex = -1; updateNavArrows(); return; }
+  closeAllEmbedded(clickedId);
   if (iframe) iframe.src = iframe.getAttribute('data-original-src');
   el.style.display = 'block';
-  if (window.logAction) window.logAction('music', clickedId);}
+  currentOpenIndex = embeddedItems.findIndex(it => it.id === clickedId);
+  updateNavArrows();
+  if (window.logAction) window.logAction('music', clickedId);
+  const entry = el.previousElementSibling && el.previousElementSibling.classList.contains('pub-entry') ? el.previousElementSibling : el;
+  scrollToEntry(entry);
+}
+
 function toggleVideo(id) {
   const el = document.getElementById(id), open = el.style.display === 'none' || el.style.display === '';
-  el.style.display = open ? 'block' : 'none';
-  if (open && window.logAction) window.logAction('video', id);}
+  if (!open) {
+    el.style.display = 'none'; const f = el.querySelector('iframe'); if (f) { const s = f.src; f.src = ''; f.src = s; }
+    currentOpenIndex = -1; updateNavArrows(); return; }
+  closeAllEmbedded(id);
+  el.style.display = 'block';
+  currentOpenIndex = embeddedItems.findIndex(it => it.id === id);
+  updateNavArrows();
+  if (window.logAction) window.logAction('video', id);
+  scrollToEntry(el.previousElementSibling);
+}
 
 function toggleInlineImage(linkEl) {
   const href = linkEl.getAttribute('href'), entry = linkEl.closest('.pub-entry');
   if (!entry) return;
-  const existingContainer = entry.nextElementSibling && entry.nextElementSibling.classList.contains('inline-image-container') ? entry.nextElementSibling : null;
-  if (existingContainer && existingContainer.dataset.src === href && existingContainer.style.display === 'block') {
-    existingContainer.style.display = 'none';
-    return;
-  }
-  document.querySelectorAll('.inline-image-container').forEach(c => c.style.display = 'none');
-  let container = existingContainer;
+  let container = entry.nextElementSibling && entry.nextElementSibling.classList.contains('inline-image-container') ? entry.nextElementSibling : null;
+  if (container && container.dataset.src === href && container.style.display === 'block') {
+    container.style.display = 'none';
+    currentOpenIndex = -1; updateNavArrows(); return; }
+  closeAllEmbedded(container ? container.id : '');
   if (!container || container.dataset.src !== href) {
     if (container) container.remove();
     container = document.createElement('div');
     container.className = 'inline-image-container';
+    container.id = 'img-embed-' + Math.random().toString(36).substring(2, 9);
     container.dataset.src = href;
     const img = document.createElement('img');
     img.className = 'inline-poem-img';
     img.src = href;
     img.alt = linkEl.textContent.trim() || 'Poem';
-    img.onclick = () => { container.style.display = 'none'; };
+    img.onclick = () => { container.style.display = 'none'; currentOpenIndex = -1; updateNavArrows(); };
     container.appendChild(img);
-    entry.parentNode.insertBefore(container, entry.nextSibling);
-  }
+    entry.parentNode.insertBefore(container, entry.nextSibling); }
   container.style.display = 'block';
+  currentOpenIndex = embeddedItems.findIndex(it => it.el === linkEl);
+  updateNavArrows();
+  scrollToEntry(entry);
+  if (window.logAction) {
+    const sec = entry.closest('.section-content');
+    const cat = sec && sec.previousElementSibling ? (sec.previousElementSibling.id || sec.previousElementSibling.textContent.replace('▾','').trim().toLowerCase()) : 'content';
+    window.logAction(cat, linkEl.textContent.trim() || href); }
 }
 
+function toggleInlineGizmo(linkEl) {
+  const src = linkEl.getAttribute('data-src'), entry = linkEl.closest('.pub-entry');
+  if (!entry) return;
+  let container = entry.nextElementSibling && entry.nextElementSibling.classList.contains('inline-gizmo-container') ? entry.nextElementSibling : null;
+  if (container && container.dataset.src === src && container.style.display === 'block') {
+    container.style.display = 'none';
+    currentOpenIndex = -1; updateNavArrows(); return; }
+  closeAllEmbedded(container ? container.id : '');
+  if (!container || container.dataset.src !== src) {
+    if (container) container.remove();
+    container = document.createElement('div');
+    container.className = 'inline-gizmo-container';
+    container.id = 'gizmo-embed-' + Math.random().toString(36).substring(2, 9);
+    container.dataset.src = src;
+    const iframe = document.createElement('iframe');
+    iframe.className = 'inline-gizmo-iframe';
+    iframe.src = src;
+    iframe.onload = () => {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        const s = doc.createElement('style');
+        s.textContent = 'body>img:first-of-type,body>h1,body>h2:first-of-type,div[style*="text-align:center"],body>img:last-of-type,body>br{display:none!important}body{padding:4px 0!important;background:transparent!important;max-width:100%!important}';
+        doc.head.appendChild(s);
+      } catch(e) {} };
+    container.appendChild(iframe);
+    entry.parentNode.insertBefore(container, entry.nextSibling); }
+  container.style.display = 'block';
+  currentOpenIndex = embeddedItems.findIndex(it => it.el === linkEl);
+  updateNavArrows();
+  scrollToEntry(entry);
+  if (window.logAction) window.logAction('gizmo', linkEl.textContent.trim() || src);
+}
+
+function navigateEmbedded(dir) {
+  const target = currentOpenIndex + dir;
+  if (target < 0 || target >= embeddedItems.length) return;
+  const item = embeddedItems[target];
+  if (item.type === 'music') togglePlayer(item.id);
+  else if (item.type === 'video') toggleVideo(item.id);
+  else if (item.type === 'image') toggleInlineImage(item.el);
+  else if (item.type === 'gizmo') toggleInlineGizmo(item.el);
+}
+
+function activeGizmoHasFile() {
+  if (currentOpenIndex === -1) return false;
+  const cur = embeddedItems[currentOpenIndex];
+  if (!cur || cur.type !== 'gizmo') return false;
+  const entry = cur.el.closest('.pub-entry');
+  const container = entry && entry.nextElementSibling && entry.nextElementSibling.classList.contains('inline-gizmo-container') ? entry.nextElementSibling : null;
+  const iframe = container ? container.querySelector('iframe') : null;
+  if (!iframe) return false;
+  try {
+    const win = iframe.contentWindow;
+    if (win && win.hasActiveFile && win.hasActiveFile()) return true;
+    if (win && win.audio && win.audio.src && win.chapters && win.chapters.length) return true;
+    if (win && win.bookFile) return true;
+  } catch(e) {}
+  return false;
+}
+
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; updateAppEntryUI(); });
+window.addEventListener('appinstalled', () => { localStorage.setItem('pwa_installed', '1'); deferredPrompt = null; updateAppEntryUI(); });
+function isAppInstalled() {
+  return localStorage.getItem('pwa_installed') === '1' || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+function installPWA() {
+  if (isAppInstalled()) return;
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(choice => {
+      if (choice && choice.outcome === 'accepted') { localStorage.setItem('pwa_installed', '1'); updateAppEntryUI(); }
+      deferredPrompt = null; });
+  } else {
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) alert('To install: tap the Share button in Safari, then "Add to Home Screen".');
+    else alert('Look for the "Install" option in your browser\'s menu.'); }
+}
+function updateAppEntryUI() {
+  const installed = isAppInstalled();
+  const titleContainer = document.getElementById('app-title-container');
+  const taglineEl = document.getElementById('app-entry-tagline');
+  if (titleContainer) {
+    titleContainer.innerHTML = installed ? 'The Bibliotecher' : '<a href="javascript:void(0)" id="app-entry-title" onclick="installPWA();return false;"><u>The Bibliotecher</u></a>'; }
+  if (taglineEl) { taglineEl.innerHTML = installed ? '<em>Tap With Your Finger</em>' : '<em>Install With Your Finger</em>'; }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (currentOpenIndex !== -1 && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    if (activeGizmoHasFile()) return;
+    e.preventDefault();
+    navigateEmbedded(e.key === 'ArrowLeft' ? -1 : 1); }
+});
+
+let touchStartX = 0, touchStartY = 0;
+document.addEventListener('touchstart', e => {
+  if (currentOpenIndex === -1 || e.touches.length !== 1) return;
+  touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (currentOpenIndex === -1 || e.changedTouches.length !== 1) return;
+  const dx = e.changedTouches[0].clientX - touchStartX, dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    if (activeGizmoHasFile()) return;
+    navigateEmbedded(dx > 0 ? -1 : 1); }
+}, { passive: true });
+
 document.addEventListener('DOMContentLoaded', () => {
+  updateAppEntryUI();
+  embeddedItems = [];
+  const musicA = document.querySelectorAll('a[onclick*="togglePlayer"]');
+  musicA.forEach(a => {
+    const m = a.getAttribute('onclick').match(/togglePlayer\('([^']+)'\)/);
+    if (m) embeddedItems.push({ type: 'music', id: m[1], el: a }); });
   document.querySelectorAll('a[href^="images/"]').forEach(l => {
-    l.addEventListener('click', e => {
-      e.preventDefault();
-      toggleInlineImage(l);
-      if (window.logAction) {
-        const pub = l.closest('.pub-entry'), sec = pub ? pub.closest('.section-content') : null;
-        const cat = sec && sec.previousElementSibling ? (sec.previousElementSibling.id || sec.previousElementSibling.textContent.replace('▾','').trim().toLowerCase()) : 'content';
-        window.logAction(cat, l.textContent.trim() || l.getAttribute('href')); }});});
+    embeddedItems.push({ type: 'image', el: l });
+    l.addEventListener('click', e => { e.preventDefault(); toggleInlineImage(l); }); });
+  const vidA = document.querySelector('a[onclick*="toggleVideo"]');
+  if (vidA) {
+    const vm = vidA.getAttribute('onclick').match(/toggleVideo\('([^']+)'\)/);
+    if (vm) embeddedItems.push({ type: 'video', id: vm[1], el: vidA }); }
+  document.querySelectorAll('.gizmo-link').forEach(g => {
+    embeddedItems.push({ type: 'gizmo', el: g });
+    g.addEventListener('click', e => { e.preventDefault(); toggleInlineGizmo(g); }); });
   document.querySelectorAll('.toc-links a').forEach(l => l.addEventListener('click', () => { const t = document.querySelector(l.getAttribute('href')); if (t && t.classList.contains('collapsed')) toggleSection(t); }));
   document.querySelectorAll('div[style*="text-align:center"] a').forEach(l => l.addEventListener('click', () => { if (window.logAction) window.logAction('subpage', l.pathname.replace(/^\/|\/$/g, '') || 'home'); }));
   document.querySelectorAll('a[href^="http"], a[href^="mailto:"]').forEach(l => l.addEventListener('click', () => { if (window.logAction && !l.href.includes(window.location.hostname)) window.logAction('external', (l.textContent.trim() || l.getAttribute('href')).slice(0, 60)); }));
-  document.querySelectorAll('img:not(.inline-poem-img)').forEach(img => {
-    img.addEventListener('click', () => {
-      if (!window.logAction || img.closest('a')) return;
-      const pub = img.closest('.pub-entry');
-      if (pub) {
-        const sec = pub.closest('.section-content'), cat = sec && sec.previousElementSibling ? (sec.previousElementSibling.id || sec.previousElementSibling.textContent.replace('▾','').trim().toLowerCase()) : 'content';
-        window.logAction(cat, img.getAttribute('alt') || img.getAttribute('src').split('/').pop());
-      } else { window.logAction('image', img.getAttribute('alt') || img.getAttribute('src').split('/').pop()); }});});
 });
 
 (async () => {
