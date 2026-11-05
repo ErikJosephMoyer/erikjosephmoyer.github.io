@@ -1,150 +1,260 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#2a2a2a">
 <title>Erik Moyer Technical Portfolio</title>
-<meta name="description" content="Data Science Lead | PhD, MBA — Technical portfolio of Erik Moyer">
-<meta name="author" content="Erik Moyer">
-<link rel="icon" href="/images/Favicon.png" type="image/png">
-<link rel="apple-touch-icon" href="/images/Favicon-192.png">
-<link rel="manifest" href="/manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<meta name="description" content="Data Science Lead | PhD, MBA — Technical portfolio of Erik Moyer"><meta name="author" content="Erik Moyer">
+<link rel="icon" href="/images/Favicon.png" type="image/png"><link rel="apple-touch-icon" href="/images/Favicon-192.png"><link rel="manifest" href="/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
-h1,h2,h3{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 0 16pt}
-h1{font-size:36pt;text-align:center}
-h2{font-size:28pt;text-align:center;margin:8pt 0 16pt}
-h3{font-size:20pt;text-align:center;margin:0 0 8pt}
-p{margin:0 0 8pt}
-a,a:visited{color:white;text-decoration:underline;cursor:pointer;font-weight:normal}
-a:hover{color:#ccc}
-.about-text{text-align:justify}
-img{max-width:100%;height:auto}
+body{background:#2a2a2a;color:white;font:normal 16pt/1.2 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px;position:relative}
+h1,h2,h3{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 0 16pt;text-align:center} h1{font-size:36pt} h2{font-size:28pt;margin:8pt 0 16pt} h3{font-size:20pt;margin:0 0 8pt} p{margin:0 0 8pt}
+a,a:visited{color:white;text-decoration:underline;cursor:pointer} a:hover{color:#ccc} a,a *,a img{cursor:pointer}
+.about-text{text-align:justify} img{max-width:100%;height:auto}
 .profile-photo{width:250px;height:250px;border-radius:50%;display:block;margin:0 auto 8pt;object-fit:cover}
+.toc{text-align:center;margin:0 0 16pt} .toc-links{max-width:530px;margin:0 auto 10pt;line-height:1.4} .toc-controls{display:flex;justify-content:center;gap:12px}
+.toc-btn{background:transparent;color:white;border:1px solid rgba(255,255,255,0.5);border-radius:8px;font:normal 13pt/1 'EB Garamond',serif;padding:6px 14px;cursor:pointer} .toc-btn:hover{color:#ccc;border-color:#ccc}
+h2.collapsible{cursor:pointer;user-select:none} h2.collapsible:hover{color:#ccc} .arrow{display:inline-block;font-size:18pt;margin-left:6px;transition:transform 0.2s ease;vertical-align:middle} h2.collapsible.collapsed .arrow{transform:rotate(-90deg)} .section-content.collapsed{display:none}
 .entry{display:flex;align-items:flex-start;margin-bottom:16pt}
 .entry img{width:100px;height:100px;border-radius:8px;margin-right:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1);display:block}
 .entry img[src*="TapHereTech"],.entry img[src*="GitHub"],.entry img[src*="HillsboroughBaseball"]{background:#fff}
-.entry-text{flex:1}
-.entry-text p{margin:0}
-.entry-text .role{font-weight:600}
-.entry-text .org{font-style:normal}
-.entry-text .detail{color:#aaa}
-.entry-text .tagline{color:#fff}
+.entry-text{flex:1} .entry-text p{margin:0 0 4pt} .entry-text .role{font-weight:600} .entry-text .org{font-style:normal} .entry-text .detail{color:#aaa}
+.inline-image-container,.inline-gizmo-container{display:none;width:100%;text-align:center;margin:4pt 0 16pt 0}
+.inline-poem-img{max-width:min(100%,1000px);max-height:min(90vh,1000px);width:auto;height:auto;object-fit:contain;cursor:pointer;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.6);display:inline-block}
+.inline-gizmo-iframe{width:100%;height:500px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:#2a2a2a}
 img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:15px}
-</style>
-</head>
-<body>
-
+.nav-arrow-btn{display:none;position:fixed;top:50%;transform:translateY(-50%);z-index:999;background:rgba(42,42,42,0.8);color:#fff;border:1px solid rgba(255,255,255,0.4);width:44px;height:44px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;align-items:center;justify-content:center;transition:background 0.2s,border-color 0.2s;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);user-select:none}
+.nav-arrow-btn:hover{background:rgba(255,255,255,0.95);color:#2a2a2a;border-color:#fff}
+@media(min-width:820px){.nav-arrow-left{left:calc(50% - 350px - 58px)}.nav-arrow-right{right:calc(50% - 350px - 58px)}}
+@media(max-width:819px){.nav-arrow-btn{width:38px;height:38px;font-size:16px;background:rgba(0,0,0,0.55)}.nav-arrow-left{left:8px}.nav-arrow-right{right:8px}}
+</style></head><body>
+<button id="nav-prev-btn" class="nav-arrow-btn nav-arrow-left" onclick="navigateEmbedded(-1)" title="Previous (Left Arrow)">&#10094;</button>
+<button id="nav-next-btn" class="nav-arrow-btn nav-arrow-right" onclick="navigateEmbedded(1)" title="Next (Right Arrow)">&#10095;</button>
 <img src="/images/Favicon.png" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik Moyer</h1>
 <h2>Technical Portfolio</h2>
-<h3>Data Science Lead | PhD, MBA</h3>
-<br>
-<img src="/images/ErikInTheWild.png" alt="Erik Moyer" class="profile-photo">
-<br>
-
-<h2>About</h2>
-<p class="about-text">I am a data scientist and engineering manager with a decade of experience in the tech industry across finance, healthcare, and consulting. I build end-to-end data solutions spanning platforms, ML models, AI products, ETL pipelines, and predictive analytics. My interdisciplinary background combines technical finesse, communicative leadership, and creative innovation. I quarterback data teams to generate actionable insights that drive growth.</p>
-<br>
-
-<h2>Experience</h2>
+<h3>Data Science Lead | PhD, MBA</h3><br>
+<img src="/images/ErikInTheWild.png" alt="Erik Moyer" class="profile-photo"><br>
+<h2 id="contents" class="collapsible" onclick="toggleSection(this)">Contents<span class="arrow">&#9662;</span></h2>
+<div class="section-content"><div class="toc"><div class="toc-links"><a href="#about">About</a> | <a href="#experience">Experience</a> | <a href="#education">Education</a> | <a href="#applications">Applications</a> | <a href="#analyses">Analyses</a> | <a href="#publications">Publications</a> | <a href="#contact">Contact</a></div><div class="toc-controls"><button type="button" id="toggle-all-btn" class="toc-btn" onclick="toggleAll()">Hide All</button></div></div><br></div>
+<h2 id="about" class="collapsible" onclick="toggleSection(this)">About<span class="arrow">&#9662;</span></h2>
+<div class="section-content"><p class="about-text">I am a data scientist and engineering manager with a decade of experience in the tech industry across finance, healthcare, and consulting. I build end-to-end data solutions spanning platforms, ML models, AI products, ETL pipelines, and predictive analytics. My interdisciplinary background combines technical finesse, communicative leadership, and creative innovation. I quarterback data teams to generate actionable insights that drive growth.</p><br></div>
+<h2 id="experience" class="collapsible" onclick="toggleSection(this)">Experience<span class="arrow">&#9662;</span></h2><div class="section-content">
 <div class="entry"><a href="https://www.linkedin.com/company/goenumerate/"><img src="/images/Enumerate.png" alt="Enumerate"></a><div class="entry-text"><p class="role">Data Science Lead</p><p class="org">Enumerate</p><p class="detail">New York, NY | 2026 – Present</p></div></div>
-<div class="entry"><a href="https://www.linkedin.com/company/diversityincpoweredbyfair360/"><img src="/images/Fair360.png" alt="Fair360"></a><div class="entry-text"><p class="role">Director of Analytics<span style="color:#aaa;font-weight:normal"> | 2023 – 2025</span></p><p class="role">Data Scientist<span style="color:#aaa;font-weight:normal"> | 2021 – 2023</span></p><p>Fair360</p><p class="detail">Dallas, TX | 2021 – 2025</p></div></div>
+<div class="entry"><a href="https://www.linkedin.com/company/diversityincpoweredbyfair360/"><img src="/images/Fair360.png" alt="Fair360"></a><div class="entry-text"><p class="role">Director of Analytics<span style="color:#aaa;font-weight:normal"> | 2023 – 2025</span></p><p class="role">Data Scientist<span style="color:#aaa;font-weight:normal"> | 2021 – 2023</span></p><p class="org">Fair360</p><p class="detail">Dallas, TX | 2021 – 2025</p></div></div>
 <div class="entry"><a href="https://www.linkedin.com/company/prescient-holdings-group/"><img src="/images/PrescientHoldings.png" alt="Prescient Holdings Group"></a><div class="entry-text"><p class="role">Financial Data Lead</p><p class="org">Prescient Holdings Group</p><p class="detail">Irvine, CA | 2019 – 2021</p></div></div>
 <div class="entry"><a href="https://www.linkedin.com/company/hyperikon/"><img src="/images/Hyperikon.png" alt="Hyperikon"></a><div class="entry-text"><p class="role">Business Intelligence Engineer</p><p class="org">Hyperikon</p><p class="detail">San Diego, CA | 2017 – 2018</p></div></div>
 <div class="entry"><a href="https://www.linkedin.com/company/booz-allen-hamilton/"><img src="/images/BoozAllen.png" alt="Booz Allen Hamilton"></a><div class="entry-text"><p class="role">Data Scientist</p><p class="org">Booz Allen Hamilton</p><p class="detail">Washington, DC | 2016 – 2017</p></div></div>
 <div class="entry"><a href="https://www.linkedin.com/company/taphere-technology-llc/"><img src="/images/TapHereTech.png" alt="TapHere Technology"></a><div class="entry-text"><p class="role">Systems Engineering Intern</p><p class="org">TapHere Technology</p><p class="detail">Manassas, VA | 2015 – 2015</p></div></div>
 <div class="entry"><a href="https://www.linkedin.com/company/hillsborough-rescue-squad/"><img src="/images/HillsboroughEMS.png" alt="Hillsborough Rescue Squad"></a><div class="entry-text"><p class="role">Emergency Medical Technician</p><p class="org">Hillsborough Rescue Squad</p><p class="detail">Hillsborough, NJ | 2011 – 2015</p></div></div>
-<div class="entry"><img src="/images/HillsboroughBaseball.png" alt="Hillsborough Baseball League"><div class="entry-text"><p class="role">Varsity-Certified Umpire</p><p class="org">Hillsborough Baseball League</p><p class="detail">Hillsborough, NJ | 2009 – 2014</p></div></div>
-<br>
-
-<h2>Education</h2>
+<div class="entry"><img src="/images/HillsboroughBaseball.png" alt="Hillsborough Baseball League"><div class="entry-text"><p class="role">Varsity-Certified Umpire</p><p class="org">Hillsborough Baseball League</p><p class="detail">Hillsborough, NJ | 2009 – 2014</p></div></div><br></div>
+<h2 id="education" class="collapsible" onclick="toggleSection(this)">Education<span class="arrow">&#9662;</span></h2><div class="section-content">
 <div class="entry"><a href="https://www.linkedin.com/school/florida-state-university/"><img src="/images/FSU.png" alt="Florida State University"></a><div class="entry-text"><p class="role">MBA, Business Analytics</p><p class="org">Florida State University</p><p class="detail">2024 – 2026</p></div></div>
 <div class="entry"><a href="https://www.linkedin.com/school/northtexas/"><img src="/images/UNT.png" alt="University of North Texas"></a><div class="entry-text"><p class="role">PhD, English</p><p class="org">University of North Texas</p><p class="detail">2022 – 2025</p></div></div>
 <div class="entry"><a href="https://www.linkedin.com/school/university-of-california-irvine/"><img src="/images/UCI.png" alt="University of California, Irvine"></a><div class="entry-text"><p class="role">MFA, Writing</p><p class="org">University of California, Irvine</p><p class="detail">2019 – 2021</p></div></div>
-<div class="entry"><a href="https://www.linkedin.com/school/university-of-virginia/"><img src="/images/UVA.png" alt="University of Virginia"></a><div class="entry-text"><p class="role">BS, Systems Engineering</p><p class="org">University of Virginia</p><p class="detail">2012 – 2016</p></div></div>
-<br>
-
-<h2>Media Tools</h2>
-<div class="entry"><a href="/audiobooker/"><img src="/images/Audiobooker.png" alt="Audiobook Player"></a><div class="entry-text"><p class="role"><a href="/audiobooker/" style="color:#fff">The Jibberjabberer</a></p><p class="org">Audiobook Player</p><p class="detail">Hear With Your Ears</p></div></div>
-<div class="entry"><a href="/typesetter/"><img src="/images/Typesetter.PNG" alt="Typesetter"></a><div class="entry-text"><p class="role"><a href="/typesetter/" style="color:#fff">The Prettifier</a></p><p class="org">Typesetter</p><p class="detail">Read With Your Eyes</p></div></div>
-<div class="entry"><a href="/narrator/"><img src="/images/TextToSpeecher.png" alt="Text-to-Speech"></a><div class="entry-text"><p class="role"><a href="/narrator/" style="color:#fff">The Rhetoricizer</a></p><p class="org">Text-to-Speecher</p><p class="detail">Read With Your Ears</p></div></div>
-<div class="entry"><a href="/dictator/"><img src="/images/SpeechToTexter.png" alt="Speech-to-Text"></a><div class="entry-text"><p class="role"><a href="/dictator/" style="color:#fff">The Textualizer</a></p><p class="org">Speech-to-Texter</p><p class="detail">Write With Your Mouth</p></div></div>
-<div class="entry"><a href="/converter/"><img src="/images/Converter.PNG" alt="File Converter"></a><div class="entry-text"><p class="role"><a href="/converter/" style="color:#fff">The Transmogrifier</a></p><p class="org">File Converter</p><p class="detail">Knead With Your Hands</p></div></div>
-<div class="entry"><a href="/suite/"><img src="/images/Favicon.png" alt="All-in-One Media Suite"></a><div class="entry-text"><p class="role"><a href="/suite/" style="color:#fff">The Alphomegenator</a></p><p class="org">All-in-One Media Suite</p><p class="detail">Imbibe With Your Senses</p></div></div>
-<div class="entry"><a href="/reader/"><img src="/images/Favicon.png" alt="E-Book/Audiobook Readio"></a><div class="entry-text"><p class="role"><a href="/reader/" style="color:#fff">The Bookcaster</a></p><p class="org">E-Book/Audiobook Readio</p><p class="detail">Read With Your Brainbox</p></div></div>
-<div class="entry"><a href="/scanner/"><img src="/images/Favicon.png" alt="OCR Tool"></a><div class="entry-text"><p class="role"><a href="/scanner/" style="color:#fff">The Decipherer</a></p><p class="org">Optical Character Recognizer</p><p class="detail">See With Your Eyes</p></div></div>
-<div class="entry"><a href="/translator/"><img src="/images/Favicon.png" alt="Interpretive Tool"></a><div class="entry-text"><p class="role"><a href="/translator/" style="color:#fff">The Linguifier</a></p><p class="org">Interpretive Tool</p><p class="detail">Speak With Your Tongue</p></div></div>
-<div class="entry"><a href="/musicker/"><img src="/images/Favicon.png" alt="Music Decoder"></a><div class="entry-text"><p class="role"><a href="/musicker/" style="color:#fff">The Tonalizer</a></p><p class="org">Music Decoder</p><p class="detail">Hear With Your Eyes</p></div></div>
-<div class="entry" id="install-pwa-entry" style="display:none;cursor:pointer" onclick="installPWA()"><a href="#" onclick="installPWA();event.preventDefault();return false"><img src="/images/Favicon.png" alt="Install Erik's Bibliotech"></a><div class="entry-text"><p class="role"><a href="#" onclick="installPWA();event.preventDefault();return false" style="color:#fff">Install Erik's Bibliotech</a></p><p class="org">Progressive Web App</p><p class="detail">Tap to Install</p></div></div>
-<br>
+<div class="entry"><a href="https://www.linkedin.com/school/university-of-virginia/"><img src="/images/UVA.png" alt="University of Virginia"></a><div class="entry-text"><p class="role">BS, Systems Engineering</p><p class="org">University of Virginia</p><p class="detail">2012 – 2016</p></div></div><br></div>
+<h2 id="applications" class="collapsible" onclick="toggleSection(this)">Applications<span class="arrow">&#9662;</span></h2><div class="section-content">
+<div class="entry"><a href="/audiobooker/"><img src="/images/Audiobooker.png" alt="Audiobook Player"></a><div class="entry-text"><p class="role"><a href="javascript:void(0)" class="gizmo-link" data-src="/audiobooker/?embed=1"><u>The Jibberjabberer</u></a></p><p class="org">Audiobook Player</p><p class="detail">Hear With Your Ears</p></div></div>
+<div class="entry"><a href="/typesetter/"><img src="/images/Typesetter.PNG" alt="Typesetter"></a><div class="entry-text"><p class="role"><a href="javascript:void(0)" class="gizmo-link" data-src="/typesetter/?embed=1"><u>The Prettifier</u></a></p><p class="org">Typesetter</p><p class="detail">Read With Your Eyes</p></div></div>
+<div class="entry"><a href="/narrator/"><img src="/images/TextToSpeecher.png" alt="Text-to-Speech"></a><div class="entry-text"><p class="role"><a href="javascript:void(0)" class="gizmo-link" data-src="/narrator/?embed=1"><u>The Rhetoricizer</u></a></p><p class="org">Text-to-Speecher</p><p class="detail">Read With Your Ears</p></div></div>
+<div class="entry"><a href="/dictator/"><img src="/images/SpeechToTexter.png" alt="Speech-to-Text"></a><div class="entry-text"><p class="role"><a href="javascript:void(0)" class="gizmo-link" data-src="/dictator/?embed=1"><u>The Textualizer</u></a></p><p class="org">Speech-to-Text</p><p class="detail">Write With Your Mouth</p></div></div>
+<div class="entry"><a href="/converter/"><img src="/images/Converter.PNG" alt="File Converter"></a><div class="entry-text"><p class="role"><a href="javascript:void(0)" class="gizmo-link" data-src="/converter/?embed=1"><u>The Transmogrifier</u></a></p><p class="org">File Converter</p><p class="detail">Knead With Your Hands</p></div></div>
+<div class="entry"><a href="/suite/"><img src="/images/Favicon.png" alt="All-in-One Media Suite"></a><div class="entry-text"><p class="role">The Alphomegenator</p><p class="org">All-in-One Media Suite</p><p class="detail">Imbibe With Your Senses</p></div></div>
+<div class="entry"><a href="/reader/"><img src="/images/Favicon.png" alt="E-Book/Audiobook Readio"></a><div class="entry-text"><p class="role"><a href="javascript:void(0)" class="gizmo-link" data-src="/reader/?embed=1"><u>The Bookcaster</u></a></p><p class="org">E-Book/Audiobook Readio</p><p class="detail">Read With Your Brainbox</p></div></div>
+<div class="entry"><a href="/scanner/"><img src="/images/Favicon.png" alt="OCR Tool"></a><div class="entry-text"><p class="role"><a href="javascript:void(0)" class="gizmo-link" data-src="/scanner/?embed=1"><u>The Decipherer</u></a></p><p class="org">Optical Character Recognizer</p><p class="detail">See With Your Eyes</p></div></div>
+<div class="entry"><a href="/translator/"><img src="/images/Favicon.png" alt="Interpretive Tool"></a><div class="entry-text"><p class="role"><a href="javascript:void(0)" class="gizmo-link" data-src="/translator/?embed=1"><u>The Linguifier</u></a></p><p class="org">Interpretive Tool</p><p class="detail">Speak With Your Tongue</p></div></div>
+<div class="entry"><a href="/musicker/"><img src="/images/Favicon.png" alt="Music Decoder"></a><div class="entry-text"><p class="role"><a href="javascript:void(0)" class="gizmo-link" data-src="/musicker/?embed=1"><u>The Tonalizer</u></a></p><p class="org">Music Decoder</p><p class="detail">Hear With Your Eyes</p></div></div>
+<div class="entry" id="tech-app-entry"><a href="/app/"><img src="/images/Favicon.png" alt="The Bibliotecher"></a><div class="entry-text"><p class="role" id="tech-app-role"><a href="javascript:void(0)" onclick="installPWA();return false;"><u>The Bibliotecher</u></a></p><p class="org">Web App</p><p class="detail" id="tech-app-detail">Install With Your Finger</p></div></div><br></div>
+<h2 id="analyses" class="collapsible" onclick="toggleSection(this)">Analyses<span class="arrow">&#9662;</span></h2><div class="section-content">
+<div class="entry"><a href="/analyses/Aggregated%20Presidential%20Rankings.pdf"><img src="/images/Favicon.png" alt="Presidents"></a><div class="entry-text"><p class="role"><a href="/images/PresidentsTop10.png" class="media-embed-trigger"><u>Aggregated Presidential Rankings</u></a></p><p class="org">Meta-Analytic Consensus Modeling</p><p class="detail">Consensus across 25 historian surveys</p></div></div>
+<div class="entry"><a href="/analyses/Color%20Pairings%20in%20American%20Sports.pdf"><img src="/images/Favicon.png" alt="Team Colors"></a><div class="entry-text"><p class="role"><a href="/images/ColorPairingsTop10.png" class="media-embed-trigger"><u>Color Pairings in American Sports</u></a></p><p class="org">Branding Categorical Distribution</p><p class="detail">Palette frequencies across major sports leagues</p></div></div><br></div>
+<h2 id="publications" class="collapsible" onclick="toggleSection(this)">Publications<span class="arrow">&#9662;</span></h2><div class="section-content">
+<div class="entry"><a href="https://search.lib.virginia.edu/sources/uva_library/items/u6821962"><img src="/images/UVAThesis.png" alt="UVA Thesis"></a><div class="entry-text"><p class="role"><a href="/images/RethinkingCommsAndITInEMS.png" class="media-embed-trigger"><u>Rethinking Communications and Information Technology in Emergency Medicine</u></a></p><p class="org">Undergraduate Thesis</p><p class="detail">Research Paper | UVA Library | May 2016</p></div></div>
+<div class="entry"><a href="http://dx.doi.org/10.1109/SIEDS.2016.7489306"><img src="/images/UVAEngineeringCapstone.png" alt="UVA Engineering Capstone"></a><div class="entry-text"><p class="role"><a href="/images/FacilitatingPatientCareInfoEMS.png" class="media-embed-trigger"><u>Facilitating the Collection and Dissemination of Patient Care Information for Emergency Medical Personnel</u></a></p><p class="org">Undergraduate Capstone</p><p class="detail">Design Prototype | SIEDS 2016 Conference | IEEE | April 2016</p></div></div><br></div>
+<h2 id="contact" class="collapsible" onclick="toggleSection(this)">Contact<span class="arrow">&#9662;</span></h2><div class="section-content">
+<div class="entry"><a href="mailto:erikjosephmoyer@gmail.com"><img src="/images/VanGoghThePostman.png" alt="Email"></a><div class="entry-text"><p class="role">Email</p><p class="detail">erikjosephmoyer@gmail.com</p></div></div>
+<div class="entry"><a href="https://linkedin.com/in/erikmoyer/"><img src="/images/MonetCoucherDeSoleil.png" alt="LinkedIn"></a><div class="entry-text"><p class="role">LinkedIn</p><p class="detail">linkedin.com/in/erikmoyer</p></div></div>
+<div class="entry"><a href="https://github.com/ErikJosephMoyer"><img src="/images/GitHub.png" alt="GitHub"></a><div class="entry-text"><p class="role">GitHub</p><p class="detail">github.com/ErikJosephMoyer</p></div></div><br></div>
+<div style="text-align:center;margin:16pt 0 0"><a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
+<img src="/images/Logophile.png" alt="EM">
 
 <script>
-// PWA install: capture the browser's beforeinstallprompt, expose a button
-// in the Media Tools list, then call prompt() on click.
-(function(){
-  var deferredPrompt = null;
-  var entry = document.getElementById('install-pwa-entry');
-  window.addEventListener('beforeinstallprompt', function(e){
-    e.preventDefault();
-    deferredPrompt = e;
-    if (entry) entry.style.display = '';
-  });
-  window.addEventListener('appinstalled', function(){
-    if (entry) entry.style.display = 'none';
-    deferredPrompt = null;
-  });
-  window.installPWA = async function(){
-    if (!deferredPrompt) {
-      // iOS Safari and other browsers without beforeinstallprompt — show instructions
-      var ua = navigator.userAgent;
-      var isIOS = /iPhone|iPad|iPod/.test(ua) && !window.MSStream;
-      if (isIOS) {
-        alert('To install: tap the Share button, then "Add to Home Screen".');
-      } else {
-        alert('Look for the "Install" option in your browser\u2019s menu.');
-      }
-      return;
-    }
+let currentOpenIndex = -1;
+let embeddedItems = [];
+
+function toggleSection(header) {
+  header.classList.toggle('collapsed');
+  if (header.nextElementSibling && header.nextElementSibling.classList.contains('section-content')) header.nextElementSibling.classList.toggle('collapsed');
+  const sections = [...document.querySelectorAll('h2.collapsible:not(#contents)')], btn = document.getElementById('toggle-all-btn');
+  if (sections.every(h => h.classList.contains('collapsed'))) btn.textContent = 'Show All';
+  else if (sections.every(h => !h.classList.contains('collapsed'))) btn.textContent = 'Hide All';}
+function toggleAll() {
+  const btn = document.getElementById('toggle-all-btn'), shouldHide = btn.textContent === 'Hide All';
+  document.querySelectorAll('h2.collapsible:not(#contents), h2.collapsible:not(#contents) + .section-content').forEach(el => el.classList.toggle('collapsed', shouldHide));
+  btn.textContent = shouldHide ? 'Show All' : 'Hide All';}
+
+function closeAllEmbedded(exceptId) {
+  document.querySelectorAll('.inline-image-container, .inline-gizmo-container').forEach(c => {
+    if (c.id !== exceptId) c.style.display = 'none'; });
+}
+
+function updateNavArrows() {
+  const prevBtn = document.getElementById('nav-prev-btn'), nextBtn = document.getElementById('nav-next-btn');
+  if (!prevBtn || !nextBtn) return;
+  if (currentOpenIndex === -1) { prevBtn.style.display = 'none'; nextBtn.style.display = 'none'; return; }
+  prevBtn.style.display = currentOpenIndex > 0 ? 'flex' : 'none';
+  nextBtn.style.display = currentOpenIndex < embeddedItems.length - 1 ? 'flex' : 'none';
+}
+
+function scrollToEntry(entryEl) {
+  if (!entryEl) return;
+  const sec = entryEl.closest('.section-content');
+  if (sec && sec.previousElementSibling && sec.previousElementSibling.classList.contains('collapsed')) {
+    toggleSection(sec.previousElementSibling); }
+  entryEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function toggleInlineImage(linkEl) {
+  const href = linkEl.getAttribute('href'), entry = linkEl.closest('.entry');
+  if (!entry) return;
+  let container = entry.nextElementSibling && entry.nextElementSibling.classList.contains('inline-image-container') ? entry.nextElementSibling : null;
+  if (container && container.dataset.src === href && container.style.display === 'block') {
+    container.style.display = 'none';
+    currentOpenIndex = -1; updateNavArrows(); return; }
+  closeAllEmbedded(container ? container.id : '');
+  if (!container || container.dataset.src !== href) {
+    if (container) container.remove();
+    container = document.createElement('div');
+    container.className = 'inline-image-container';
+    container.id = 'img-embed-' + Math.random().toString(36).substring(2, 9);
+    container.dataset.src = href;
+    const img = document.createElement('img');
+    img.className = 'inline-poem-img';
+    img.src = href;
+    img.alt = linkEl.textContent.trim() || 'Visual';
+    img.onclick = () => { container.style.display = 'none'; currentOpenIndex = -1; updateNavArrows(); };
+    container.appendChild(img);
+    entry.parentNode.insertBefore(container, entry.nextSibling); }
+  container.style.display = 'block';
+  currentOpenIndex = embeddedItems.findIndex(it => it.el === linkEl);
+  updateNavArrows();
+  scrollToEntry(entry);
+}
+
+function toggleInlineGizmo(linkEl) {
+  const src = linkEl.getAttribute('data-src'), entry = linkEl.closest('.entry');
+  if (!entry) return;
+  let container = entry.nextElementSibling && entry.nextElementSibling.classList.contains('inline-gizmo-container') ? entry.nextElementSibling : null;
+  if (container && container.dataset.src === src && container.style.display === 'block') {
+    container.style.display = 'none';
+    currentOpenIndex = -1; updateNavArrows(); return; }
+  closeAllEmbedded(container ? container.id : '');
+  if (!container || container.dataset.src !== src) {
+    if (container) container.remove();
+    container = document.createElement('div');
+    container.className = 'inline-gizmo-container';
+    container.id = 'gizmo-embed-' + Math.random().toString(36).substring(2, 9);
+    container.dataset.src = src;
+    const iframe = document.createElement('iframe');
+    iframe.className = 'inline-gizmo-iframe';
+    iframe.src = src;
+    iframe.onload = () => {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        const s = doc.createElement('style');
+        s.textContent = 'body>img:first-of-type,body>h1,body>h2:first-of-type,div[style*="text-align:center"],body>img:last-of-type,body>br{display:none!important}body{padding:4px 0!important;background:transparent!important;max-width:100%!important}';
+        doc.head.appendChild(s);
+      } catch(e) {} };
+    container.appendChild(iframe);
+    entry.parentNode.insertBefore(container, entry.nextSibling); }
+  container.style.display = 'block';
+  currentOpenIndex = embeddedItems.findIndex(it => it.el === linkEl);
+  updateNavArrows();
+  scrollToEntry(entry);
+}
+
+function navigateEmbedded(dir) {
+  const target = currentOpenIndex + dir;
+  if (target < 0 || target >= embeddedItems.length) return;
+  const item = embeddedItems[target];
+  if (item.type === 'image') toggleInlineImage(item.el);
+  else if (item.type === 'gizmo') toggleInlineGizmo(item.el);
+}
+
+function activeGizmoHasFile() {
+  if (currentOpenIndex === -1) return false;
+  const cur = embeddedItems[currentOpenIndex];
+  if (!cur || cur.type !== 'gizmo') return false;
+  const entry = cur.el.closest('.entry');
+  const container = entry && entry.nextElementSibling && entry.nextElementSibling.classList.contains('inline-gizmo-container') ? entry.nextElementSibling : null;
+  const iframe = container ? container.querySelector('iframe') : null;
+  if (!iframe) return false;
+  try {
+    const win = iframe.contentWindow;
+    if (win && win.hasActiveFile && win.hasActiveFile()) return true;
+    if (win && win.audio && win.audio.src && win.chapters && win.chapters.length) return true;
+    if (win && win.bookFile) return true;
+  } catch(e) {}
+  return false;
+}
+
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; updateTechAppEntryUI(); });
+window.addEventListener('appinstalled', () => { localStorage.setItem('pwa_installed', '1'); deferredPrompt = null; updateTechAppEntryUI(); });
+function isAppInstalled() {
+  return localStorage.getItem('pwa_installed') === '1' || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+function installPWA() {
+  if (isAppInstalled()) return;
+  if (deferredPrompt) {
     deferredPrompt.prompt();
-    var choice = await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    if (choice && choice.outcome === 'accepted' && entry) entry.style.display = 'none';
-  };
-  // Hide the entry if the app is already installed (display-mode standalone)
-  if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
-    if (entry) entry.style.display = 'none';
-  }
-})();
-</script>
+    deferredPrompt.userChoice.then(choice => {
+      if (choice && choice.outcome === 'accepted') { localStorage.setItem('pwa_installed', '1'); updateTechAppEntryUI(); }
+      deferredPrompt = null; });
+  } else {
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) alert('To install: tap the Share button in Safari, then "Add to Home Screen".');
+    else alert('Look for the "Install" option in your browser\'s menu.'); }
+}
+function updateTechAppEntryUI() {
+  const installed = isAppInstalled();
+  const roleEl = document.getElementById('tech-app-role'), detailEl = document.getElementById('tech-app-detail');
+  if (roleEl) { roleEl.innerHTML = installed ? 'The Bibliotecher' : '<a href="javascript:void(0)" onclick="installPWA();return false;"><u>The Bibliotecher</u></a>'; }
+  if (detailEl) { detailEl.textContent = installed ? 'Tap With Your Finger' : 'Install With Your Finger'; }
+}
 
-<h2>Analyses</h2>
-<div class="entry"><a href="/analyses/Aggregated%20Presidential%20Rankings.pdf"><img src="/images/Favicon.png" alt="Presidents"></a><div class="entry-text"><p class="role"><a href="/analyses/Aggregated%20Presidential%20Rankings.pdf" style="color:#fff">Aggregated Presidential Rankings</a></p><p class="org">Meta-Analytic Consensus Modeling</p><p class="detail">Consensus across 25 historian surveys</p></div></div>
-<div class="entry"><a href="/analyses/Color%20Pairings%20in%20American%20Sports.pdf"><img src="/images/Favicon.png" alt="Team Colors"></a><div class="entry-text"><p class="role"><a href="/analyses/Color%20Pairings%20in%20American%20Sports.pdf" style="color:#fff">Color Pairings in American Sports</a></p><p class="org">Branding Categorical Distribution</p><p class="detail">Palette frequencies across major sports leagues</p></div></div>
-<br>
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (currentOpenIndex !== -1 && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    if (activeGizmoHasFile()) return;
+    e.preventDefault();
+    navigateEmbedded(e.key === 'ArrowLeft' ? -1 : 1); }
+});
 
-<h2>Publications</h2>
-<div class="entry"><a href="https://search.lib.virginia.edu/sources/uva_library/items/u6821962"><img src="/images/UVAThesis.png" alt="UVA Thesis"></a><div class="entry-text"><p class="role">"<a href="https://search.lib.virginia.edu/sources/uva_library/items/u6821962" style="color:#fff">Rethinking Communications and Information Technology in Emergency Medicine</a>"</p><p class="org">Undergraduate Thesis</p><p class="detail">Research Paper | UVA Library | May 2016</p></div></div>
-<div class="entry"><a href="http://dx.doi.org/10.1109/SIEDS.2016.7489306"><img src="/images/UVAEngineeringCapstone.png" alt="UVA Engineering Capstone"></a><div class="entry-text"><p class="role">"<a href="http://dx.doi.org/10.1109/SIEDS.2016.7489306" style="color:#fff">Facilitating the Collection and Dissemination of Patient Care Information for Emergency Medical Personnel</a>"</p><p class="org">Undergraduate Capstone</p><p class="detail">Design Prototype | SIEDS 2016 Conference | IEEE | April 2016</p></div></div>
-<br>
+let touchStartX = 0, touchStartY = 0;
+document.addEventListener('touchstart', e => {
+  if (currentOpenIndex === -1 || e.touches.length !== 1) return;
+  touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (currentOpenIndex === -1 || e.changedTouches.length !== 1) return;
+  const dx = e.changedTouches[0].clientX - touchStartX, dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    if (activeGizmoHasFile()) return;
+    navigateEmbedded(dx > 0 ? -1 : 1); }
+}, { passive: true });
 
-<h2>Contact</h2>
-<div class="entry"><a href="mailto:erikjosephmoyer@gmail.com"><img src="/images/VanGoghThePostman.png" alt="Email"></a><div class="entry-text"><p><a href="mailto:erikjosephmoyer@gmail.com" style="color:#fff">Email</a></p></div></div>
-<div class="entry"><a href="https://linkedin.com/in/erikmoyer/"><img src="/images/MonetCoucherDeSoleil.png" alt="LinkedIn"></a><div class="entry-text"><p><a href="https://linkedin.com/in/erikmoyer/" style="color:#fff">LinkedIn</a></p></div></div>
-<div class="entry"><a href="https://github.com/ErikJosephMoyer"><img src="/images/GitHub.png" alt="GitHub"></a><div class="entry-text"><p><a href="https://github.com/ErikJosephMoyer" style="color:#fff">GitHub</a></p></div></div>
-<br>
-
-<div style="text-align:center;margin:16pt 0 0"><a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
-<br>
-<img src="/images/Logophile.png" alt="EM">
-<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>
-</body>
-</html>
+document.addEventListener('DOMContentLoaded', () => {
+  updateTechAppEntryUI();
+  embeddedItems = [];
+  document.querySelectorAll('.gizmo-link').forEach(g => {
+    embeddedItems.push({ type: 'gizmo', el: g });
+    g.addEventListener('click', e => { e.preventDefault(); toggleInlineGizmo(g); }); });
+  document.querySelectorAll('.media-embed-trigger').forEach(l => {
+    embeddedItems.push({ type: 'image', el: l });
+    l.addEventListener('click', e => { e.preventDefault(); toggleInlineImage(l); }); });
+  document.querySelectorAll('.toc-links a').forEach(l => l.addEventListener('click', () => { const t = document.querySelector(l.getAttribute('href')); if (t && t.classList.contains('collapsed')) toggleSection(t); }));
+});
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}
+</script></body></html>
