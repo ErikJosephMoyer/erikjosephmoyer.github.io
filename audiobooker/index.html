@@ -48,11 +48,11 @@ body.embedded{padding:4px 0!important;background:transparent!important;max-width
 <div id="all-btn-row">
   <button id="speed-btn" class="modifier" title="Speed (S)" disabled onclick="cycleSpeed()"><span id="speed-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">1x</span></button>
   <button id="pitch-btn" class="modifier" title="Pitch (P)" disabled onclick="cyclePitch()"><span id="pitch-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">0</span></button>
-  <button id="prev-btn" class="transport" title="Previous Chapter (Shift+Left / Shift+Down)" disabled onclick="prevChapter()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16" fill="#2a2a2a"/><polygon points="20,4 9,12 20,20" fill="#2a2a2a"/></svg></button>
-  <button id="skipb-btn" class="transport" title="Back 10s (Left / Down)" disabled onclick="skip(-10)"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="#2a2a2a" stroke="none"/></svg></button>
+  <button id="prev-btn" class="transport" title="Previous Chapter (Shift+Left)" disabled onclick="prevChapter()"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="3" height="16" fill="#2a2a2a"/><polygon points="20,4 9,12 20,20" fill="#2a2a2a"/></svg></button>
+  <button id="skipb-btn" class="transport" title="Back 10s (Left)" disabled onclick="skip(-10)"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="#2a2a2a" stroke="none"/></svg></button>
   <button id="play-btn" class="transport" title="Play / Pause (Space)" disabled onclick="togglePlay()"><svg viewBox="0 0 24 24" id="play-icon"><polygon points="8,5 19,12 8,19" fill="#2a2a2a" stroke="none"/></svg><svg viewBox="0 0 24 24" id="pause-icon" style="display:none"><rect x="6" y="4" width="4" height="16" fill="#2a2a2a"/><rect x="14" y="4" width="4" height="16" fill="#2a2a2a"/></svg></button>
-  <button id="skipf-btn" class="transport" title="Forward 10s (Right / Up)" disabled onclick="skip(10)"><svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z" fill="#2a2a2a" stroke="none"/></svg></button>
-  <button id="next-btn" class="transport" title="Next Chapter (Shift+Right / Shift+Up)" disabled onclick="nextChapter()"><svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20" fill="#2a2a2a"/><rect x="17" y="4" width="3" height="16" fill="#2a2a2a"/></svg></button>
+  <button id="skipf-btn" class="transport" title="Forward 10s (Right)" disabled onclick="skip(10)"><svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z" fill="#2a2a2a" stroke="none"/></svg></button>
+  <button id="next-btn" class="transport" title="Next Chapter (Shift+Right)" disabled onclick="nextChapter()"><svg viewBox="0 0 24 24"><polygon points="4,4 15,12 4,20" fill="#2a2a2a"/><rect x="17" y="4" width="3" height="16" fill="#2a2a2a"/></svg></button>
   <button id="mute-btn" class="modifier" title="Mute (M)" disabled onclick="toggleMute()"><svg id="unmuted-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#2a2a2a"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="#2a2a2a"/></svg><svg id="muted-icon" viewBox="0 0 24 24" style="display:none"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#2a2a2a"/></svg></button>
   <button id="boost-btn" class="modifier" title="Volume Boost (V)" disabled onclick="cycleBoost()"><span id="boost-label" style="font:13pt 'EB Garamond',serif;color:#2a2a2a">0</span></button>
   <div class="mob-break"></div>
@@ -521,18 +521,19 @@ function updateBookProgress(){
   if(pct>=99.5&&pct<100) pct=99; pct=Math.min(100,Math.round(pct));
   document.getElementById('book-progress').textContent=`Read ${fmtHMS(listened)} of ${fmtHMS(totalBookDuration)} (${pct}%), ${fmtHMS(remaining)} Left`;}
 
-document.addEventListener('keydown',(e)=>{
-  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA') return;
-  const k=e.key, hasMod=e.ctrlKey||e.metaKey||e.altKey;
-  if(k===' ' && !hasMod){ e.preventDefault(); togglePlay(); }
-  else if((k==='ArrowLeft'||k==='ArrowDown') && (e.shiftKey)){ e.preventDefault(); prevChapter(); }
-  else if((k==='ArrowRight'||k==='ArrowUp') && (e.shiftKey)){ e.preventDefault(); nextChapter(); }
-  else if((k==='ArrowLeft'||k==='ArrowDown') && !hasMod){ e.preventDefault(); skip(-10); }
-  else if((k==='ArrowRight'||k==='ArrowUp') && !hasMod){ e.preventDefault(); skip(10); }
-  else if(k.toLowerCase()==='m' && !hasMod){ e.preventDefault(); toggleMute(); }
-  else if(k.toLowerCase()==='s' && !hasMod){ e.preventDefault(); cycleSpeed(); }
-  else if(k.toLowerCase()==='p' && !hasMod){ e.preventDefault(); cyclePitch(); }
-  else if(k.toLowerCase()==='v' && !hasMod){ e.preventDefault(); cycleBoost(); }});
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+  const k = e.key, hasMod = e.ctrlKey || e.metaKey || e.altKey;
+  if (k === ' ' && !hasMod) { e.preventDefault(); togglePlay(); }
+  else if (k === 'ArrowLeft' && e.shiftKey) { e.preventDefault(); prevChapter(); }
+  else if (k === 'ArrowRight' && e.shiftKey) { e.preventDefault(); nextChapter(); }
+  else if (k === 'ArrowLeft' && !hasMod) { e.preventDefault(); skip(-10); }
+  else if (k === 'ArrowRight' && !hasMod) { e.preventDefault(); skip(10); }
+  else if (k.toLowerCase() === 'm' && !hasMod) { e.preventDefault(); toggleMute(); }
+  else if (k.toLowerCase() === 's' && !hasMod) { e.preventDefault(); cycleSpeed(); }
+  else if (k.toLowerCase() === 'p' && !hasMod) { e.preventDefault(); cyclePitch(); }
+  else if (k.toLowerCase() === 'v' && !hasMod) { e.preventDefault(); cycleBoost(); }
+});
 
 (async function autoReload(){
   const lastKey = localStorage.getItem('jbj_last') || localStorage.getItem('ebr_audio_last');
@@ -568,7 +569,7 @@ document.addEventListener('keydown',(e)=>{
   } catch(e) {}
 })();
 </script>
-<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
+<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
 <img src="/images/Logophile.png" alt="EM" style="width:100px;height:100px;display:block;margin:8pt auto 8pt;border-radius:50%">
 <script src="/sync.js"></script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>

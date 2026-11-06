@@ -14,17 +14,18 @@ h1,h2,h3{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 
 h2.collapsible{cursor:pointer;user-select:none} h2.collapsible:hover{color:#ccc} .arrow{display:inline-block;font-size:18pt;margin-left:6px;transition:transform 0.2s ease;vertical-align:middle} h2.collapsible.collapsed .arrow{transform:rotate(-90deg)} .section-content.collapsed{display:none}
 img{max-width:100%;height:auto;object-fit:cover;width:500px} img[src*="Favicon"],img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt} img[src*="Favicon"]{border-radius:50%;margin-bottom:0} img[src*="Logophile"]{border-radius:15px} img[src*="Erbrik"]{width:250px;height:250px;border-radius:50%;display:block;margin:0 auto 8pt} img[src*="XenaAtRest"]{width:100%;display:block;margin:0 auto 8pt;border-radius:15px}
 .pub-entry{display:flex;align-items:flex-start;margin-bottom:16pt} .pub-entry img{width:100px;height:100px;border-radius:8px;margin-right:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1)} .pub-entry img[src*="GitHub"]{background:#fff} .pub-text{flex:1}
+.inline-image-container,.inline-gizmo-container,#soundcloud-track-embed,#soundcloud-embed,#spotify-artist-embed,#spotify-embed,#apple-embed,#youtube-embed,#performance-embed{position:relative}
 .inline-image-container,.inline-gizmo-container{display:none;width:100%;text-align:center;margin:4pt 0 16pt 0}
 .inline-poem-img{max-width:min(100%,1000px);max-height:min(90vh,1000px);width:auto;height:auto;object-fit:contain;cursor:pointer;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.6);display:inline-block}
 .inline-gizmo-iframe{width:100%;height:500px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:#2a2a2a}
 #soundcloud-embed,#spotify-embed,#apple-embed,#youtube-embed,#soundcloud-track-embed,#spotify-artist-embed{display:none;width:100%;max-width:660px;margin:0 0 16pt 0} .video-container{position:relative;width:100%;display:none;padding-bottom:56.25%;height:0;margin-bottom:16pt;overflow:hidden;max-height:450px} .video-container iframe{position:absolute;top:0;left:0;width:100%;height:100%}
-.nav-arrow-btn{display:none;position:fixed;top:50%;transform:translateY(-50%);z-index:999;background:rgba(42,42,42,0.8);color:#fff;border:1px solid rgba(255,255,255,0.4);width:44px;height:44px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;align-items:center;justify-content:center;transition:background 0.2s,border-color 0.2s;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);user-select:none}
-.nav-arrow-btn:hover{background:rgba(255,255,255,0.95);color:#2a2a2a;border-color:#fff}
-@media(min-width:820px){.nav-arrow-left{left:calc(50% - 350px - 58px)}.nav-arrow-right{right:calc(50% - 350px - 58px)}}
-@media(max-width:819px){.nav-arrow-btn{width:38px;height:38px;font-size:16px;background:rgba(0,0,0,0.55)}.nav-arrow-left{left:8px}.nav-arrow-right{right:8px}}
+.nav-arrow-btn{display:none;position:absolute;top:50%;transform:translateY(-50%);z-index:50;background:rgba(42,42,42,0.85);color:#fff;border:1px solid rgba(255,255,255,0.4);width:44px;height:44px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
+@media(hover:hover) and (pointer:fine){.nav-arrow-btn:hover{background:#2a2a2a;color:#fff;border-color:rgba(255,255,255,0.7)}}
+@media(min-width:820px){.nav-arrow-left{left:-56px}.nav-arrow-right{right:-56px}}
+@media(max-width:819px){.nav-arrow-btn{width:38px;height:38px;font-size:16px;background:rgba(42,42,42,0.55);border-color:rgba(255,255,255,0.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}.nav-arrow-left{left:8px}.nav-arrow-right{right:8px}}
 </style></head><body>
-<button id="nav-prev-btn" class="nav-arrow-btn nav-arrow-left" onclick="navigateEmbedded(-1)" title="Previous (Left Arrow)">&#10094;</button>
-<button id="nav-next-btn" class="nav-arrow-btn nav-arrow-right" onclick="navigateEmbedded(1)" title="Next (Right Arrow)">&#10095;</button>
+<button id="nav-prev-btn" class="nav-arrow-btn nav-arrow-left" onclick="navigateEmbedded(-1)" title="Previous">&#10094;</button>
+<button id="nav-next-btn" class="nav-arrow-btn nav-arrow-right" onclick="navigateEmbedded(1)" title="Next">&#10095;</button>
 <img src="images/Logophile.png" alt="Logophile">
 <h1>Erik's Very Own Webpage</h1>
 <h3>A digital cornucopia of poems, songs, stories, & more</h3><br>
@@ -117,7 +118,7 @@ img{max-width:100%;height:auto;object-fit:cover;width:500px} img[src*="Favicon"]
 <div class="pub-entry"><a href="https://linkedin.com/in/erikmoyer/"><img src="images/MonetCoucherDeSoleil.png" alt="Monet Coucher de Soleil"></a><div class="pub-text"><p>LinkedIn</p></div></div>
 <div class="pub-entry"><a href="https://github.com/ErikJosephMoyer"><img src="images/GitHub.png" alt="GitHub"></a><div class="pub-text"><p>GitHub</p></div></div><br></div>
 <img src="images/XenaAtRest.png" alt="Xena at Rest"><br>
-<div style="text-align:center;margin:0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
+<div style="text-align:center;margin:0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
 <img src="images/Logophile.png" alt="Logophile">
 
 <script>
@@ -151,12 +152,30 @@ function closeAllEmbedded(exceptId) {
     if (c.id !== exceptId) c.style.display = 'none'; });
 }
 
+function positionNavArrows(container) {
+  const prevBtn = document.getElementById('nav-prev-btn'), nextBtn = document.getElementById('nav-next-btn');
+  if (!prevBtn || !nextBtn || !container) return;
+  container.style.position = 'relative';
+  container.appendChild(prevBtn);
+  container.appendChild(nextBtn);
+  updateNavArrows();
+}
+
 function updateNavArrows() {
   const prevBtn = document.getElementById('nav-prev-btn'), nextBtn = document.getElementById('nav-next-btn');
   if (!prevBtn || !nextBtn) return;
   if (currentOpenIndex === -1) { prevBtn.style.display = 'none'; nextBtn.style.display = 'none'; return; }
   prevBtn.style.display = currentOpenIndex > 0 ? 'flex' : 'none';
   nextBtn.style.display = currentOpenIndex < embeddedItems.length - 1 ? 'flex' : 'none';
+}
+
+function getEntryForEmbed(el) {
+  let prev = el.previousElementSibling;
+  while (prev) {
+    if (prev.classList.contains('pub-entry') || prev.classList.contains('entry')) return prev;
+    prev = prev.previousElementSibling;
+  }
+  return el;
 }
 
 function scrollToEntry(entryEl) {
@@ -176,10 +195,9 @@ function togglePlayer(clickedId) {
   if (iframe) iframe.src = iframe.getAttribute('data-original-src');
   el.style.display = 'block';
   currentOpenIndex = embeddedItems.findIndex(it => it.id === clickedId);
-  updateNavArrows();
+  positionNavArrows(el);
   if (window.logAction) window.logAction('music', clickedId);
-  const entry = el.previousElementSibling && el.previousElementSibling.classList.contains('pub-entry') ? el.previousElementSibling : el;
-  scrollToEntry(entry);
+  scrollToEntry(getEntryForEmbed(el));
 }
 
 function toggleVideo(id) {
@@ -190,9 +208,9 @@ function toggleVideo(id) {
   closeAllEmbedded(id);
   el.style.display = 'block';
   currentOpenIndex = embeddedItems.findIndex(it => it.id === id);
-  updateNavArrows();
+  positionNavArrows(el);
   if (window.logAction) window.logAction('video', id);
-  scrollToEntry(el.previousElementSibling);
+  scrollToEntry(getEntryForEmbed(el));
 }
 
 function toggleInlineImage(linkEl) {
@@ -218,7 +236,7 @@ function toggleInlineImage(linkEl) {
     entry.parentNode.insertBefore(container, entry.nextSibling); }
   container.style.display = 'block';
   currentOpenIndex = embeddedItems.findIndex(it => it.el === linkEl);
-  updateNavArrows();
+  positionNavArrows(container);
   scrollToEntry(entry);
   if (window.logAction) {
     const sec = entry.closest('.section-content');
@@ -254,7 +272,7 @@ function toggleInlineGizmo(linkEl) {
     entry.parentNode.insertBefore(container, entry.nextSibling); }
   container.style.display = 'block';
   currentOpenIndex = embeddedItems.findIndex(it => it.el === linkEl);
-  updateNavArrows();
+  positionNavArrows(container);
   scrollToEntry(entry);
   if (window.logAction) window.logAction('gizmo', linkEl.textContent.trim() || src);
 }
@@ -299,9 +317,7 @@ function installPWA() {
       if (choice && choice.outcome === 'accepted') { localStorage.setItem('pwa_installed', '1'); updateAppEntryUI(); }
       deferredPrompt = null; });
   } else {
-    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
-    if (isIOS) alert('To install: tap the Share button in Safari, then "Add to Home Screen".');
-    else alert('Look for the "Install" option in your browser\'s menu.'); }
+    alert('Install App'); }
 }
 function updateAppEntryUI() {
   const installed = isAppInstalled();
