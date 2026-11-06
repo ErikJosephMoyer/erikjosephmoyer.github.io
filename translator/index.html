@@ -27,7 +27,7 @@ a:hover{color:#ccc}
 button{background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:0 14px;white-space:nowrap;height:38px;min-width:38px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
 button:hover:not(:disabled){background:#ccc}
 button:disabled{background:#555;color:#888;cursor:default}
-button.icon{padding:0;width:38px}
+button.icon{padding: 20px; overflow: hidden;width:38px}
 button svg{width:20px;height:20px;display:block}
 button.icon.recording{background:#d44}
 button.icon.recording:hover{background:#e55}
@@ -76,7 +76,7 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:#ccc}
 
 <div class="text-pair">
   <div class="text-block">
-    <textarea id="src-text" placeholder="Enter text" oninput="onSrcInput()"></textarea>
+    <textarea id="src-text" placeholder="Enter text" oninput="onSrcInput()" style="resize: vertical; max-width: 100%;"></textarea>
     <div class="text-actions">
       <button class="icon" onclick="speakSrc()" title="Speak" aria-label="Speak">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 10v4c0 .55.45 1 1 1h3l3.29 3.29c.63.63 1.71.18 1.71-.71V6.41c0-.89-1.08-1.34-1.71-.71L7 9H4c-.55 0-1 .45-1 1zm13.5 2A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v.69c0 .42.28.78.67.93C17.65 5.99 19.5 8.79 19.5 12s-1.85 6.01-4.83 7.15c-.39.15-.67.5-.67.93v.69c0 .65.65 1.1 1.25.91 4.05-1.46 6.95-5.32 6.95-9.78s-2.9-8.32-6.95-9.78c-.6-.21-1.25.24-1.25.9z"/></svg>
@@ -90,7 +90,7 @@ textarea:focus,input[type=text]:focus{outline:none;border-color:#ccc}
     </div>
   </div>
   <div class="text-block">
-    <textarea id="tgt-text" placeholder="Translation" readonly></textarea>
+    <textarea id="tgt-text" placeholder="Translation" readonly style="resize: vertical; max-width: 100%;"></textarea>
     <div class="text-actions">
       <button class="icon" onclick="speakTgt()" title="Speak" aria-label="Speak">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 10v4c0 .55.45 1 1 1h3l3.29 3.29c.63.63 1.71.18 1.71-.71V6.41c0-.89-1.08-1.34-1.71-.71L7 9H4c-.55 0-1 .45-1 1zm13.5 2A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v.69c0 .42.28.78.67.93C17.65 5.99 19.5 8.79 19.5 12s-1.85 6.01-4.83 7.15c-.39.15-.67.5-.67.93v.69c0 .65.65 1.1 1.25.91 4.05-1.46 6.95-5.32 6.95-9.78s-2.9-8.32-6.95-9.78c-.6-.21-1.25.24-1.25.9z"/></svg>
