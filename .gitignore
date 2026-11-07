@@ -1,2 +1,4 @@
 # Exclude large image files from repository tracking
 /images/
+
+.aider*
