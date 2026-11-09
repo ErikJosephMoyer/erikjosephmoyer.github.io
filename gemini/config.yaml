@@ -1,6 +1,0 @@
-ignore_patterns:
-  - "audio/**"
-  - "assets/audio/**"
-  - "assets/images/**"
-  - "*.mp3"
-  - "*.wav"

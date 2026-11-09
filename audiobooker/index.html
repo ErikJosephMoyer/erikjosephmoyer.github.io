@@ -26,7 +26,25 @@ button svg{display:block;width:20px;height:20px;flex-shrink:0;margin:auto} butto
 .hidden-input{display:none}
 body.embedded>img:first-of-type,body.embedded>h1,body.embedded>h2:first-of-type,body.embedded>div[style*="text-align:center"],body.embedded>img[src*="Logophile"],body.embedded>br{display:none!important}
 body.embedded{padding:4px 0!important;background:transparent!important;max-width:100%!important}
-</style></head><body>
+</style>
+<style>
+  textarea { resize: vertical !important; }
+  .inline-image-container img, .inline-gizmo-container iframe, .embedded-gizmo, .embedded-container {
+    max-height: 75vh !important;
+  }
+  select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background: transparent url("data:image/svg+xml;utf8,<svg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 10px center !important;
+    padding-right: 30px !important;
+  }
+  @media (max-width: 600px) {
+    .desktop-break { display: none !important; }
+  }
+</style>
+
+</head><body>
 <img src="/images/AudiobookerLogo.webp" alt="ABP" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Jibberjabberer</h1>
 <h2><em>Hear With Your Ears</em>: An Audiobook Player</h2>
@@ -569,7 +587,7 @@ document.addEventListener('keydown', (e) => {
   } catch(e) {}
 })();
 </script>
-<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
+<div style="text-align:center;margin:16pt 0 0;line-height:1.5;"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> |<br class="desktop-break"><a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
 <img src="/images/Logophile.webp" alt="EM" style="width:100px;height:100px;display:block;margin:8pt auto 8pt;border-radius:50%">
 <script src="/sync.js"></script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>

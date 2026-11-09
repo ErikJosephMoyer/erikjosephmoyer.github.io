@@ -17,9 +17,9 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
-h1{font-size:28pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
-h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
-h3{font-size:18pt;font-weight:500;margin:0;line-height:1}
+h1{font-size: 16pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1}
+h2{font-size: 16pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
+h3{font-size: 16pt;font-weight:500;margin:0;line-height:1}
 a,a:visited{color:#fff;text-decoration:underline;cursor:pointer;font-weight:normal}
 a:hover{color:#ccc}
 /* Buttons match the canonical pattern used by /typesetter/, /audiobooker/, etc. */
@@ -34,71 +34,103 @@ button:disabled{background:#555;color:#888;cursor:default}
 details{border:1px solid #fff;border-radius:4px;margin:0 0 16pt;background:transparent}
 summary{cursor:pointer;padding:6px 10px;list-style:none;display:flex;align-items:center;justify-content:space-between}
 summary::-webkit-details-marker{display:none}
-summary::after{content:'\25BC';font-size:14pt;color:#fff;transition:transform 0.2s;margin-left:12px}
+summary::after{content:'\25BC';font-size: 16pt;color:#fff;transition:transform 0.2s;margin-left:12px}
 details[open] summary::after{transform:rotate(180deg)}
-summary h3{font-size:18pt;font-weight:500;margin:0;text-align:left}
-summary .tagline{font-size:16pt;color:#fff;font-style:italic;margin-left:12px}
+summary h3{font-size: 16pt;font-weight:500;margin:0;text-align:left}
+summary .tagline{font-size: 16pt;color:#fff;font-style: normal;margin-left:12px}
 .tool-frame{width:100%;border:none;background:#2a2a2a;display:block;margin-top:8pt}
 @media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}summary .tagline{display:none}}
 </style>
+
+<style>
+  textarea { resize: vertical !important; }
+  .inline-image-container img, .inline-gizmo-container iframe, .embedded-gizmo, .embedded-container {
+    max-height: 75vh !important;
+  }
+  select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background: transparent url("data:image/svg+xml;utf8,<svg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 10px center !important;
+    padding-right: 30px !important;
+  }
+  @media (max-width: 600px) {
+    .desktop-break { display: none !important; }
+  }
+</style>
+
 </head>
 <body>
 <img src="/images/Favicon.webp" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Alphomegenator</h1>
 <h2><em>Imbibe With Your Senses</em>:<span class="sub-break"> </span>An All-in-One Media Suite</h2>
 
-<div class="controls">
-  <button onclick="expandAll()">Show All</button>
-  <button onclick="collapseAll()">Show All</button>
+<div class="controls" style="text-align:center;margin:10pt 0 16pt;">
+  <button id="toggle-all-btn" onclick="toggleSuiteAll()" style="background:#fff;color:#2a2a2a;border:none;font:16pt 'EB Garamond',serif;cursor:pointer;padding:4px 14px;">Show All</button>
 </div>
+<script>
+function toggleSuiteAll() {
+  const btn = document.getElementById('toggle-all-btn');
+  const shouldHide = btn.textContent === 'Hide All';
+  const detailsElements = document.querySelectorAll('details');
+  detailsElements.forEach(el => {
+    if (shouldHide) {
+      el.removeAttribute('open');
+    } else {
+      el.setAttribute('open', '');
+    }
+  });
+  btn.textContent = shouldHide ? 'Show All' : 'Hide All';
+}
+</script>
 
-<details open id="reader">
-  <summary><h3>The Bookcaster</h3><span class="tagline">E-Book / Audiobook Reader</span></summary>
+<details id="reader">
+  <summary><h3 style="font-weight: normal; font-size: 16pt;">The Bookcaster</h3><span class="tagline" style="font-style: normal; font-size: 16pt;">E-Book / Audiobook Reader</span></summary>
   <iframe class="tool-frame" src="/reader/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
 </details>
 
-<details open id="scanner">
-  <summary><h3>The Decipherer</h3><span class="tagline">Optical Character Recognizer</span></summary>
+<details id="scanner">
+  <summary><h3 style="font-weight: normal; font-size: 16pt;">The Decipherer</h3><span class="tagline" style="font-style: normal; font-size: 16pt;">Optical Character Recognizer</span></summary>
   <iframe class="tool-frame" src="/scanner/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; camera"></iframe>
 </details>
 
-<details open id="audiobooker">
-  <summary><h3>The Jibberjabberer</h3><span class="tagline">Audiobook Player</span></summary>
+<details id="audiobooker">
+  <summary><h3 style="font-weight: normal; font-size: 16pt;">The Jibberjabberer</h3><span class="tagline" style="font-style: normal; font-size: 16pt;">Audiobook Player</span></summary>
   <iframe class="tool-frame" src="/audiobooker/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
 </details>
 
-<details open id="translator">
-  <summary><h3>The Linguifier</h3><span class="tagline">Translator &amp; Pronouncerator</span></summary>
+<details id="translator">
+  <summary><h3 style="font-weight: normal; font-size: 16pt;">The Linguifier</h3><span class="tagline" style="font-style: normal; font-size: 16pt;">Translator &amp; Pronouncerator</span></summary>
   <iframe class="tool-frame" src="/translator/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
 </details>
 
-<details open id="typesetter">
-  <summary><h3>The Prettifier</h3><span class="tagline">Typesetter</span></summary>
+<details id="typesetter">
+  <summary><h3 style="font-weight: normal; font-size: 16pt;">The Prettifier</h3><span class="tagline" style="font-style: normal; font-size: 16pt;">Typesetter</span></summary>
   <iframe class="tool-frame" src="/typesetter/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
 </details>
 
-<details open id="narrator">
-  <summary><h3>The Rhetoricizer</h3><span class="tagline">Text-to-Speech</span></summary>
+<details id="narrator">
+  <summary><h3 style="font-weight: normal; font-size: 16pt;">The Rhetoricizer</h3><span class="tagline" style="font-style: normal; font-size: 16pt;">Text-to-Speech</span></summary>
   <iframe class="tool-frame" src="/narrator/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; microphone"></iframe>
 </details>
 
-<details open id="dictator">
-  <summary><h3>The Textualizer</h3><span class="tagline">Speech-to-Text</span></summary>
+<details id="dictator">
+  <summary><h3 style="font-weight: normal; font-size: 16pt;">The Textualizer</h3><span class="tagline" style="font-style: normal; font-size: 16pt;">Speech-to-Text</span></summary>
   <iframe class="tool-frame" src="/dictator/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; microphone"></iframe>
 </details>
 
-<details open id="musicker">
-  <summary><h3>The Tonalizer</h3><span class="tagline">Music Decoder</span></summary>
+<details id="musicker">
+  <summary><h3 style="font-weight: normal; font-size: 16pt;">The Tonalizer</h3><span class="tagline" style="font-style: normal; font-size: 16pt;">Music Decoder</span></summary>
   <iframe class="tool-frame" src="/musicker/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write; microphone"></iframe>
 </details>
 
-<details open id="converter">
-  <summary><h3>The Transmogrifier</h3><span class="tagline">File Converter</span></summary>
+<details id="converter">
+  <summary><h3 style="font-weight: normal; font-size: 16pt;">The Transmogrifier</h3><span class="tagline" style="font-style: normal; font-size: 16pt;">File Converter</span></summary>
   <iframe class="tool-frame" src="/converter/" loading="lazy" style="height:90vh" allow="autoplay; fullscreen; encrypted-media; clipboard-write"></iframe>
 </details>
 
 <!-- Footer (matches every other page; full link bar) -->
-<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> | <a href="/app/" style="color:#fff">App</a> | <a href="/suite/" style="color:#fff">Suite</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
+<div style="text-align:center;margin:16pt 0 0;line-height:1.5;"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> |<br class="desktop-break"><a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
 <br>
 <img src="/images/Logophile.webp" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 

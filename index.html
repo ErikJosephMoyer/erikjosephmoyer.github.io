@@ -23,7 +23,25 @@ img{max-width:100%;height:auto;object-fit:cover;width:500px} img[src*="Favicon"]
 @media(hover:hover) and (pointer:fine){.nav-arrow-btn:hover{background:#2a2a2a;color:#fff;border-color:rgba(255,255,255,0.7)}}
 @media(min-width:820px){.nav-arrow-left{left:-56px}.nav-arrow-right{right:-56px}}
 @media(max-width:819px){.nav-arrow-btn{width:38px;height:38px;font-size:16px;background:rgba(42,42,42,0.55);border-color:rgba(255,255,255,0.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}.nav-arrow-left{left:8px}.nav-arrow-right{right:8px}}
-</style></head><body>
+</style>
+<style>
+  textarea { resize: vertical !important; }
+  .inline-image-container img, .inline-gizmo-container iframe, .embedded-gizmo, .embedded-container {
+    max-height: 75vh !important;
+  }
+  select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background: transparent url("data:image/svg+xml;utf8,<svg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 10px center !important;
+    padding-right: 30px !important;
+  }
+  @media (max-width: 600px) {
+    .desktop-break { display: none !important; }
+  }
+</style>
+
+</head><body>
 <button id="nav-prev-btn" class="nav-arrow-btn nav-arrow-left" onclick="navigateEmbedded(-1)" title="Previous">&#10094;</button>
 <button id="nav-next-btn" class="nav-arrow-btn nav-arrow-right" onclick="navigateEmbedded(1)" title="Next">&#10095;</button>
 <img src="images/Logophile.webp" alt="Logophile">
@@ -31,7 +49,7 @@ img{max-width:100%;height:auto;object-fit:cover;width:500px} img[src*="Favicon"]
 <h3>A digital cornucopia of poems, songs, stories, & more</h3><br>
 <img src="images/Erbrik.webp" alt="Erbrik"><br>
 <h2 id="contents" class="collapsible" onclick="toggleSection(this)">Contents<span class="arrow">&#9662;</span></h2>
-<div class="section-content"><div class="toc"><div class="toc-links"><a href="#about">About</a> | <a href="#music">Music</a> | <a href="#books">Books</a> | <a href="#poetry">Poetry</a> | <a href="#fiction">Fiction</a> | <a href="#nonfiction">Nonfiction</a> | <a href="#humor">Humor</a> | <a href="#scholarship">Scholarship</a> | <a href="#readings">Readings</a> | <a href="#gizmos">Gizmos</a> | <a href="#contact">Contact</a></div><div class="toc-controls"><button type="button" id="toggle-all-btn" class="toc-btn" onclick="toggleAll()">Hide All</button></div></div><br></div>
+<div class="section-content"><div class="toc"><div class="toc-links"><a href="#about">About</a> | <a href="#music">Music</a> | <a href="#books">Books</a> | <a href="#poetry">Poetry</a> | <a href="#fiction">Fiction</a> | <a href="#nonfiction">Nonfiction</a> | <a href="#humor">Humor</a> |<br class="desktop-break"><a href="#scholarship">Scholarship</a> | <a href="#readings">Readings</a> | <a href="#gizmos">Gizmos</a> | <a href="#contact">Contact</a></div><div class="toc-controls"><button type="button" id="toggle-all-btn" class="toc-btn" onclick="toggleAll()">Hide All</button></div></div><br></div>
 <h2 id="about" class="collapsible" onclick="toggleSection(this)">About<span class="arrow">&#9662;</span></h2>
 <div class="section-content"><p class="about-text">Erik Moyer is a writer and data scientist from Hillsborough, New Jersey. He holds a PhD in creative writing from the University of North Texas, an MFA in writing from the University of California, Irvine, an MBA in business analytics from Florida State University, and a BS in systems engineering and poetry writing from the University of Virginia. His work appears in <em>Columbia Journal, The New York Times, Oxford Poetry, The Pinch, The Rumpus</em>, and elsewhere. His manuscript, <em>How to Be Lonely</em>, was a finalist for the 2025 Gerard Cable Book Award from Silverfish Review Press and a semifinalist for the 2026 First Book Contest from Button Poetry. His debut chapbook, <em>A Time Series Analysis</em>, is forthcoming from Gnashing Teeth Publishing. In past lives, he's worked as a university writing instructor, a varsity-certified umpire, and an emergency medical technician, and has done time in New Jersey, Virginia, Washington DC, California, and Texas. In his free time, he enjoys writing songs, playing chess, and convincing his cat, Xena, that shoelaces are, in fact, snakes. He lives in New York City.</p><br></div>
 <h2 id="music" class="collapsible" onclick="toggleSection(this)">Music<span class="arrow">&#9662;</span></h2><div class="section-content">
@@ -48,7 +66,7 @@ img{max-width:100%;height:auto;object-fit:cover;width:500px} img[src*="Favicon"]
 <div class="section-content"><div class="pub-entry"><img src="images/ATimeSeriesAnalysis.webp" alt="A Time Series Analysis"><div class="pub-text"><p><em>A Time Series Analysis</em>, Gnashing Teeth Publishing, Poetry Chapbook, Forthcoming, May 2027</p></div></div><br></div>
 <h2 id="poetry" class="collapsible" onclick="toggleSection(this)">Poetry<span class="arrow">&#9662;</span></h2><div class="section-content">
 <div class="pub-entry"><img src="images/TheSouthCarolinaReview.webp" alt="The South Carolina Review"><div class="pub-text"><p>"Sit-Down Stand-Up," <em>The South Carolina Review</em>, Clemson University, Print, Forthcoming, November 2026</p></div></div>
-<div class="pub-entry"><a href="https://www.sup.org/books/literary-studies-and-literature/mantis-journal-poetry-criticism-translation-1"><img src="images/Mantis.webp" alt="Mantis"></a><div class="pub-text"><p>"<a href="images/AnAcesGracings.webp" alt="An Ace's Gracings">An Ace's Gracings</a>," <em>Mantis</em>, Stanford University, Print, August 2026</p></div></div>
+<div class="pub-entry"><a href="https://www.sup.org/books/literary-studies-and-literature/mantis-journal-poetry-criticism-translation-1"><img src="images/Mantis.webp" alt="Mantis"></a><div class="pub-text"><p>"<a href="images/AnAcesGracings.webp" alt="An Ace's Gracings">An Ace's Gracings</a>," <em>Mantis</em>, Stanford University, Print, September 2026</p></div></div>
 <div class="pub-entry"><a href="https://theoffingmag.com/wit-tea/two-tragicomic-sonnets-special-delivery-blaze-pizza-receipt/"><img src="images/TheOffing.webp" alt="The Offing"></a><div class="pub-text"><p>"<a href="images/SpecialDelivery.webp" alt="Special Delivery">Special Delivery</a>" & "<a href="images/BlazePizzaReceipt.webp" alt="Blaze Pizza Receipt">Blaze Pizza Receipt</a>," <em>The Offing</em>, Wit Tea Column, Online, July 2026</p></div></div>
 <div class="pub-entry"><a href="https://louisvillereview.org/tlr-98"><img src="images/TheLouisvilleReview.webp" alt="The Louisville Review"></a><div class="pub-text"><p>"<a href="images/SYS3060.webp" alt="SYS 3060">SYS 3060</a>," <em>The Louisville Review</em>, University of Louisville, Print, June 2026</p></div></div>
 <div class="pub-entry"><a href="https://issuu.com/theroundmagazine/docs/the_round_issue_xxviii"><img src="images/TheRound.webp" alt="The Round"></a><div class="pub-text"><p>"<a href="images/Clearance.webp" alt="Clearance">Clearance</a>," <em>The Round</em>, Brown University, Online & Print, June 2026</p></div></div>
@@ -118,7 +136,7 @@ img{max-width:100%;height:auto;object-fit:cover;width:500px} img[src*="Favicon"]
 <div class="pub-entry"><a href="https://linkedin.com/in/erikmoyer/"><img src="images/MonetCoucherDeSoleil.webp" alt="Monet Coucher de Soleil"></a><div class="pub-text"><p>LinkedIn</p></div></div>
 <div class="pub-entry"><a href="https://github.com/ErikJosephMoyer"><img src="images/GitHub.webp" alt="GitHub"></a><div class="pub-text"><p>GitHub</p></div></div><br></div>
 <img src="images/XenaAtRest.webp" alt="Xena at Rest"><br>
-<div style="text-align:center;margin:0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
+<div style="text-align:center;margin:16pt 0 0;line-height:1.5;"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> |<br class="desktop-break"><a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
 <img src="images/Logophile.webp" alt="Logophile">
 
 <script>
@@ -154,10 +172,17 @@ function closeAllEmbedded(exceptId) {
 
 function positionNavArrows(container) {
   const prevBtn = document.getElementById('nav-prev-btn'), nextBtn = document.getElementById('nav-next-btn');
-  if (!prevBtn || !nextBtn || !container) return;
-  container.style.position = 'relative';
-  container.appendChild(prevBtn);
-  container.appendChild(nextBtn);
+  if (!prevBtn || !nextBtn) return;
+  if (prevBtn.parentNode !== document.body) document.body.appendChild(prevBtn);
+  if (nextBtn.parentNode !== document.body) document.body.appendChild(nextBtn);
+  prevBtn.style.position = 'fixed';
+  prevBtn.style.top = '50%';
+  prevBtn.style.transform = 'translateY(-50%)';
+  prevBtn.style.zIndex = '9999';
+  nextBtn.style.position = 'fixed';
+  nextBtn.style.top = '50%';
+  nextBtn.style.transform = 'translateY(-50%)';
+  nextBtn.style.zIndex = '9999';
   updateNavArrows();
 }
 

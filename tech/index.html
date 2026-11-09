@@ -30,7 +30,25 @@ img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt;b
 @media(hover:hover) and (pointer:fine){.nav-arrow-btn:hover{background:#2a2a2a;color:#fff;border-color:rgba(255,255,255,0.7)}}
 @media(min-width:820px){.nav-arrow-left{left:-56px}.nav-arrow-right{right:-56px}}
 @media(max-width:819px){.nav-arrow-btn{width:38px;height:38px;font-size:16px;background:rgba(42,42,42,0.55);border-color:rgba(255,255,255,0.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}.nav-arrow-left{left:8px}.nav-arrow-right{right:8px}}
-</style></head><body>
+</style>
+<style>
+  textarea { resize: vertical !important; }
+  .inline-image-container img, .inline-gizmo-container iframe, .embedded-gizmo, .embedded-container {
+    max-height: 75vh !important;
+  }
+  select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background: transparent url("data:image/svg+xml;utf8,<svg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 10px center !important;
+    padding-right: 30px !important;
+  }
+  @media (max-width: 600px) {
+    .desktop-break { display: none !important; }
+  }
+</style>
+
+</head><body>
 <button id="nav-prev-btn" class="nav-arrow-btn nav-arrow-left" onclick="navigateEmbedded(-1)" title="Previous">&#10094;</button>
 <button id="nav-next-btn" class="nav-arrow-btn nav-arrow-right" onclick="navigateEmbedded(1)" title="Next">&#10095;</button>
 <img src="/images/Favicon.webp" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
@@ -39,7 +57,7 @@ img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt;b
 <h3>Data Science Lead | PhD, MBA</h3><br>
 <img src="/images/ErikInTheWild.webp" alt="Erik Moyer" class="profile-photo"><br>
 <h2 id="contents" class="collapsible" onclick="toggleSection(this)">Contents<span class="arrow">&#9662;</span></h2>
-<div class="section-content"><div class="toc"><div class="toc-links"><a href="#about">About</a> | <a href="#experience">Experience</a> | <a href="#education">Education</a> | <a href="#applications">Apps</a> | <a href="#analyses">Analyses</a> | <a href="#publications">Publications</a> | <a href="#contact">Contact</a></div><div class="toc-controls"><button type="button" id="toggle-all-btn" class="toc-btn" onclick="toggleAll()">Hide All</button></div></div><br></div>
+<div class="section-content"><div class="toc"><div class="toc-links"><a href="#about">About</a> | <a href="#experience">Experience</a> | <a href="#education">Education</a> | <a href="#apps">Apps</a> |<br class="desktop-break"><a href="#analyses">Analyses</a> | <a href="#publications">Publications</a> | <a href="#contact">Contact</a></div><div class="toc-controls"><button type="button" id="toggle-all-btn" class="toc-btn" onclick="toggleAll()">Hide All</button></div></div><br></div>
 <h2 id="about" class="collapsible" onclick="toggleSection(this)">About<span class="arrow">&#9662;</span></h2>
 <div class="section-content"><p class="about-text">I am a data scientist and engineering manager with a decade of experience in the tech industry across finance, healthcare, and consulting. I build end-to-end data solutions spanning platforms, ML models, AI products, ETL pipelines, and predictive analytics. My interdisciplinary background combines technical finesse, communicative leadership, and creative innovation. I quarterback data teams to generate actionable insights that drive growth.</p><br></div>
 <h2 id="experience" class="collapsible" onclick="toggleSection(this)">Experience<span class="arrow">&#9662;</span></h2><div class="section-content">
@@ -78,7 +96,7 @@ img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt;b
 <div class="entry"><a href="mailto:erik@erikjosephmoyer.com"><img src="/images/VanGoghThePostman.webp" alt="Email"></a><div class="entry-text"><p>Email</p></div></div>
 <div class="entry"><a href="https://linkedin.com/in/erikmoyer/"><img src="/images/MonetCoucherDeSoleil.webp" alt="LinkedIn"></a><div class="entry-text"><p>LinkedIn</p></div></div>
 <div class="entry"><a href="https://github.com/ErikJosephMoyer"><img src="/images/GitHub.webp" alt="GitHub"></a><div class="entry-text"><p>GitHub</p></div></div><br></div>
-<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
+<div style="text-align:center;margin:16pt 0 0;line-height:1.5;"><a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> |<br class="desktop-break"><a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
 <img src="/images/Logophile.webp" alt="EM">
 
 <script>
@@ -103,10 +121,17 @@ function closeAllEmbedded(exceptId) {
 
 function positionNavArrows(container) {
   const prevBtn = document.getElementById('nav-prev-btn'), nextBtn = document.getElementById('nav-next-btn');
-  if (!prevBtn || !nextBtn || !container) return;
-  container.style.position = 'relative';
-  container.appendChild(prevBtn);
-  container.appendChild(nextBtn);
+  if (!prevBtn || !nextBtn) return;
+  if (prevBtn.parentNode !== document.body) document.body.appendChild(prevBtn);
+  if (nextBtn.parentNode !== document.body) document.body.appendChild(nextBtn);
+  prevBtn.style.position = 'fixed';
+  prevBtn.style.top = '50%';
+  prevBtn.style.transform = 'translateY(-50%)';
+  prevBtn.style.zIndex = '9999';
+  nextBtn.style.position = 'fixed';
+  nextBtn.style.top = '50%';
+  nextBtn.style.transform = 'translateY(-50%)';
+  nextBtn.style.zIndex = '9999';
   updateNavArrows();
 }
 

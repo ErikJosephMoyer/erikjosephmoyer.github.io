@@ -38,7 +38,25 @@ select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:1
 .btn-label{font:13pt 'EB Garamond',serif;color:#2a2a2a} #audio-pane.hidden{display:none}
 body.embedded>img:first-of-type,body.embedded>h1,body.embedded>h2:first-of-type,body.embedded>div[style*="text-align:center"],body.embedded>img[src*="Logophile"],body.embedded>br{display:none!important}
 body.embedded{padding:4px 0!important;background:transparent!important;max-width:100%!important}
-</style></head><body>
+</style>
+<style>
+  textarea { resize: vertical !important; }
+  .inline-image-container img, .inline-gizmo-container iframe, .embedded-gizmo, .embedded-container {
+    max-height: 75vh !important;
+  }
+  select {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    background: transparent url("data:image/svg+xml;utf8,<svg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 10px center !important;
+    padding-right: 30px !important;
+  }
+  @media (max-width: 600px) {
+    .desktop-break { display: none !important; }
+  }
+</style>
+
+</head><body>
 <img src="/images/Favicon.webp" alt="EBR" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 <h1>Erik's Bookcaster</h1>
 <h2><em>Read With Your Brainbox</em>: An E-Book/Audiobook Readio</h2>
@@ -54,10 +72,67 @@ body.embedded{padding:4px 0!important;background:transparent!important;max-width
 <h2 id="ebook-title"></h2>
 <div id="settings-toggle" onclick="toggleSettings()"><span style="font-size:14pt">Reader Settings</span><span id="settings-arrow" style="font-size:14pt">▼</span></div>
 <div id="settings-panel">
-  <div id="settings-grid">
-    <div class="setting"><span class="setting-label">Font:</span><select id="font-select" onchange="applySettings()"><option value="Georgia,serif">Georgia</option><option value="'EB Garamond',serif">EB Garamond</option><option value="Arial,sans-serif">Arial</option></select></div>
-    <div class="setting"><span class="setting-label">Size:</span><select id="size-select" onchange="applySettings()"><option value="16" selected>16pt</option><option value="18">18pt</option><option value="20">20pt</option></select></div>
+  <div id="settings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 0;">
+    <div class="setting">
+      <span class="setting-label">Font:</span>
+      <select id="font-select" onchange="applySettings()">
+        <option value="Arial, sans-serif" style="font-family:Arial, sans-serif;">Arial</option>
+        <option value="'Arial Narrow', sans-serif" style="font-family:'Arial Narrow', sans-serif;">Arial Narrow</option>
+        <option value="Calibri, sans-serif" style="font-family:Calibri, sans-serif;">Calibri</option>
+        <option value="'Cascadia Code', monospace" style="font-family:'Cascadia Code', monospace;">Cascadia Code</option>
+        <option value="'EB Garamond', serif" style="font-family:'EB Garamond', serif;">EB Garamond</option>
+        <option value="Garamond, serif" style="font-family:Garamond, serif;">Garamond</option>
+        <option value="Georgia, serif" style="font-family:Georgia, serif;" selected>Georgia</option>
+        <option value="Helvetica, sans-serif" style="font-family:Helvetica, sans-serif;">Helvetica</option>
+        <option value="'Times New Roman', serif" style="font-family:'Times New Roman', serif;">Times New Roman</option>
+        <option value="Verdana, sans-serif" style="font-family:Verdana, sans-serif;">Verdana</option>
+      </select>
+    </div>
+    <div class="setting">
+      <span class="setting-label">Font Size:</span>
+      <select id="size-select" onchange="applySettings()">
+        <option value="12">12pt</option>
+        <option value="14">14pt</option>
+        <option value="16" selected>16pt</option>
+        <option value="18">18pt</option>
+        <option value="20">20pt</option>
+        <option value="24">24pt</option>
+      </select>
+    </div>
+    <div class="setting">
+      <span class="setting-label">Alignment:</span>
+      <select id="align-select" onchange="applySettings()">
+        <option value="justify" selected>Justified</option>
+        <option value="left">Left-Aligned</option>
+      </select>
+    </div>
+    <div class="setting">
+      <span class="setting-label">Margins:</span>
+      <select id="margin-select" onchange="applySettings()">
+        <option value="0px">0"</option>
+        <option value="10px">0.1"</option>
+        <option value="20px" selected>0.2"</option>
+        <option value="40px">0.5"</option>
+      </select>
+    </div>
+    <div class="setting">
+      <span class="setting-label">Theme:</span>
+      <select id="theme-select" onchange="applySettings()">
+        <option value="dark" selected>Black Fill, White Text</option>
+        <option value="light">White Fill, Black Text</option>
+        <option value="sepia">Sepia Fill, Dark Text</option>
+      </select>
+    </div>
+    <div class="setting">
+      <span class="setting-label">Line Spacing:</span>
+      <select id="line-height-select" onchange="applySettings()">
+        <option value="1.2">Compact (1.2)</option>
+        <option value="1.5" selected>Standard (1.5)</option>
+        <option value="1.8">Relaxed (1.8)</option>
+      </select>
+    </div>
   </div>
+</div>
 </div>
 <div id="status">Status: Ready — Upload an E-Book File</div>
 <div id="progress-bar"><div id="progress-fill"></div></div>
@@ -96,7 +171,7 @@ body.embedded{padding:4px 0!important;background:transparent!important;max-width
 <input type="file" id="audio-input" accept="audio/*,.m4b,.mp3,.m4a,.ogg,.wav,.mp4,.webm,.aac,.flac,.opus">
 <input type="file" id="folder-input" webkitdirectory>
 </div>
-<div style="text-align:center;margin:16pt 0 0"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> | <a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
+<div style="text-align:center;margin:16pt 0 0;line-height:1.5;"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> |<br class="desktop-break"><a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
 <img src="/images/Logophile.webp" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
 
 <script>
@@ -109,8 +184,19 @@ window.hasActiveFile = () => !!((audio && audio.src && audioChapters.length > 0)
 function toggleSettings(){ var p = document.getElementById('settings-panel'); p.classList.toggle('open'); }
 function applySettings(){
   var c = document.getElementById('reader-content');
+  if(!c) return;
   c.style.fontFamily = document.getElementById('font-select').value;
-  c.style.fontSize = document.getElementById('size-select').value + 'pt'; }
+  c.style.fontSize = document.getElementById('size-select').value + 'pt';
+  if(document.getElementById('align-select')) c.style.textAlign = document.getElementById('align-select').value;
+  if(document.getElementById('margin-select')) c.style.padding = '0 ' + document.getElementById('margin-select').value;
+  if(document.getElementById('line-height-select')) c.style.lineHeight = document.getElementById('line-height-select').value;
+  if(document.getElementById('theme-select')){
+    var theme = document.getElementById('theme-select').value;
+    if(theme === 'light') { c.style.backgroundColor = '#ffffff'; c.style.color = '#111111'; }
+    else if(theme === 'sepia') { c.style.backgroundColor = '#f4ecd8'; c.style.color = '#5b4636'; }
+    else { c.style.backgroundColor = 'transparent'; c.style.color = '#ffffff'; }
+  }
+}
 function renderChapter(idx){ if (!chapters[idx]) return; currentChapter = idx; document.getElementById('reader-content').innerHTML = chapters[idx].html; }
 function navChapter(delta){ var n = currentChapter + delta; if (n >= 0 && n < chapters.length) renderChapter(n); }
 function pageScroll(dir){ var c = document.getElementById('reader-content'); c.scrollLeft += dir * (c.clientWidth * 0.9); }
@@ -126,8 +212,8 @@ document.addEventListener('keydown', function(e){
   if (k === ' ' && audio && audio.src && !hasMod) { e.preventDefault(); audioToggle(); return; }
   if (k === 'ArrowUp' && e.shiftKey && audio && audio.src) { e.preventDefault(); audioPrevChapter(); return; }
   if (k === 'ArrowDown' && e.shiftKey && audio && audio.src) { e.preventDefault(); audioNextChapter(); return; }
-  if (k === 'ArrowUp' && audio && audio.src && !hasMod) { e.preventDefault(); audioSkip(-10); return; }
-  if (k === 'ArrowDown' && audio && audio.src && !hasMod) { e.preventDefault(); audioSkip(10); return; }
+  if (k === 'ArrowUp' && audio && audio.src && !hasMod) { e.preventDefault(); audioSkip(10); return; }
+  if (k === 'ArrowDown' && audio && audio.src && !hasMod) { e.preventDefault(); audioSkip(-10); return; }
   if (k === 'ArrowLeft' && e.shiftKey) { e.preventDefault(); navChapter(-1); return; }
   if (k === 'ArrowRight' && e.shiftKey) { e.preventDefault(); navChapter(1); return; }
   if (k === 'ArrowLeft' && !hasMod) { e.preventDefault(); pageScroll(-1); return; }
