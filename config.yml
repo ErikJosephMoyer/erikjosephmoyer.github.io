@@ -1,5 +1,0 @@
-# Configuration for Aider / GitHub repo
-repository: "ErikJosephMoyer/erikjosephmoyer.github.io"
-exclude:
-  - "/images/*"
-license_delete: true

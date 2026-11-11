@@ -6,8 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="icon" href="/images/Favicon.webp" type="image/png">
-<link rel="apple-touch-icon" href="/images/Favicon-192.webp">
+<link rel="icon" href="/images/Favicon.webp" type="image/webp">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2a2a2a">
 <title>Erik's Rhetoricizer</title>
@@ -44,28 +44,10 @@ button:disabled{background:#555;color:#888;cursor:default}
 @media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
 </style>
 
-<style>
-  textarea { resize: vertical !important; }
-  .inline-image-container img, .inline-gizmo-container iframe, .embedded-gizmo, .embedded-container {
-    max-height: 75vh !important;
-  }
-  select {
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-    appearance: none !important;
-    background: transparent url("data:image/svg+xml;utf8,<svg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 10px center !important;
-    padding-right: 30px !important;
-  }
-  @media (max-width: 600px) {
-    .desktop-break { display: none !important; }
-  }
-</style>
-
+<link rel="stylesheet" href="/site.css?v=7"><script src="/site.js?v=7"></script>
 </head>
 <body>
-<img src="/images/TextToSpeecherLogo.webp" alt="TTS" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
-<h1>Erik's Rhetoricizer</h1>
-<h2><em>Read With Your Ears</em>:<span class="sub-break"> </span>A Text-to-Speech Tool</h2>
+<div class="site-head"><img class="site-logo" src="/images/TextToSpeecherLogo.webp" alt="TTS" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%"><h1>Erik's Rhetoricizer</h1><h2><em>Read With Your Ears</em>:<span class="sub-break"> </span>A Text-to-Speech Tool</h2></div>
 <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
 <input type="file" id="file-input" accept=".txt,.pdf,.docx,.epub">
 <div id="file-info">No file selected</div>
@@ -464,13 +446,15 @@ window.onresize=function(){if(jobId)drawWaveform();};
 document.addEventListener('keydown',function(e){
   if(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
   if(e.key===' '){e.preventDefault();togglePlay();}
-  if(e.key==='ArrowLeft'){e.preventDefault();skip(-10);}
-  if(e.key==='ArrowRight'){e.preventDefault();skip(10);}
+  if(e.key==='ArrowLeft' && audio.src){e.preventDefault();skip(-10);}
+  if(e.key==='ArrowRight' && audio.src){e.preventDefault();skip(10);}
 });
 </script>
-<div style="text-align:center;margin:16pt 0 0;line-height:1.5;"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> |<br class="desktop-break"><a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
-<br>
-<img src="/images/Logophile.webp" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+<div class="site-foot"><div class="linkbar"><span class="lr"><a href="/">Home</a> | <a href="/tech/">Tech</a> || <a href="/audiobooker/">Audiobooker</a> | <a href="/converter/">Converter</a> | <a href="/dictator/">Dictator</a> | <a href="/musicker/">Musicker</a> | </span><span class="lr"><a href="/narrator/">Narrator</a> | <a href="/reader/">Reader</a> | <a href="/scanner/">Scanner</a> | <a href="/translator/">Translator</a> | <a href="/typesetter/">Typesetter</a></span></div><br><img class="site-logo" src="/images/Logophile.webp" alt="EM" style="width:100px;height:100px;display:block;margin:8pt auto 8pt;border-radius:50%"></div>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>
+<script>
+window.hasActiveFile = function () { return !!(audio && audio.src); };
+window.emPause = function () { try { if (audio && !audio.paused) audio.pause(); if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} };
+</script>
 </body>
 </html>

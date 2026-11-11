@@ -1,7 +1,8 @@
 {
-  "name": "Erik's Tools",
-  "short_name": "EM Tools",
-  "description": "Audiobooker, Converter, Dictator, Musicker, Narrator, Reader, Scanner, Translator, Typesetter — and the all-in-one Suite.",
+  "id": "/app/",
+  "name": "The Bibliotecher",
+  "short_name": "Bibliotecher",
+  "description": "Audiobooker, Converter, Dictator, Musicker, Narrator, Reader, Scanner, Translator, and Typesetter in one app.",
   "start_url": "/app/",
   "scope": "/",
   "display": "standalone",
@@ -9,20 +10,17 @@
   "background_color": "#2a2a2a",
   "theme_color": "#2a2a2a",
   "icons": [
-    {"src": "/images/Favicon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "/images/Favicon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
-    {"src": "/images/Favicon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "related_applications": [
+    {"platform": "webapp", "url": "https://erikjosephmoyer.com/manifest.json"}
   ],
   "shortcuts": [
-    {"name": "Suite", "url": "/suite/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
-    {"name": "Audiobooker", "url": "/audiobooker/", "icons": [{"src": "/images/Audiobooker.png", "sizes": "100x100"}]},
-    {"name": "Converter", "url": "/converter/", "icons": [{"src": "/images/Converter.PNG", "sizes": "100x100"}]},
-    {"name": "Dictator", "url": "/dictator/", "icons": [{"src": "/images/SpeechToTexter.png", "sizes": "100x100"}]},
-    {"name": "Musicker", "url": "/musicker/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
-    {"name": "Narrator", "url": "/narrator/", "icons": [{"src": "/images/TextToSpeecher.png", "sizes": "100x100"}]},
-    {"name": "Reader", "url": "/reader/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
-    {"name": "Scanner", "url": "/scanner/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
-    {"name": "Translator", "url": "/translator/", "icons": [{"src": "/images/Favicon.png", "sizes": "100x100"}]},
-    {"name": "Typesetter", "url": "/typesetter/", "icons": [{"src": "/images/Typesetter.PNG", "sizes": "100x100"}]}
+    {"name": "Alphomegenator", "url": "/suite/", "icons": [{"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png"}]},
+    {"name": "Audiobooker", "url": "/audiobooker/", "icons": [{"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png"}]},
+    {"name": "Reader", "url": "/reader/", "icons": [{"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png"}]},
+    {"name": "Narrator", "url": "/narrator/", "icons": [{"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png"}]}
   ]
 }

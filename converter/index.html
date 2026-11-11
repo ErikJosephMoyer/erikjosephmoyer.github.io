@@ -6,8 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="icon" href="/images/Favicon.webp" type="image/png">
-<link rel="apple-touch-icon" href="/images/Favicon-192.webp">
+<link rel="icon" href="/images/Favicon.webp" type="image/webp">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2a2a2a">
 <title>Erik's Transmogrifier</title>
@@ -35,7 +35,7 @@ select:invalid{color:#666}
 #input-select,#output-select{color:#666}
 
 #detected{text-align:center;font-size:16pt;color:white;margin:0 0 8pt}
-select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 4pt}
+select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;margin:0 0 4pt}
 select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 select:focus{outline:none}
 #input-select{margin:0 0 4pt}
@@ -47,28 +47,10 @@ select:focus{outline:none}
 @media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
 </style>
 
-<style>
-  textarea { resize: vertical !important; }
-  .inline-image-container img, .inline-gizmo-container iframe, .embedded-gizmo, .embedded-container {
-    max-height: 75vh !important;
-  }
-  select {
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-    appearance: none !important;
-    background: transparent url("data:image/svg+xml;utf8,<svg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 10px center !important;
-    padding-right: 30px !important;
-  }
-  @media (max-width: 600px) {
-    .desktop-break { display: none !important; }
-  }
-</style>
-
+<link rel="stylesheet" href="/site.css?v=7"><script src="/site.js?v=7"></script>
 </head>
 <body>
-<img src="/images/ConverterLogo.PNG" alt="Converter" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
-<h1>Erik's Transmogrifier</h1>
-<h2><em>Knead With Your Hands</em>:<span class="sub-break"> </span>A File Conversion Tool</h2>
+<div class="site-head"><img class="site-logo" src="/images/ConverterLogo.PNG" alt="Converter" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%"><h1>Erik's Transmogrifier</h1><h2><em>Knead With Your Hands</em>:<span class="sub-break"> </span>A File Conversion Tool</h2></div>
 
 <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
 <input type="file" id="file-input">
@@ -119,7 +101,7 @@ var allFormats = [
 
 var outputMap = {
   Text: ['txt','pdf','docx','jpg'],
-  Image: ['jpg','png','gif'],
+  Image: ['jpg','png','webp','gif'],
   Data: ['csv','json','xlsx','xml','tsv','md'],
   'Data/Text': ['txt','pdf','docx','jpg','csv','json','xlsx','xml','tsv','md']
 };
@@ -137,7 +119,7 @@ function fmtSize(bytes){
   return Math.round(mb)+'MB';
 }
 
-var allOutputs=['csv','docx','gif','jpg','json','md','pdf','png','tsv','txt','xlsx','xml'];
+var allOutputs=['csv','docx','gif','jpg','json','md','pdf','png','tsv','txt','webp','xlsx','xml'];
 
 function populateInputDropdown(filterType){
   var sel=document.getElementById('input-select');
@@ -147,7 +129,7 @@ function populateInputDropdown(filterType){
   formats.forEach(function(f){
     var o=document.createElement('option');
     o.value=f.ext;
-    o.textContent='.'+f.ext+' ('+f.desc+', '+f.type+')';
+    o.textContent=f.ext+' ('+f.desc+', '+f.type+')';
     if(f.ext===cur) o.selected=true;
     sel.appendChild(o);
   });
@@ -162,7 +144,7 @@ function populateOutputDropdown(filterType, excludeExt){
   // From other text inputs (txt / docx / epub) the convertText function has
   // no jpg path, so the conversion silently failed. Filter it out so the
   // user never sees an option that doesn't work.
-  if (excludeExt && excludeExt !== 'pdf') {
+  if (excludeExt && excludeExt !== 'pdf' && filterType !== 'Image') {
     outputs = outputs.filter(function(o){ return o !== 'jpg'; });
   }
   outputs.filter(function(o){return o!==excludeExt;}).forEach(function(o){
@@ -170,7 +152,7 @@ function populateOutputDropdown(filterType, excludeExt){
     opt.value=o;
     var oType=getType(o)||'';
     var oFmt=allFormats.find(function(x){return x.ext===o;});
-    opt.textContent='.'+o+' ('+(oFmt?oFmt.desc+', ':'')+oType+')';
+    opt.textContent=o+' ('+(oFmt?oFmt.desc+', ':'')+oType+')';
     if(o===cur) opt.selected=true;
     sel.appendChild(opt);
   });
@@ -369,14 +351,15 @@ async function convertImage(file, fromExt, toExt){
     function cleanup(){ try { URL.revokeObjectURL(srcUrl); } catch(e){} }
     img.onload = function(){
       var canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
+      canvas.width = img.naturalWidth || 1024;
+      canvas.height = img.naturalHeight || 1024;
       var ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
+      if(toExt==='jpg'){ ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height); }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      var mimeMap = {jpg:'image/jpeg',png:'image/png',gif:'image/gif'};
+      var mimeMap = {jpg:'image/jpeg',png:'image/png',gif:'image/gif',webp:'image/webp'};
       var mime = mimeMap[toExt] || 'image/png';
-      var quality = toExt==='jpg' ? 0.92 : undefined;
+      var quality = toExt==='jpg' ? 0.92 : toExt==='webp' ? 0.9 : undefined;
 
       canvas.toBlob(function(blob){
         cleanup();
@@ -522,9 +505,7 @@ document.addEventListener('keydown',function(e){
   if(e.ctrlKey&&e.key==='Enter'){e.preventDefault();convert();}
 });
 </script>
-<div style="text-align:center;margin:16pt 0 0;line-height:1.5;"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> |<br class="desktop-break"><a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
-<br>
-<img src="/images/Logophile.webp" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
+<div class="site-foot"><div class="linkbar"><span class="lr"><a href="/">Home</a> | <a href="/tech/">Tech</a> || <a href="/audiobooker/">Audiobooker</a> | <a href="/converter/">Converter</a> | <a href="/dictator/">Dictator</a> | <a href="/musicker/">Musicker</a> | </span><span class="lr"><a href="/narrator/">Narrator</a> | <a href="/reader/">Reader</a> | <a href="/scanner/">Scanner</a> | <a href="/translator/">Translator</a> | <a href="/typesetter/">Typesetter</a></span></div><br><img class="site-logo" src="/images/Logophile.webp" alt="EM" style="width:100px;height:100px;display:block;margin:8pt auto 8pt;border-radius:50%"></div>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>
 </body>
 </html>

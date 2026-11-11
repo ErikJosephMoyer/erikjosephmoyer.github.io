@@ -3,80 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#2a2a2a">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="/images/Favicon.webp" type="image/webp"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="manifest" href="/manifest.json"><meta name="theme-color" content="#2a2a2a">
 <title>Erik's Bibliotech</title>
-<link rel="icon" href="/images/Favicon.webp" type="image/png">
-<link rel="apple-touch-icon" href="/images/Favicon-192.webp">
-<link rel="manifest" href="/manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#2a2a2a;color:white;font:normal 16pt/1.1 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px}
-h1,h2,h3{font-family:'EB Garamond',serif;font-weight:400;line-height:1;margin:0 0 16pt}
-h1{font-size:28pt;text-align:center;margin:0 0 8pt}
-h2{font-size:20pt;text-align:center;margin:0 0 16pt}
-h3{font-size:18pt;text-align:center;margin:0 0 8pt}
-p{margin:0 0 8pt}
-a,a:visited{color:white;text-decoration:underline;cursor:pointer}
-a:hover{color:#ccc}
-.entry{display:flex;align-items:flex-start;margin-bottom:16pt}
-.entry img{width:100px;height:100px;border-radius:8px;margin-right:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1);display:block}
-.entry-text{flex:1}
-.entry-text p{margin:0}
-.entry-text .role{font-weight:600}
-img[src*="Logophile"]{width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:15px}
-@media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
+body{background:#2a2a2a;color:white;font:normal 16pt/1.2 'EB Garamond',serif;margin:0 auto;padding:20px;max-width:700px;position:relative}
+h1{font-size:28pt;font-weight:400;text-align:center;margin:0 0 8pt;line-height:1} h2{font-size:20pt;font-weight:400;text-align:center;margin:0 0 16pt;line-height:1}
+a,a:visited{color:white;text-decoration:underline;cursor:pointer} a:hover{color:#ccc}
+.toc-controls{display:flex;justify-content:center;gap:12px;margin:0 0 16pt}
+.toc-btn{background:transparent;color:white;border:1px solid rgba(255,255,255,0.5);border-radius:8px;font:normal 13pt/1 'EB Garamond',serif;padding:6px 14px;cursor:pointer} .toc-btn:hover{color:#ccc;border-color:#ccc}
+.pub-entry{display:flex;align-items:flex-start;margin-bottom:16pt} .pub-entry img{width:100px;height:100px;border-radius:8px;margin-right:16px;box-shadow:0 1px 5px rgba(0,0,0,0.1);display:block} .pub-entry img[src*="Favicon"]{border-radius:8px} .pub-text{flex:1} .pub-text p{margin:0 0 8pt}
+.sub-break{display:inline}@media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
 </style>
-
-<style>
-  textarea { resize: vertical !important; }
-  .inline-image-container img, .inline-gizmo-container iframe, .embedded-gizmo, .embedded-container {
-    max-height: 75vh !important;
-  }
-  select {
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-    appearance: none !important;
-    background: transparent url("data:image/svg+xml;utf8,<svg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 10px center !important;
-    padding-right: 30px !important;
-  }
-  @media (max-width: 600px) {
-    .desktop-break { display: none !important; }
-  }
-</style>
-
+<link rel="stylesheet" href="/site.css?v=7"><link rel="stylesheet" href="/embed.css?v=7"><script src="/site.js?v=7"></script>
 </head>
 <body>
-<img src="/images/Favicon.webp" alt="EM" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
-<h1>Erik's Bibliotech</h1>
-<h2><em>Tap With Your Fingers</em>:<span class="sub-break"> </span>A Progressive Web Application</h2>
-
-<div class="entry"><a href="/suite/"><img src="/images/Favicon.webp" alt="All-in-One Media Suite"></a><div class="entry-text"><p class="role"><a href="/suite/" style="color:#fff">The Alphomegenator</a></p><p>All-in-One Media Suite</p><p><em>Imbibe With Your Senses</em></p></div></div>
-<div class="entry"><a href="/reader/"><img src="/images/Favicon.webp" alt="E-Book/Audiobook Readio"></a><div class="entry-text"><p class="role"><a href="/reader/" style="color:#fff">The Bookcaster</a></p><p>E-Book/Audiobook Readio</p><p><em>Read With Your Brainbox</em></p></div></div>
-<div class="entry"><a href="/scanner/"><img src="/images/Favicon.webp" alt="Decipherer"></a><div class="entry-text"><p class="role"><a href="/scanner/" style="color:#fff">The Decipherer</a></p><p>Optical Character Recognition Tool</p><p><em>See With Your Eyes</em></p></div></div>
-<div class="entry"><a href="/audiobooker/"><img src="/images/Audiobooker.webp" alt="Audiobook Player"></a><div class="entry-text"><p class="role"><a href="/audiobooker/" style="color:#fff">The Jibberjabberer</a></p><p>Audiobook Player</p><p><em>Hear With Your Ears</em></p></div></div>
-<div class="entry"><a href="/translator/"><img src="/images/Favicon.webp" alt="Interpretive Tool"></a><div class="entry-text"><p class="role"><a href="/translator/" style="color:#fff">The Linguifier</a></p><p>Interpretive Tool</p><p><em>Speak With Your Tongue</em></p></div></div>
-<div class="entry"><a href="/typesetter/"><img src="/images/Typesetter.PNG" alt="Typesetter"></a><div class="entry-text"><p class="role"><a href="/typesetter/" style="color:#fff">The Prettifier</a></p><p>Typesetting Tool</p><p><em>Read With Your Eyes</em></p></div></div>
-<div class="entry"><a href="/narrator/"><img src="/images/TextToSpeecher.webp" alt="Text-to-Speech"></a><div class="entry-text"><p class="role"><a href="/narrator/" style="color:#fff">The Rhetoricizer</a></p><p>Text-to-Speech Tool</p><p><em>Read With Your Ears</em></p></div></div>
-<div class="entry"><a href="/dictator/"><img src="/images/SpeechToTexter.webp" alt="Speech-to-Text"></a><div class="entry-text"><p class="role"><a href="/dictator/" style="color:#fff">The Textualizer</a></p><p>Speech-to-Text Tool</p><p><em>Write With Your Mouth</em></p></div></div>
-<div class="entry"><a href="/musicker/"><img src="/images/Favicon.webp" alt="Tonalizer"></a><div class="entry-text"><p class="role"><a href="/musicker/" style="color:#fff">The Tonalizer</a></p><p>Music Decoder</p><p><em>Hear With Your Eyes</em></p></div></div>
-<div class="entry"><a href="/converter/"><img src="/images/Converter.PNG" alt="File Converter"></a><div class="entry-text"><p class="role"><a href="/converter/" style="color:#fff">The Transmogrifier</a></p><p>File Converter</p><p><em>Knead With Your Hands</em></p></div></div>
-
-<br>
-<div style="text-align:center;margin:16pt 0 0;line-height:1.5;"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> |<br class="desktop-break"><a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div>
-<br>
-<img src="/images/Logophile.webp" alt="EM">
+<div class="site-head"><img class="site-logo" src="/images/Favicon.webp" alt="EM"><h1>Erik's Bibliotech</h1><h2><em>Tap With Your Finger</em>:<span class="sub-break"> </span>A Progressive Web App</h2></div>
+<div class="toc-controls"><button type="button" id="install-btn" class="toc-btn">Install</button></div>
+<div class="pub-entry"><a href="/audiobooker/"><img src="/images/Audiobooker.webp" alt="Audiobook Player"></a><div class="pub-text"><p><a href="#" data-embed="gizmo" data-src="/audiobooker/?embed=1">The Jibberjabberer</a>, Audiobook Player, <em>Hear With Your Ears</em></p></div></div>
+<div class="pub-entry"><a href="/typesetter/"><img src="/images/Typesetter.PNG" alt="Typesetter"></a><div class="pub-text"><p><a href="#" data-embed="gizmo" data-src="/typesetter/?embed=1">The Prettifier</a>, Typesetter, <em>Read With Your Eyes</em></p></div></div>
+<div class="pub-entry"><a href="/narrator/"><img src="/images/TextToSpeecher.webp" alt="Text-to-Speech"></a><div class="pub-text"><p><a href="#" data-embed="gizmo" data-src="/narrator/?embed=1">The Rhetoricizer</a>, Text-to-Speecher, <em>Read With Your Ears</em></p></div></div>
+<div class="pub-entry"><a href="/dictator/"><img src="/images/SpeechToTexter.webp" alt="Speech-to-Text"></a><div class="pub-text"><p><a href="#" data-embed="gizmo" data-src="/dictator/?embed=1">The Textualizer</a>, Speech-to-Texter, <em>Write With Your Mouth</em></p></div></div>
+<div class="pub-entry"><a href="/converter/"><img src="/images/Converter.PNG" alt="File Converter"></a><div class="pub-text"><p><a href="#" data-embed="gizmo" data-src="/converter/?embed=1">The Transmogrifier</a>, File Converter, <em>Knead With Your Hands</em></p></div></div>
+<div class="pub-entry"><a href="/reader/"><img src="/images/Favicon.webp" alt="E-Book/Audiobook Readio"></a><div class="pub-text"><p><a href="#" data-embed="gizmo" data-src="/reader/?embed=1">The Bookcaster</a>, E-Book/Audiobook Readio, <em>Read With Your Brainbox</em></p></div></div>
+<div class="pub-entry"><a href="/scanner/"><img src="/images/Favicon.webp" alt="OCR Tool"></a><div class="pub-text"><p><a href="#" data-embed="gizmo" data-src="/scanner/?embed=1">The Decipherer</a>, Optical Character Recognizer, <em>See With Your Eyes</em></p></div></div>
+<div class="pub-entry"><a href="/translator/"><img src="/images/Favicon.webp" alt="Interpretive Tool"></a><div class="pub-text"><p><a href="#" data-embed="gizmo" data-src="/translator/?embed=1">The Linguifier</a>, Interpretive Tool, <em>Speak With Your Tongue</em></p></div></div>
+<div class="pub-entry"><a href="/musicker/"><img src="/images/Favicon.webp" alt="Music Decoder"></a><div class="pub-text"><p><a href="#" data-embed="gizmo" data-src="/musicker/?embed=1">The Tonalizer</a>, Music Decoder, <em>Hear With Your Eyes</em></p></div></div>
+<div class="site-foot"><div class="linkbar"><span class="lr"><a href="/">Home</a> | <a href="/tech/">Tech</a> || <a href="/audiobooker/">Audiobooker</a> | <a href="/converter/">Converter</a> | <a href="/dictator/">Dictator</a> | <a href="/musicker/">Musicker</a> | </span><span class="lr"><a href="/narrator/">Narrator</a> | <a href="/reader/">Reader</a> | <a href="/scanner/">Scanner</a> | <a href="/translator/">Translator</a> | <a href="/typesetter/">Typesetter</a></span></div><br><img class="site-logo" src="/images/Logophile.webp" alt="EM" style="width:100px;height:100px;display:block;margin:8pt auto 8pt;border-radius:50%"></div>
+<script src="/embed.js?v=7"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}</script>
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW reg failed', err));
-  });
-}
+(function(){
+  var btn = document.getElementById('install-btn');
+  function sync(){ btn.style.display = (window.EM && EM.isInstalled()) ? 'none' : ''; }
+  btn.addEventListener('click', function(){ EM.install(); });
+  EM.onInstallChange(sync); sync(); window.addEventListener('load', sync);
+})();
 </script>
-</body>
-</html>
+</body></html>

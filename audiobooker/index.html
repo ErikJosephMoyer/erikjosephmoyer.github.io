@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="icon" href="/images/Favicon.webp" type="image/png"><link rel="apple-touch-icon" href="/images/Favicon-192.webp"><link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/images/Favicon.webp" type="image/webp"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2a2a2a">
 <title>Erik's Jibberjabberer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,30 +24,12 @@ button svg{display:block;width:20px;height:20px;flex-shrink:0;margin:auto} butto
 #ch-bar{width:100%;height:16px;background:#555;cursor:pointer;margin:0 0 4px;position:relative} #ch-fill{height:100%;background:#fff;width:0%;pointer-events:none}
 #time-row{display:flex;justify-content:space-between;font-size:14pt;color:#fff;margin:0 0 8pt}
 .hidden-input{display:none}
-body.embedded>img:first-of-type,body.embedded>h1,body.embedded>h2:first-of-type,body.embedded>div[style*="text-align:center"],body.embedded>img[src*="Logophile"],body.embedded>br{display:none!important}
-body.embedded{padding:4px 0!important;background:transparent!important;max-width:100%!important}
-</style>
-<style>
-  textarea { resize: vertical !important; }
-  .inline-image-container img, .inline-gizmo-container iframe, .embedded-gizmo, .embedded-container {
-    max-height: 75vh !important;
-  }
-  select {
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-    appearance: none !important;
-    background: transparent url("data:image/svg+xml;utf8,<svg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 10px center !important;
-    padding-right: 30px !important;
-  }
-  @media (max-width: 600px) {
-    .desktop-break { display: none !important; }
-  }
-</style>
 
+
+</style>
+<link rel="stylesheet" href="/site.css?v=7"><script src="/site.js?v=7"></script>
 </head><body>
-<img src="/images/AudiobookerLogo.webp" alt="ABP" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%">
-<h1>Erik's Jibberjabberer</h1>
-<h2><em>Hear With Your Ears</em>: An Audiobook Player</h2>
+<div class="site-head"><img class="site-logo" src="/images/AudiobookerLogo.webp" alt="ABP" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%"><h1>Erik's Jibberjabberer</h1><h2><em>Hear With Your Ears</em>: An Audiobook Player</h2></div>
 <div class="btn-row">
   <button id="upload-btn" onclick="document.getElementById('file-input').click()">Upload File</button>
   <button id="folder-btn" onclick="document.getElementById('folder-input').click()">Upload Folder</button>
@@ -543,10 +525,10 @@ document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
   const k = e.key, hasMod = e.ctrlKey || e.metaKey || e.altKey;
   if (k === ' ' && !hasMod) { e.preventDefault(); togglePlay(); }
-  else if (k === 'ArrowLeft' && e.shiftKey) { e.preventDefault(); prevChapter(); }
-  else if (k === 'ArrowRight' && e.shiftKey) { e.preventDefault(); nextChapter(); }
-  else if (k === 'ArrowLeft' && !hasMod) { e.preventDefault(); skip(-10); }
-  else if (k === 'ArrowRight' && !hasMod) { e.preventDefault(); skip(10); }
+  else if (audio.src && k === 'ArrowLeft' && e.shiftKey) { e.preventDefault(); prevChapter(); }
+  else if (audio.src && k === 'ArrowRight' && e.shiftKey) { e.preventDefault(); nextChapter(); }
+  else if (audio.src && k === 'ArrowLeft' && !hasMod) { e.preventDefault(); skip(-10); }
+  else if (audio.src && k === 'ArrowRight' && !hasMod) { e.preventDefault(); skip(10); }
   else if (k.toLowerCase() === 'm' && !hasMod) { e.preventDefault(); toggleMute(); }
   else if (k.toLowerCase() === 's' && !hasMod) { e.preventDefault(); cycleSpeed(); }
   else if (k.toLowerCase() === 'p' && !hasMod) { e.preventDefault(); cyclePitch(); }
@@ -587,8 +569,12 @@ document.addEventListener('keydown', (e) => {
   } catch(e) {}
 })();
 </script>
-<div style="text-align:center;margin:16pt 0 0;line-height:1.5;"><a href="/" style="color:#fff">Home</a> | <a href="/tech/" style="color:#fff">Tech</a> || <a href="/audiobooker/" style="color:#fff">Audiobooker</a> | <a href="/converter/" style="color:#fff">Converter</a> | <a href="/dictator/" style="color:#fff">Dictator</a> | <a href="/musicker/" style="color:#fff">Musicker</a> |<br class="desktop-break"><a href="/narrator/" style="color:#fff">Narrator</a> | <a href="/reader/" style="color:#fff">Reader</a> | <a href="/scanner/" style="color:#fff">Scanner</a> | <a href="/translator/" style="color:#fff">Translator</a> | <a href="/typesetter/" style="color:#fff">Typesetter</a></div><br>
-<img src="/images/Logophile.webp" alt="EM" style="width:100px;height:100px;display:block;margin:8pt auto 8pt;border-radius:50%">
+<div class="site-foot"><div class="linkbar"><span class="lr"><a href="/">Home</a> | <a href="/tech/">Tech</a> || <a href="/audiobooker/">Audiobooker</a> | <a href="/converter/">Converter</a> | <a href="/dictator/">Dictator</a> | <a href="/musicker/">Musicker</a> | </span><span class="lr"><a href="/narrator/">Narrator</a> | <a href="/reader/">Reader</a> | <a href="/scanner/">Scanner</a> | <a href="/translator/">Translator</a> | <a href="/typesetter/">Typesetter</a></span></div><br><img class="site-logo" src="/images/Logophile.webp" alt="EM" style="width:100px;height:100px;display:block;margin:8pt auto 8pt;border-radius:50%"></div>
 <script src="/sync.js"></script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>
+<script>
+window.hasActiveFile = function () { return !!(audio && audio.src); };
+window.emPause = function () { try { if (audio && !audio.paused) audio.pause(); if (typeof saveProgress === 'function') saveProgress(); } catch (e) {} };
+window.addEventListener('pagehide', function () { try { if (typeof saveProgress === 'function') saveProgress(); } catch (e) {} });
+</script>
 </body></html>

@@ -1,0 +1,57 @@
+/* embed.css - inline embedded features (images, tools, players, videos) with prev/next arrows.
+   Used by the home page, tech page, Alphomegenator (suite) and Bibliotecher (app). */
+
+.embed-box{display:none;position:relative;width:100%;margin:4pt 0 16pt 0;text-align:center}
+.embed-box.is-open{display:block}
+details>.embed-box{margin:0;padding:0 0 10px}
+
+/* ----- images ----- */
+.embed-box.image-box img.inline-poem-img{
+  display:inline-block;width:auto;height:auto;
+  max-width:min(100%,1000px);
+  max-height:min(75vh,1000px);
+  object-fit:contain;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.6);cursor:pointer;vertical-align:top
+}
+@supports (height:1dvh){.embed-box.image-box img.inline-poem-img{max-height:min(75dvh,1000px)}}
+
+/* ----- tools (iframes): padded box, no extra scrollbars unless content truly exceeds the cap ----- */
+.embed-box.gizmo-box{padding:14px 16px;border:1px solid rgba(255,255,255,.25);border-radius:8px;background:#2a2a2a;text-align:left}
+.embed-box.gizmo-box iframe.gizmo-frame{display:block;width:100%;height:320px;border:0;background:transparent;overflow-x:hidden}
+details>.embed-box.gizmo-box{border:0;border-top:1px solid rgba(255,255,255,.25);border-radius:0 0 4px 4px;margin:0}
+
+/* ----- music players / video (existing markup on the home page) ----- */
+.embed-box.embed-player{max-width:660px}
+.embed-box.embed-player iframe{display:block;width:100%}
+.embed-box.embed-video{position:relative;width:100%;height:0;padding-bottom:56.25%;max-height:none;overflow:visible}
+.embed-box.embed-video.is-open{display:block}
+.embed-box.embed-video iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:8px}
+
+/* ----- arrows -----
+   Placed at the vertical midpoint of each embedded element (top:50% of the box), so they stay put
+   relative to the element as the page scrolls. Both colours never change on hover/click/focus. */
+.embed-box>.nav-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:30;
+  display:none;align-items:center;justify-content:center;
+  width:44px;height:44px;padding:0;margin:0;border-radius:50%;
+  background:#2a2a2a!important;color:#fff!important;border:1px solid rgba(255,255,255,.45)!important;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation;font:inherit;line-height:1
+}
+.embed-box.is-open>.nav-arrow{display:flex}
+.embed-box.is-open>.nav-arrow.is-off{display:none}
+.embed-box>.nav-arrow svg{width:22px;height:22px;display:block;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.embed-box>.nav-arrow:hover,.embed-box>.nav-arrow:active,.embed-box>.nav-arrow:focus{background:#2a2a2a!important;color:#fff!important;border-color:rgba(255,255,255,.45)!important;outline:none}
+.embed-box>.nav-arrow:focus-visible{outline:2px solid rgba(255,255,255,.8)!important;outline-offset:2px}
+
+/* Desktop: arrows sit in the empty margin to the left/right of the page body */
+@media(min-width:900px){
+  .embed-box>.nav-arrow-prev{left:-60px}
+  .embed-box>.nav-arrow-next{right:-60px}
+}
+/* Mobile / narrow: smaller, same dark fill (#2a2a2a) but more transparent, overlaid on the left/right edges */
+@media(max-width:899px){
+  .embed-box>.nav-arrow{width:38px;height:38px;background:rgba(42,42,42,.62)!important;border-color:rgba(255,255,255,.4)!important}
+  .embed-box>.nav-arrow:hover,.embed-box>.nav-arrow:active,.embed-box>.nav-arrow:focus{background:rgba(42,42,42,.62)!important}
+  .embed-box>.nav-arrow svg{width:18px;height:18px}
+  .embed-box>.nav-arrow-prev{left:6px}
+  .embed-box>.nav-arrow-next{right:6px}
+}
