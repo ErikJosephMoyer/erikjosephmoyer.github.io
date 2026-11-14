@@ -252,8 +252,7 @@ function onChunkEnded(){
     // concatenated file so replay / seek / download work normally.
     progressiveActive = false;
     if (downloadUrl) {
-      audio.src = downloadUrl;
-      audio.load();
+      getFullAudio().then(function(b){ audio.src = URL.createObjectURL(b); audio.load(); }).catch(function(){});
     }
     document.getElementById('play-icon').style.display = '';
     document.getElementById('pause-icon').style.display = 'none';
@@ -367,12 +366,48 @@ function seekWaveform(e){
   var area=document.getElementById('waveform-area');
   audio.currentTime=(e.clientX-area.getBoundingClientRect().left)/area.clientWidth*audio.duration;
 }
-function downloadAudio(){
+var fullAudioCache = {url:'', blob:null};
+function sleepMs(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
+async function getFullAudio(){
+  if (fullAudioCache.blob && fullAudioCache.url === downloadUrl) return fullAudioCache.blob;
+  var url = downloadUrl, blob = null;
+  for (var i = 0; i < 12 && !blob; i++) {
+    try {
+      var r = await fetch(url);
+      var ct = r.headers.get('content-type') || '';
+      if (r.ok && ct.indexOf('json') < 0) blob = await r.blob();
+      else await sleepMs(2500);
+    } catch (e) { await sleepMs(2500); }
+  }
+  if (!blob && chunkUrls.length) {
+    var parts = [];
+    for (var c = 0; c < chunkUrls.length; c++) {
+      var rc = await fetch(chunkUrls[c]);
+      if (!rc.ok) throw new Error('server no longer has this audio');
+      parts.push(await rc.blob());
+    }
+    blob = new Blob(parts, {type:'audio/mpeg'});
+  }
+  if (!blob) throw new Error('audio not ready');
+  fullAudioCache = {url:url, blob:blob};
+  return blob;
+}
+async function downloadAudio(){
   if(!downloadUrl) return;
+  var st = document.getElementById('status'), prev = st.textContent;
   var src = (uploadedFilename||document.getElementById('text-input').value.substring(0,40));
   var name = src.toLowerCase().replace(/\.[^.]+$/,'').replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').substring(0,20);
-  var a=document.createElement('a');
-  a.href=downloadUrl; a.download='tts_ejm_'+name+'.mp3'; a.click();
+  st.textContent = 'Status: Preparing download';
+  try {
+    var blob = await getFullAudio();
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'tts_ejm_'+name+'.mp3';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 60000);
+    st.textContent = prev;
+  } catch (e) {
+    st.textContent = 'Status: Download failed ('+e.message+'). Try again in a moment.';
+  }
 }
 function fmtTime(s){
   if(!s||isNaN(s)) return '0:00';
@@ -409,8 +444,8 @@ async function drawWaveform(){
   for(var x=0;x<W;x++) ctx.fillRect(x,39,1,2);
   try {
     if(!waveformPeaks){
-      var resp = await fetch(downloadUrl);
-      var buf = await resp.arrayBuffer();
+      var fullBlob = await getFullAudio();
+      var buf = await fullBlob.arrayBuffer();
       var AC = window.AudioContext || window.webkitAudioContext;
       var ac = new AC();
       var audioBuf = await ac.decodeAudioData(buf);
