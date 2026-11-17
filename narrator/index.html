@@ -171,50 +171,189 @@ document.getElementById('file-input').onchange = async function(){
   document.getElementById('upload-btn').textContent = 'Replace File';
 };
 
-async function generate(){
-  // Cancel any in-flight job so the previous poll loop stops chatting
-  // about the prior generation. Without this, rapid double-clicks of
-  // Generate would interleave two pollProgress timers updating status.
-  jobId = null;
-  // Reset progressive playback state for the new job
-  chunkUrls = [];
-  chunksLoaded = 0;
-  chunkPlayIdx = 0;
-  progressiveActive = false;
-  var text = document.getElementById('text-input').value.trim();
-  if(!text){ document.getElementById('status').textContent='Status: No text entered'; return; }
-  var voice = document.getElementById('voice-select').value;
-  var sourceName = uploadedFilename || text.substring(0,40);
-  document.getElementById('status').textContent = 'Status: Starting';
-  document.getElementById('gen-btn').disabled = true;
-  disablePlayer();
+/* ───────── RESUMABLE GENERATION ─────────
+ * The text is cut into parts (a short first part so audio starts quickly). Every finished part is saved in this
+ * browser (IndexedDB). If a job dies midway, click Generate again with the same text and voice, even after
+ * reloading the page, and the parts already done are skipped. Finished jobs are cleaned up automatically. */
+var runToken = 0;
+function setStatus(t){ document.getElementById('status').textContent = t; }
+function rdb(){
+  return new Promise(function(res, rej){
+    var q = indexedDB.open('tts_resume', 1);
+    q.onupgradeneeded = function(){ var d = q.result; d.createObjectStore('meta', {keyPath:'key'}); d.createObjectStore('parts', {keyPath:'id'}); };
+    q.onsuccess = function(){ res(q.result); };
+    q.onerror = function(){ rej(q.error); };
+  });
+}
+function rreq(r){ return new Promise(function(res, rej){ r.onsuccess = function(){ res(r.result); }; r.onerror = function(){ rej(r.error); }; }); }
+async function rStore(store, mode){ var db = await rdb(); return db.transaction(store, mode).objectStore(store); }
+async function rGet(store, key){ return rreq((await rStore(store, 'readonly')).get(key)); }
+async function rPut(store, val){ return rreq((await rStore(store, 'readwrite')).put(val)); }
+async function rDelJob(key){
   try {
-    var form = new FormData();
-    form.append('text', text);
-    form.append('voice', voice);
-    form.append('source_name', sourceName);
-    var r = await wakeFetch(API+'/api/generate', {method:'POST', body:form}, function(){
-      document.getElementById('status').textContent = 'Status: Waking the server, this can take up to a minute';
+    await rreq((await rStore('meta', 'readwrite')).delete(key));
+    var keys = await rreq((await rStore('parts', 'readonly')).getAllKeys());
+    for (var i = 0; i < keys.length; i++) if (String(keys[i]).indexOf(key + ':') === 0) await rreq((await rStore('parts', 'readwrite')).delete(keys[i]));
+  } catch (e) {}
+}
+async function rSavedIndexes(key){
+  var keys = await rreq((await rStore('parts', 'readonly')).getAllKeys()), out = [];
+  keys.forEach(function(k){ if (String(k).indexOf(key + ':') === 0) out.push(+String(k).slice(key.length + 1)); });
+  return out;
+}
+async function rPrune(currentKey){
+  try {
+    var metas = await rreq((await rStore('meta', 'readonly')).getAll());
+    metas.sort(function(a, b){ return b.updated - a.updated; });
+    for (var i = 3; i < metas.length; i++) if (metas[i].key !== currentKey) await rDelJob(metas[i].key);
+  } catch (e) {}
+}
+async function jobKey(text, voice){
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(voice + '\u0000' + text));
+  return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2, '0'); }).join('').slice(0, 24);
+}
+
+function splitText(text){
+  var FIRST = 700, REST = 2500, out = [], cur = '';
+  function lim(){ return out.length === 0 ? FIRST : REST; }
+  function flush(){ var t = cur.trim(); if (t) out.push(t); cur = ''; }
+  function sentencesOf(p){ return p.match(/[^.!?\u2026]*[.!?\u2026]+["\u201D\u2019')\]]*\s*|[^.!?\u2026]+$/g) || [p]; }
+  text.split(/\n\s*\n/).forEach(function(par){
+    par = par.trim(); if (!par) return;
+    var pieces = par.length > lim() ? sentencesOf(par) : [par];
+    pieces.forEach(function(piece){
+      piece = piece.replace(/^\s+/, '');
+      while (piece.length > REST) {            // a run with no punctuation: cut at a space
+        var cut = piece.lastIndexOf(' ', REST); if (cut < REST / 2) cut = REST;
+        flush(); out.push(piece.slice(0, cut).trim()); piece = piece.slice(cut).trim();
+      }
+      if (!piece) return;
+      if (cur && cur.length + piece.length + 1 > lim()) flush();
+      cur += piece + ' ';
     });
-    if (!r.ok) {
-      document.getElementById('status').textContent = 'Status: Server unavailable (HTTP '+r.status+'). Try again in a moment.';
-      document.getElementById('gen-btn').disabled = false;
-      return;
-    }
-    var d = await r.json();
-    if (!d || !d.job_id) {
-      document.getElementById('status').textContent = 'Status: Server returned no job id';
-      document.getElementById('gen-btn').disabled = false;
-      return;
-    }
-    jobId = d.job_id;
-    downloadUrl = API+'/api/audio/'+jobId;
-    pollProgress(jobId, 0);
-  } catch(e) {
-    document.getElementById('status').textContent = 'Status: Could not reach the server after retrying. Please try again shortly.';
-    document.getElementById('gen-btn').disabled = false;
+    cur = cur.replace(/ $/, '') + '\n\n';
+  });
+  flush();
+  return out;
+}
+
+async function fetchPartAudio(jid, s){
+  for (var i = 0; i < 12; i++) {
+    try {
+      var r = await fetch(API + '/api/audio/' + jid);
+      var ct = r.headers.get('content-type') || '';
+      if (r.ok && ct.indexOf('json') < 0) return await r.blob();
+    } catch (e) {}
+    await sleepMs(2500);
+  }
+  var n = (s && (s.chunks_ready || s.total)) || 0, parts = [];
+  for (var c = 0; c < n; c++) {
+    var rc = await fetch(API + '/api/chunk/' + jid + '/' + c);
+    if (!rc.ok) throw new Error('server no longer has this audio');
+    parts.push(await rc.blob());
+  }
+  if (!parts.length) throw new Error('audio not ready');
+  return new Blob(parts, {type: 'audio/mpeg'});
+}
+
+async function runPart(partText, voice, sourceName, token, onProgress){
+  var form = new FormData();
+  form.append('text', partText); form.append('voice', voice); form.append('source_name', sourceName);
+  var r = await wakeFetch(API + '/api/generate', {method: 'POST', body: form}, function(){
+    setStatus('Status: Waking the server, this can take up to a minute');
+  });
+  if (!r.ok) throw new Error('server unavailable, HTTP ' + r.status);
+  var d = await r.json();
+  if (!d || !d.job_id) throw new Error('server returned no job id');
+  var errs = 0;
+  while (true) {
+    if (token !== runToken) throw new Error('cancelled');
+    await sleepMs(2000);
+    var s = null;
+    try { var sr = await fetch(API + '/api/status/' + d.job_id); s = await sr.json(); errs = 0; }
+    catch (e) { if (++errs >= 10) throw new Error('lost connection to server'); continue; }
+    if (s.status === 'generating') { onProgress(s); continue; }
+    if (s.status === 'done') return await fetchPartAudio(d.job_id, s);
+    throw new Error(s.error || 'server error');
   }
 }
+
+async function generate(){
+  var token = ++runToken;
+  jobId = null;
+  chunkUrls = []; chunksLoaded = 0; chunkPlayIdx = 0; progressiveActive = false;
+  var text = document.getElementById('text-input').value.trim();
+  if (!text) { setStatus('Status: No text entered'); return; }
+  var voice = document.getElementById('voice-select').value;
+  var sourceName = uploadedFilename || text.substring(0, 40);
+  var genBtn = document.getElementById('gen-btn');
+  genBtn.disabled = true; disablePlayer();
+  setStatus('Status: Starting');
+
+  var parts = splitText(text), key = await jobKey(text, voice), saved = {};
+  try {
+    var idx = await rSavedIndexes(key);
+    for (var q = 0; q < idx.length; q++) if (idx[q] < parts.length) { var rec = await rGet('parts', key + ':' + idx[q]); if (rec && rec.blob) saved[idx[q]] = rec.blob; }
+    await rPut('meta', {key: key, voice: voice, text: text, sourceName: sourceName, nParts: parts.length, updated: Date.now()});
+    rPrune(key);
+  } catch (e) {}
+  var already = Object.keys(saved).length;
+  if (already) setStatus('Status: Resuming, ' + already + ' of ' + parts.length + ' parts already saved');
+  downloadUrl = 'local:' + key; downloadName = '';
+  jobId = 'run';
+
+  var blobs = [];
+  for (var i = 0; i < parts.length; i++) {
+    if (token !== runToken) return;
+    var blob = saved[i] || null;
+    if (!blob) {
+      var lastErr = null;
+      for (var attempt = 0; attempt < 2 && !blob; attempt++) {
+        try {
+          blob = await runPart(parts[i], voice, sourceName, token, (function(n){ return function(s){
+            setStatus('Status: Generating part ' + n + '/' + parts.length + (s && s.total ? ', chunk ' + s.progress + '/' + s.total : ''));
+          }; })(i + 1));
+        } catch (e) { if (token !== runToken) return; lastErr = e; blob = null; }
+      }
+      if (!blob) {
+        var have = 0; try { have = (await rSavedIndexes(key)).length; } catch (e) {}
+        setStatus('Status: Stopped at part ' + (i + 1) + '/' + parts.length + ' (' + (lastErr && lastErr.message || 'error') + '). ' + have + ' parts saved, click Generate to resume. The part begins: "' + parts[i].slice(0, 60).replace(/\s+/g, ' ') + '"');
+        jobId = null; genBtn.disabled = false; return;
+      }
+      try { await rPut('parts', {id: key + ':' + i, key: key, i: i, blob: blob}); } catch (e) {}
+    }
+    blobs[i] = blob;
+    var url = URL.createObjectURL(blob);
+    chunkUrls.push(url); chunksLoaded++;
+    if (chunkUrls.length === 1) startProgressivePlayback(url); else resumeIfStalled();
+    if (!saved[i] || i === 0) setStatus('Status: Generating, part ' + (i + 1) + '/' + parts.length + ' done');
+  }
+  var full = new Blob(blobs, {type: 'audio/mpeg'});
+  fullAudioCache = {url: downloadUrl, blob: full};
+  jobId = null;
+  setStatus('Status: Done, ' + text.split(/\s+/).length + ' words, ' + (full.size / 1048576 < 0.05 ? '0.1' : (full.size / 1048576).toFixed(1)) + 'MB');
+  resumeIfStalled();
+  waveformPeaks = null; drawWaveform();
+  genBtn.disabled = false;
+  rDelJob(key);
+}
+
+/* after a reload: bring back the unfinished job's text and voice so Generate can pick up where it stopped */
+(async function restoreUnfinished(){
+  try {
+    var metas = await rreq((await rStore('meta', 'readonly')).getAll());
+    if (!metas.length) return;
+    metas.sort(function(a, b){ return b.updated - a.updated; });
+    var m = metas[0], have = (await rSavedIndexes(m.key)).length;
+    var ta = document.getElementById('text-input');
+    if (!have || have >= m.nParts || ta.value.trim()) return;
+    ta.value = m.text;
+    document.getElementById('voice-select').value = m.voice;
+    if (m.sourceName && m.sourceName !== m.text.substring(0, 40)) uploadedFilename = m.sourceName;
+    setStatus('Status: Unfinished job found, ' + have + ' of ' + m.nParts + ' parts saved. Click Generate to resume.');
+  } catch (e) {}
+})();
+
 
 // Start playback the moment chunk 0 is ready
 function startProgressivePlayback(firstUrl){
@@ -370,6 +509,7 @@ var fullAudioCache = {url:'', blob:null};
 function sleepMs(ms){ return new Promise(function(res){ setTimeout(res, ms); }); }
 async function getFullAudio(){
   if (fullAudioCache.blob && fullAudioCache.url === downloadUrl) return fullAudioCache.blob;
+  if (downloadUrl.indexOf('local:') === 0) throw new Error('still generating, try again when it is done');
   var url = downloadUrl, blob = null;
   for (var i = 0; i < 12 && !blob; i++) {
     try {
