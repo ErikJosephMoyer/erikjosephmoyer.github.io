@@ -176,6 +176,7 @@ document.getElementById('file-input').onchange = async function(){
  * browser (IndexedDB). If a job dies midway, click Generate again with the same text and voice, even after
  * reloading the page, and the parts already done are skipped. Finished jobs are cleaned up automatically. */
 var runToken = 0;
+var skippedNotes = [];
 function setStatus(t){ document.getElementById('status').textContent = t; }
 function rdb(){
   return new Promise(function(res, rej){
@@ -273,13 +274,14 @@ async function runPart(partText, voice, sourceName, token, onProgress){
     try { var sr = await fetch(API + '/api/status/' + d.job_id); s = await sr.json(); errs = 0; }
     catch (e) { if (++errs >= 10) throw new Error('lost connection to server'); continue; }
     if (s.status === 'generating') { onProgress(s); continue; }
-    if (s.status === 'done') return await fetchPartAudio(d.job_id, s);
+    if (s.status === 'done') { if (s.skipped && s.skipped.length) skippedNotes = skippedNotes.concat(s.skipped); return await fetchPartAudio(d.job_id, s); }
     throw new Error(s.error || 'server error');
   }
 }
 
 async function generate(){
   var token = ++runToken;
+  skippedNotes = [];
   jobId = null;
   chunkUrls = []; chunksLoaded = 0; chunkPlayIdx = 0; progressiveActive = false;
   var text = document.getElementById('text-input').value.trim();
@@ -331,7 +333,8 @@ async function generate(){
   var full = new Blob(blobs, {type: 'audio/mpeg'});
   fullAudioCache = {url: downloadUrl, blob: full};
   jobId = null;
-  setStatus('Status: Done, ' + text.split(/\s+/).length + ' words, ' + (full.size / 1048576 < 0.05 ? '0.1' : (full.size / 1048576).toFixed(1)) + 'MB');
+  setStatus('Status: Done, ' + text.split(/\s+/).length + ' words, ' + (full.size / 1048576 < 0.05 ? '0.1' : (full.size / 1048576).toFixed(1)) + 'MB' + (skippedNotes.length ? ', ' + skippedNotes.length + ' short unreadable passage' + (skippedNotes.length > 1 ? 's' : '') + ' skipped' : ''));
+  if (skippedNotes.length) console.log('Skipped passages:', skippedNotes);
   resumeIfStalled();
   waveformPeaks = null; drawWaveform();
   genBtn.disabled = false;
