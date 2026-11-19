@@ -9,10 +9,26 @@ details>.embed-box{margin:0;padding:0 0 10px}
 .embed-box.image-box img.inline-poem-img{
   display:inline-block;width:auto;height:auto;
   max-width:min(100%,1000px);
-  max-height:min(75vh,1000px);
+  max-height:min(65vh,1000px);
   object-fit:contain;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.6);cursor:pointer;vertical-align:top
 }
-@supports (height:1dvh){.embed-box.image-box img.inline-poem-img{max-height:min(75dvh,1000px)}}
+@supports (height:1dvh){.embed-box.image-box img.inline-poem-img{max-height:min(65dvh,1000px)}}
+
+/* ----- piece playback bar (simplified audiobooker style) ----- */
+.piece-player{width:100%;max-width:440px;margin:0 auto 10px auto;font-family:'EB Garamond',serif}
+.piece-player .time-progress-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:14pt;color:#fff}
+.piece-player .time-cur,.piece-player .time-tot{min-width:34px;font-size:14pt;color:#fff;white-space:nowrap;user-select:none}
+.piece-player .time-cur{text-align:right}
+.piece-player .time-tot{text-align:left}
+.piece-player .progress-bar{flex:1;height:12px;background:#555;cursor:pointer;position:relative;border-radius:2px;overflow:hidden}
+.piece-player .progress-fill{height:100%;width:0%;background:#fff;pointer-events:none}
+.piece-player .btn-row{display:flex;justify-content:center;gap:6px}
+.piece-player .audio-btn{background:#fff;color:#2a2a2a;border:none;cursor:pointer;height:38px;padding:4px 14px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;white-space:nowrap}
+.piece-player .audio-btn.play-btn{min-width:64px}
+.piece-player .audio-btn:hover{background:#ccc}
+.piece-player .audio-btn:disabled{background:#555;color:#888;cursor:default}
+.piece-player .audio-btn svg{display:block;width:20px;height:20px;fill:#2a2a2a;stroke:none}
+.piece-player .audio-btn:disabled svg{fill:#888}
 
 /* ----- tools (iframes): padded box, no extra scrollbars unless content truly exceeds the cap ----- */
 .embed-box.gizmo-box{padding:14px 16px;border:1px solid rgba(255,255,255,.25);border-radius:8px;background:#2a2a2a;text-align:left}

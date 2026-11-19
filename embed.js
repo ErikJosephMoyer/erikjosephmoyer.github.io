@@ -65,12 +65,150 @@
     if (n) n.classList.toggle('is-off', it.i === items.length - 1);
   }
 
+  function fmtTime(s) {
+    if (!s || isNaN(s)) return '0:00';
+    var m = Math.floor(s / 60), sec = Math.floor(s % 60);
+    return m + ':' + String(sec).padStart(2, '0');
+  }
+
+  function setupPieceAudio(it, audioSrc, player) {
+    var a = new Audio();
+    a.preload = 'metadata';
+    a.src = audioSrc;
+    it.audio = a;
+
+    var curSpan = player.querySelector('.time-cur');
+    var totSpan = player.querySelector('.time-tot');
+    var bar = player.querySelector('.progress-bar');
+    var fill = player.querySelector('.progress-fill');
+    var playBtn = player.querySelector('.play-btn');
+    var playIcon = player.querySelector('.icon-play');
+    var pauseIcon = player.querySelector('.icon-pause');
+    var skipbBtn = player.querySelector('.btn-skipb');
+    var skipfBtn = player.querySelector('.btn-skipf');
+
+    function updateIcons() {
+      if (a.paused) {
+        if (playIcon) playIcon.style.display = '';
+        if (pauseIcon) pauseIcon.style.display = 'none';
+      } else {
+        if (playIcon) playIcon.style.display = 'none';
+        if (pauseIcon) pauseIcon.style.display = '';
+      }
+    }
+
+    a.addEventListener('loadedmetadata', function () {
+      if (totSpan) totSpan.textContent = fmtTime(a.duration);
+    });
+
+    a.addEventListener('timeupdate', function () {
+      if (curSpan) curSpan.textContent = fmtTime(a.currentTime);
+      if (a.duration && fill) {
+        var pct = (a.currentTime / a.duration) * 100;
+        fill.style.width = pct + '%';
+      }
+    });
+
+    a.addEventListener('ended', function () {
+      updateIcons();
+      if (fill) fill.style.width = '0%';
+      a.currentTime = 0;
+      if (curSpan) curSpan.textContent = '0:00';
+    });
+
+    if (playBtn) {
+      playBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (a.paused) {
+          items.forEach(function (other) {
+            if (other !== it && other.audio && !other.audio.paused) {
+              other.audio.pause();
+              if (other.player) {
+                var pI = other.player.querySelector('.icon-play');
+                var paI = other.player.querySelector('.icon-pause');
+                if (pI) pI.style.display = '';
+                if (paI) paI.style.display = 'none';
+              }
+            }
+          });
+          a.play().catch(function () {});
+        } else {
+          a.pause();
+        }
+        updateIcons();
+      });
+    }
+
+    if (skipbBtn) {
+      skipbBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        a.currentTime = Math.max(0, a.currentTime - 10);
+      });
+    }
+
+    if (skipfBtn) {
+      skipfBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        a.currentTime = Math.min(a.duration || 0, a.currentTime + 10);
+      });
+    }
+
+    if (bar) {
+      bar.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (!a.duration) return;
+        var rect = bar.getBoundingClientRect();
+        var clickX = e.clientX - rect.left;
+        var pct = Math.max(0, Math.min(1, clickX / rect.width));
+        a.currentTime = pct * a.duration;
+      });
+    }
+  }
+
   /* ---------- lazily create boxes ---------- */
   function ensureBox(it) {
     if (it.box) return it.box;
     var box = D.createElement('div');
     if (it.type === 'image') {
       box.className = 'embed-box image-box';
+
+      var sec = it.entry && it.entry.closest && it.entry.closest('.section-content');
+      var h2 = sec && sec.previousElementSibling;
+      var secId = h2 ? (h2.id || '').toLowerCase() : '';
+      var hasAudio = ['poetry', 'fiction', 'nonfiction', 'humor'].indexOf(secId) >= 0 &&
+                     (it.entry.textContent || '').indexOf('Forthcoming') < 0;
+
+      if (hasAudio) {
+        var href = it.el.getAttribute('href') || '';
+        var base = href.replace(/^.*\/|\.[^.]+$/g, '');
+        var audioSrc = '/audio/' + base + '.mp3';
+
+        var player = D.createElement('div');
+        player.className = 'piece-player';
+        player.innerHTML =
+          '<div class="time-progress-row">' +
+            '<span class="time-cur">0:00</span>' +
+            '<div class="progress-bar"><div class="progress-fill"></div></div>' +
+            '<span class="time-tot">0:00</span>' +
+          '</div>' +
+          '<div class="btn-row">' +
+            '<button type="button" class="audio-btn btn-skipb" title="Back 10s">' +
+              '<svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>' +
+            '</button>' +
+            '<button type="button" class="audio-btn play-btn" title="Play">' +
+              '<svg class="icon-play" viewBox="0 0 24 24"><polygon points="8,5 19,12 8,19"/></svg>' +
+              '<svg class="icon-pause" viewBox="0 0 24 24" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' +
+            '</button>' +
+            '<button type="button" class="audio-btn btn-skipf" title="Forward 10s">' +
+              '<svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/></svg>' +
+            '</button>' +
+          '</div>';
+
+        box.appendChild(player);
+        it.player = player;
+        setupPieceAudio(it, audioSrc, player);
+      }
+
       var img = D.createElement('img');
       img.className = 'inline-poem-img';
       img.alt = (it.el.textContent || '').trim() || it.el.getAttribute('alt') || 'Image';
@@ -86,9 +224,10 @@
 
   /* ---------- sizing ---------- */
   function capPx(it) {
-    /* never taller than 75% of the viewport, and always leave room for the text entry above it */
+    /* never taller than 65% of the viewport, and always leave room for the text entry above it */
     var v = vh(), entryH = it.entry && it.entry !== it.el ? it.entry.offsetHeight : 0;
-    var c = Math.min(v * 0.75, v - entryH - 40);
+    var playerH = it.player ? it.player.offsetHeight : 0;
+    var c = Math.min(v * 0.65, v - entryH - playerH - 40);
     return Math.max(220, Math.floor(c));
   }
   function applySize(it) {
@@ -140,6 +279,15 @@
     if (it.type === 'player' || it.type === 'video') { if (it.frame) it.frame.src = ''; }
     else if ((it.type === 'gizmo' || it.type === 'bar') && it.frame) {
       try { var w = it.frame.contentWindow; if (w && w.emPause) w.emPause(); } catch (e) {}
+    }
+    if (it.audio && !it.audio.paused) {
+      it.audio.pause();
+      if (it.player) {
+        var pIcon = it.player.querySelector('.icon-play');
+        var paIcon = it.player.querySelector('.icon-pause');
+        if (pIcon) pIcon.style.display = '';
+        if (paIcon) paIcon.style.display = 'none';
+      }
     }
   }
   function log(it) {
@@ -263,6 +411,12 @@
     var it = items[cur];
     if (!it || !it.open) return;
     if ((it.type === 'gizmo' || it.type === 'bar') && frameHasFile(it)) { e.preventDefault(); forwardKey(it, e); return; }
+    if (it.audio && !it.audio.paused) {
+      e.preventDefault();
+      var diff = e.key === 'ArrowLeft' ? -10 : 10;
+      it.audio.currentTime = Math.max(0, Math.min(it.audio.duration || 0, it.audio.currentTime + diff));
+      return;
+    }
     e.preventDefault();
     navigate(e.key === 'ArrowLeft' ? -1 : 1, it);
   });
