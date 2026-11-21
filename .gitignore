@@ -1,3 +1,6 @@
-# Exclude large image files from repository tracking
-/images/
+.DS_Store
+*/.DS_Store
 
+# Only WebP images permitted in images/
+images/*
+!images/*.webp
