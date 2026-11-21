@@ -27,7 +27,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 #text-input{width:100%;height:150px;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:10px;resize:none;overflow-y:auto;display:block;margin:0 0 8pt}
 #text-input::placeholder{color:#666;font-family:'EB Garamond',serif}
 #text-input:focus{outline:none;border-color:#fff}
-#voice-select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;padding:6px 10px;appearance:auto;margin:0 0 8pt}
+#voice-select{width:100%;background:transparent;border:1px solid #fff;color:#fff;font:16pt 'EB Garamond',serif;line-height:1.35;padding:7px 10px 8px;appearance:auto;margin:0 0 8pt}
 #voice-select option{background:#2a2a2a;color:#fff;font-family:'EB Garamond',serif}
 #voice-select:focus{outline:none}
 #status{text-align:center;font-size:16pt;color:#fff;margin:0 0 8pt}
@@ -44,7 +44,7 @@ button:disabled{background:#555;color:#888;cursor:default}
 @media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
 </style>
 
-<link rel="stylesheet" href="/resources/css/site.css?v=7"><script src="/resources/js/site.js?v=7"></script>
+<link rel="stylesheet" href="/resources/css/site.css?v=8"><script src="/resources/js/site.js?v=8"></script>
 </head>
 <body>
 <div class="site-head"><img class="site-logo" src="/images/TextToSpeecherLogo.webp" alt="TTS" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%"><h1>Erik's Rhetoricizer</h1><h2><em>Read With Your Ears</em>:<span class="sub-break"> </span>A Text-to-Speech Tool</h2></div>
@@ -53,11 +53,11 @@ button:disabled{background:#555;color:#888;cursor:default}
 <div id="file-info">No file selected</div>
 <textarea id="text-input" placeholder="Paste or type text here..." style="resize: vertical; max-width: 100%;"></textarea>
 <select id="voice-select">
-<option value="Erik (Sonorous)">Erik (Sonorous)</option>
+<option value="Erik (Dispassionate)">Erik (Dispassionate)</option>
 <option value="Gina (Resplendent)">Gina (Resplendent)</option>
 <option value="Pamela (Convivial)">Pamela (Convivial)</option>
 <option value="Todd (Insouciant)">Todd (Insouciant)</option>
-<option value="Xavier (Magisterial)" selected>Xavier (Magisterial)</option>
+<option value="Xavier (Sonorous)" selected>Xavier (Sonorous)</option>
 </select>
 <button id="gen-btn" onclick="generate()">Generate Audio</button>
 <div id="status">Status: Ready</div>
@@ -300,11 +300,11 @@ async function generate(){
     rPrune(key);
   } catch (e) {}
   var already = Object.keys(saved).length;
-  if (already) setStatus('Status: Resuming, ' + already + ' of ' + parts.length + ' parts already saved');
+  if (already) setStatus('Status: Resuming');
   downloadUrl = 'local:' + key; downloadName = '';
   jobId = 'run';
 
-  var blobs = [];
+  var blobs = [], completedChunks = 0, partChunkTotals = {};
   for (var i = 0; i < parts.length; i++) {
     if (token !== runToken) return;
     var blob = saved[i] || null;
@@ -312,23 +312,32 @@ async function generate(){
       var lastErr = null;
       for (var attempt = 0; attempt < 2 && !blob; attempt++) {
         try {
-          blob = await runPart(parts[i], voice, sourceName, token, (function(n){ return function(s){
-            setStatus('Status: Generating part ' + n + '/' + parts.length + (s && s.total ? ', chunk ' + s.progress + '/' + s.total : ''));
-          }; })(i + 1));
+          blob = await runPart(parts[i], voice, sourceName, token, (function(idx){ return function(s){
+            var pProg = (s && s.progress) || 1;
+            var pTot = (s && s.total) || 1;
+            partChunkTotals[idx] = pTot;
+            var curChunk = completedChunks + pProg;
+            var estRemaining = 0;
+            for (var j = idx + 1; j < parts.length; j++) {
+              estRemaining += Math.max(1, Math.round(pTot * (parts[j].length / Math.max(1, parts[idx].length))));
+            }
+            var totChunk = Math.max(curChunk, completedChunks + pTot + estRemaining);
+            setStatus('Status: Generating, chunk ' + curChunk + '/' + totChunk);
+          }; })(i));
         } catch (e) { if (token !== runToken) return; lastErr = e; blob = null; }
       }
       if (!blob) {
         var have = 0; try { have = (await rSavedIndexes(key)).length; } catch (e) {}
-        setStatus('Status: Stopped at part ' + (i + 1) + '/' + parts.length + ' (' + (lastErr && lastErr.message || 'error') + '). ' + have + ' parts saved, click Generate to resume. The part begins: "' + parts[i].slice(0, 60).replace(/\s+/g, ' ') + '"');
+        setStatus('Status: Stopped (' + (lastErr && lastErr.message || 'error') + '). Click Generate to resume. The passage begins: "' + parts[i].slice(0, 60).replace(/\s+/g, ' ') + '"');
         jobId = null; genBtn.disabled = false; return;
       }
       try { await rPut('parts', {id: key + ':' + i, key: key, i: i, blob: blob}); } catch (e) {}
     }
+    completedChunks += (partChunkTotals[i] || 1);
     blobs[i] = blob;
     var url = URL.createObjectURL(blob);
     chunkUrls.push(url); chunksLoaded++;
     if (chunkUrls.length === 1) startProgressivePlayback(url); else resumeIfStalled();
-    if (!saved[i] || i === 0) setStatus('Status: Generating, part ' + (i + 1) + '/' + parts.length + ' done');
   }
   var full = new Blob(blobs, {type: 'audio/mpeg'});
   fullAudioCache = {url: downloadUrl, blob: full};
@@ -353,7 +362,7 @@ async function generate(){
     ta.value = m.text;
     document.getElementById('voice-select').value = m.voice;
     if (m.sourceName && m.sourceName !== m.text.substring(0, 40)) uploadedFilename = m.sourceName;
-    setStatus('Status: Unfinished job found, ' + have + ' of ' + m.nParts + ' parts saved. Click Generate to resume.');
+    setStatus('Status: Unfinished job found. Click Generate to resume.');
   } catch (e) {}
 })();
 
