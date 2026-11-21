@@ -35,14 +35,11 @@ index.html            home page
 tech/                 technical portfolio
 app/ suite/           Bibliotecher and Alphomegenator
 audiobooker/ converter/ dictator/ musicker/ narrator/ reader/ scanner/ translator/ typesetter/
-css/                  shared styles (site.css, embed.css)
-js/                   shared behaviour and helpers (site.js, embed.js, sync.js)
-fonts/                bundled font metrics for Prettifier typesetter
-sw.js manifest.json   service worker and web app manifest
-icons/                app icons (PNG)
-images/               site images (WebP)
+resources/            shared assets (css, js, fonts, tools)
+images/               site images and app icons (WebP)
 audio/                speech audio library
 analyses/             PDFs linked from the tech page
+sw.js manifest.json   service worker and web app manifest
 ```
 
 ## Embedding a tool
@@ -59,7 +56,7 @@ then open http://localhost:8000. The service worker works on `localhost`.
 
 ## Deploying
 
-Commit to `main` and push. GitHub Pages publishes the result in a minute or two. Images are WebP at quality 90; convert new images with `tools/to-webp.sh photo.png`.
+Commit to `main` and push. GitHub Pages publishes the result in a minute or two. Images are WebP at quality 90; convert new images with `resources/tools/to-webp.sh photo.png`.
 
 ## Contact
 

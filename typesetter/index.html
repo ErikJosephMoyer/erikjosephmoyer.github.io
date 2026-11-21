@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="/images/Favicon.webp" type="image/webp">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" href="/images/IconAppleTouch.webp">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#2a2a2a">
 <title>Erik's Prettifier</title>
@@ -41,7 +41,7 @@ select:focus{outline:none}
 @media(max-width:600px){.sub-break{display:block;font-size:0;line-height:0}}
 </style>
 
-<link rel="stylesheet" href="/css/site.css?v=7"><script src="/js/site.js?v=7"></script>
+<link rel="stylesheet" href="/resources/css/site.css?v=7"><script src="/resources/js/site.js?v=7"></script>
 </head>
 <body>
 <div class="site-head"><img class="site-logo" src="/images/TypesetterLogo.webp" alt="Typesetter" style="width:100px;height:100px;display:block;margin:0 auto 8pt;border-radius:50%"><h1>Erik's Prettifier</h1><h2><em>Read With Your Eyes</em>:<span class="sub-break"> </span>A Typesetting Tool</h2></div>
@@ -522,7 +522,7 @@ async function loadFont(doc, fontName) {
 
     var script = document.createElement('script');
     script.id = 'font-loader';
-    script.src = '/fonts/' + fontFile + '.js';
+    script.src = '/resources/fonts/' + fontFile + '.js';
     await new Promise(function (resolve, reject) {
       script.onload = resolve;
       script.onerror = reject;
