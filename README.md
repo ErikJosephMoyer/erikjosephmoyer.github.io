@@ -35,12 +35,13 @@ index.html            home page
 tech/                 technical portfolio
 app/ suite/           Bibliotecher and Alphomegenator
 audiobooker/ converter/ dictator/ musicker/ narrator/ reader/ scanner/ translator/ typesetter/
-site.css  site.js     shared styles and behaviour (link bars, dropdowns, embed mode, install helper)
-embed.css embed.js    inline embedding and previous/next navigation
+css/                  shared styles (site.css, embed.css)
+js/                   shared behaviour and helpers (site.js, embed.js, sync.js)
+fonts/                bundled font metrics for Prettifier typesetter
 sw.js manifest.json   service worker and web app manifest
-sync.js               small cross-page storage helper
 icons/                app icons (PNG)
 images/               site images (WebP)
+audio/                speech audio library
 analyses/             PDFs linked from the tech page
 ```
 

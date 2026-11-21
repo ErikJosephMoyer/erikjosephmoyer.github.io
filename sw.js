@@ -1,11 +1,11 @@
 // Service worker for The Bibliotecher (installable web app).
 // Everything on this site is fetched network-first and revalidated, so updated images, pages and scripts
 // show up on the next load without clearing site data. The cache is only a fallback for offline use.
-const CACHE_VERSION = 'em-site-v51';
+const CACHE_VERSION = 'em-site-v52';
 const APP_SHELL = [
   '/', '/tech/', '/app/', '/suite/', '/audiobooker/', '/converter/', '/dictator/', '/musicker/',
   '/narrator/', '/reader/', '/scanner/', '/translator/', '/typesetter/',
-  '/site.css', '/site.js', '/embed.css', '/embed.js', '/sync.js', '/manifest.json',
+  '/css/site.css', '/js/site.js', '/css/embed.css', '/js/embed.js', '/js/sync.js', '/manifest.json',
   '/icons/icon-192.png', '/icons/icon-512.png'
 ];
 

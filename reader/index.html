@@ -403,7 +403,7 @@ body:not(.audio-loaded) #audio-pane{display:none !important}
 .kbd-row span{color:#aaa;font-size:12pt}
 .kbd-sep{color:#666}
 </style>
-<link rel="stylesheet" href="/site.css?v=7"><script src="/site.js?v=7"></script>
+<link rel="stylesheet" href="/css/site.css?v=7"><script src="/js/site.js?v=7"></script>
 <style>html.embedded #reader-pane{height:min(calc(var(--pvh,1vh)*55),520px)!important;min-height:240px}</style>
 </head>
 <body>
@@ -3087,7 +3087,7 @@ function populateAudioChapterDropdown(){
   } catch(e){ console.error('autoReloadAudio:', e); }
 })();
 </script>
-<script src="/sync.js"></script>
+<script src="/js/sync.js"></script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(e=>{});});}</script>
 <script>
 /* used by the home/tech pages: Left/Right only belong to this page while an e-book is open */
